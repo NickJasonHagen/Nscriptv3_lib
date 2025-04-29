@@ -497,65 +497,6 @@ impl <'a> Nscript<'a>{
                 };
                 return retvar;
             }
-            "RFN" =>{
-                self.execute_prerustfunction(&line[1],&line[2], block);
-            }
-            "init" => {
-                let script = self.getwordstring(&line[1],&formattedblock, block);
-                return self.parsefile(&script);
-            }
-            "match" =>{
-                let tomatch = self.executeword(&line[1],&formattedblock, block);
-                let thisvar =  self.matchscope(&tomatch.stringdata,line[line.len()-1].parse::<usize>().unwrap_or(0)-1,&formattedblock, block);
-                return thisvar;
-            }
-            "BRK" =>{
-                retvar.name = "return".to_string();
-                retvar.stringdata = "break".to_string();
-                return retvar;
-            }
-            "RET" =>{
-                retvar.name = "return".to_string();
-                retvar.stringdata = "".to_string();
-                return retvar;
-            }
-            "DBGY" =>{
-                retvar = self.executeword(&line[1],&formattedblock,block);
-                print(&format!("{} => [{}]",&line[1],&retvar.stringdata),"y");
-                return retvar;
-            }
-            "DBGR" =>{
-                retvar = self.executeword(&line[1],&formattedblock,block);
-
-                print(&format!("{} => [{}]",&line[1] ,&retvar.stringdata),"r");
-
-                return retvar;
-            }
-            "RV" =>{
-                retvar = self.executeword(&line[1],&formattedblock, block);
-                retvar.name = "return".to_string();
-                return retvar;
-            }
-            "return" =>{
-                retvar = self.executeword(&line[1], &formattedblock,block);
-                retvar.name = "return".to_string();
-                return retvar;
-            }
-            "R_FN" =>{
-                retvar = self.execute_prencfunction(&line[3],&line,&formattedblock, block);
-                retvar.name = "return".to_string();
-                return retvar;
-            }
-            "R_RFN" =>{
-                retvar = self.execute_prerustfunction(&line[2],&line[2], block);
-                retvar.name = "return".to_string();
-                return retvar;
-            }
-            "R_NFN" =>{
-                retvar = self.execute_nestedfunction(&line[2],&formattedblock, block);
-                retvar.name = "return".to_string();
-                return retvar;
-            }
             "NFN" =>{
                  self.execute_nestedfunction(&line[1],&formattedblock, block);
             }
@@ -626,6 +567,66 @@ impl <'a> Nscript<'a>{
                 }
                 block.setvar(&line[1], onvar);
             }
+            "RFN" =>{
+                self.execute_prerustfunction(&line[1],&line[2], block);
+            }
+            "init" => {
+                let script = self.getwordstring(&line[1],&formattedblock, block);
+                return self.parsefile(&script);
+            }
+            "match" =>{
+                let tomatch = self.executeword(&line[1],&formattedblock, block);
+                let thisvar =  self.matchscope(&tomatch.stringdata,line[line.len()-1].parse::<usize>().unwrap_or(0)-1,&formattedblock, block);
+                return thisvar;
+            }
+            "BRK" =>{
+                retvar.name = "return".to_string();
+                retvar.stringdata = "break".to_string();
+                return retvar;
+            }
+            "RET" =>{
+                retvar.name = "return".to_string();
+                retvar.stringdata = "".to_string();
+                return retvar;
+            }
+            "DBGY" =>{
+                retvar = self.executeword(&line[1],&formattedblock,block);
+                print(&format!("{} => [{}]",&line[1],&retvar.stringdata),"y");
+                return retvar;
+            }
+            "DBGR" =>{
+                retvar = self.executeword(&line[1],&formattedblock,block);
+
+                print(&format!("{} => [{}]",&line[1] ,&retvar.stringdata),"r");
+
+                return retvar;
+            }
+            "RV" =>{
+                retvar = self.executeword(&line[1],&formattedblock, block);
+                retvar.name = "return".to_string();
+                return retvar;
+            }
+            "return" =>{
+                retvar = self.executeword(&line[1], &formattedblock,block);
+                retvar.name = "return".to_string();
+                return retvar;
+            }
+            "R_FN" =>{
+                retvar = self.execute_prencfunction(&line[3],&line,&formattedblock, block);
+                retvar.name = "return".to_string();
+                return retvar;
+            }
+            "R_RFN" =>{
+                retvar = self.execute_prerustfunction(&line[2],&line[2], block);
+                retvar.name = "return".to_string();
+                return retvar;
+            }
+            "R_NFN" =>{
+                retvar = self.execute_nestedfunction(&line[2],&formattedblock, block);
+                retvar.name = "return".to_string();
+                return retvar;
+            }
+
             "SETC" =>{
                 self.execute_setclassfromclass(&line[1],&line[3],&formattedblock, block);
                 return retvar;
@@ -721,14 +722,14 @@ impl <'a> Nscript<'a>{
             "FRTO" =>{
                 self.execute_fortoloop(&line,&formattedblock,block);
             }
-            "CC" =>{
+            "CC" =>{//concate self
                 let mut equalsfrom = self.executeword(&line[1], &formattedblock,block);
                 for xadd in 3..line.len(){
                     equalsfrom.stringdata = equalsfrom.stringdata + &self.executeword(&(line[xadd].to_string()),&formattedblock,block).stringdata.to_string();
                 }
                 self.setdefiningword(&line[1], equalsfrom, &formattedblock,block);
             }
-            "SS" =>{
+            "SS" =>{// sebtract self
                 let mut onvar = self.executeword(&line[1],&formattedblock, block);
                 let mut total = onvar.getnumber();
                 for x in 3..line.len(){
@@ -737,7 +738,7 @@ impl <'a> Nscript<'a>{
                 onvar.stringdata = total.to_string();
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
-            "AA" =>{
+            "AA" =>{ // add se;f
                 let mut onvar = self.executeword(&line[1],&formattedblock, block);
                 let mut total = onvar.getnumber();
                 for x in 3..line.len(){
@@ -746,7 +747,7 @@ impl <'a> Nscript<'a>{
                 onvar.stringdata = total.to_string();
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
-            "SBL" =>{
+            "SBL" =>{// set bool
                 let mut stringvec:Vec<String> = Vec::new();
                 stringvec.push("if".to_string());
                 for x in 3..line.len(){
@@ -1140,82 +1141,91 @@ impl <'a> Nscript<'a>{
     }
     fn execute_nestedfunction(&mut self,word:&str,formattedblock: &NscriptFormattedCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
 
-                let mut resultstring = word.to_string();
-                let mut packed: String;
-                let mut subfunction: String;
+        let mut resultstring = word.to_string();
+        let mut packed: String;
+        let mut subfunction: String;
+        let mut varcounter = 0;
+        loop {
+            varcounter +=1;
+            // get the last find in the string using (
+            let splitstr = split(&resultstring, "(");
+            // make sure its inside the main function so bigger>2
+            if splitstr.len() > 2 {
+                //take that substring and split up to the first )
+                let splitscope = split(&splitstr[splitstr.len() - 1], ")");
+                if splitscope.len() > 0 {
+                    // important one, if a variable or string is infron it
+                    // messes up the syntax so we split using comma
+                    let splitargus = split(&splitstr[splitstr.len() - 2], ",");
+                    // here we set thisfnname to the last part of the comma split
+                    let thisfnnamefix = splitargus[splitargus.len() - 1]; // make sure the function
+                    // here we check if the function given is reflected if so we evaluate the value of
+                    // the var and executre the function of the data from that var as a string
+                    if Nstring::fromleft(&splitstr[splitstr.len() - 2], 1) == "*" {
+                        let splitdot = split(&thisfnnamefix,".");
+                        if splitdot.len() > 1 {
 
-                loop {
-                    // get the last find in the string using (
-                    let splitstr = split(&resultstring, "(");
-                    // make sure its inside the main function so bigger>2
-                    if splitstr.len() > 2 {
-                        //take that substring and split up to the first )
-                        let splitscope = split(&splitstr[splitstr.len() - 1], ")");
-                        if splitscope.len() > 0 {
-                            // important one, if a variable or string is infron it
-                            // messes up the syntax so we split using comma
-                            let splitargus = split(&splitstr[splitstr.len() - 2], ",");
-                            // here we set thisfnname to the last part of the comma split
-                            let thisfnnamefix = splitargus[splitargus.len() - 1]; // make sure the function
-                            // here we check if the function given is reflected if so we evaluate the value of
-                            // the var and executre the function of the data from that var as a string
-                            if Nstring::fromleft(&splitstr[splitstr.len() - 2], 1) == "*" {
-                                let splitdot = split(&thisfnnamefix,".");
-                                if splitdot.len() > 1 {
-
-                                    let mut part1 = splitdot[0].to_string();
-                                    let mut part2 = splitdot[1].to_string();
-                                    if Nstring::fromleft(&splitdot[0], 1) == "*"{
-                                        part1 = self.getwordstring(&Nstring::trimleft(&splitdot[0], 1),&formattedblock, block);
-                                    }
-
-                                    if Nstring::fromleft(&splitdot[1], 1) == "*"{
-                                        part2 = self.getwordstring(&Nstring::trimleft(&splitdot[1], 1),&formattedblock, block);
-                                    }
-                                    let thisfnnamefix2 = part1.to_string() + "." + &part2;
-                                    //print(&thisfnnamefix2,"r");
-                                    subfunction = "".to_owned() + &thisfnnamefix2
-                                        + "(" + &splitscope[0]+ ")";
-
-                                }else{
-                                    subfunction = "".to_owned()
-                                        + &self.executeword(&Nstring::replace(&thisfnnamefix, "*", ""),&formattedblock,block).stringdata
-                                        + "(" + &splitscope[0]+ ")";
-
-                                }
-                            } else {
-                                // if its a normal funcion we run it.
-                                subfunction = "".to_owned() + &thisfnnamefix + "(" + &splitscope[0] + ")";
+                            let mut part1 = splitdot[0].to_string();
+                            let mut part2 = splitdot[1].to_string();
+                            if Nstring::fromleft(&splitdot[0], 1) == "*"{
+                                part1 = self.getwordstring(&Nstring::trimleft(&splitdot[0], 1),&formattedblock, block);
                             }
-                            // here we evaluate the none function types.
-                            packed = "^".to_owned() + &string_to_hex(&self.executeword(&subfunction,&formattedblock, block).stringdata);
-                        } else {
-                            // this also evaluates variables macros strings etc
-                            subfunction = "".to_owned() + &splitscope[0]; //&splitstr[splitstr.len()-1];
-                            packed = "^".to_owned() + &string_to_hex(&self.executeword(&splitscope[0],&formattedblock, block).stringdata);
-                        }
-                        let mut reflect = false;
-                        if splitscope.len() > 0 {
-                            // so this replaces the evaluated values in the word's() when
-                            // its all done it will return 1 function to parseline() wich be used to set the
-                            // variable
-                            if Nstring::fromleft(&splitstr[splitstr.len() - 2], 1) == "*" {
-                                subfunction = "".to_owned() + &splitstr[splitstr.len() - 2] + "(" + &splitscope[0] + ")";
-                                resultstring = Nstring::replace(&resultstring, &subfunction, &packed);
-                                reflect = true
+
+                            if Nstring::fromleft(&splitdot[1], 1) == "*"{
+                                part2 = self.getwordstring(&Nstring::trimleft(&splitdot[1], 1),&formattedblock, block);
                             }
-                        }
-                        if reflect == false {
-                            // very important! this reforms the strings till its made back to 1 function with
-                            // all evaluated data types. when this is done theres no double (( )) insde the
-                            // code and this function will exit and return the 1-function to parse_line()
-                            resultstring = Nstring::replace(&resultstring, &subfunction, &packed);
+                            let thisfnnamefix2 = part1.to_string() + "." + &part2;
+                            //print(&thisfnnamefix2,"r");
+                            subfunction = "".to_owned() + &thisfnnamefix2
+                                + "(" + &splitscope[0]+ ")";
+
+                        }else{
+                            subfunction = "".to_owned()
+                                + &self.executeword(&Nstring::replace(&thisfnnamefix, "*", ""),&formattedblock,block).stringdata
+                                + "(" + &splitscope[0]+ ")";
+
                         }
                     } else {
-                        break;
+                        // if its a normal funcion we run it.
+                        subfunction = "".to_owned() + &thisfnnamefix + "(" + &splitscope[0] + ")";
+                    }
+                    let varname = "nestedfn_".to_string() + &varcounter.to_string();
+                    let mut tmpvar = self.executeword(&subfunction,&formattedblock, block);
+                    tmpvar.name = varname.to_string();
+                    packed = tmpvar.name.to_string();
+                    block.setvar(&varname, tmpvar);
+                    // here we evaluate the none function types.
+                } else {
+                    // this also evaluates variables macros strings etc
+                    subfunction = "".to_owned() + &splitscope[0]; //&splitstr[splitstr.len()-1];
+                    let varname = "nestedfn_".to_string() + &varcounter.to_string();
+                    let mut tmpvar = self.executeword(&subfunction,&formattedblock, block);
+                    tmpvar.name = varname.to_string();
+                    packed = tmpvar.name.to_string();
+                    block.setvar(&varname, tmpvar);
+                }
+                let mut reflect = false;
+                if splitscope.len() > 0 {
+                    // so this replaces the evaluated values in the word's() when
+                    // its all done it will return 1 function to parseline() wich be used to set the
+                    // variable
+                    if Nstring::fromleft(&splitstr[splitstr.len() - 2], 1) == "*" {
+                        subfunction = "".to_owned() + &splitstr[splitstr.len() - 2] + "(" + &splitscope[0] + ")";
+                        resultstring = Nstring::replace(&resultstring, &subfunction, &packed);
+                        reflect = true
                     }
                 }
-                return self.executeword(&resultstring,&formattedblock, block);
+                if reflect == false {
+                    // very important! this reforms the strings till its made back to 1 function with
+                    // all evaluated data types. when this is done theres no double (( )) insde the
+                    // code and this function will exit and return the 1-function to parse_line()
+                    resultstring = Nstring::replace(&resultstring, &subfunction, &packed);
+                }
+            } else {
+                break;
+            }
+        }
+        return self.executeword(&resultstring,&formattedblock, block);
 
     }
     pub fn getwordstring(&mut self,word:&str,formattedblock: &NscriptFormattedCodeBlock, block:&mut NscriptCodeBlock) -> String{
@@ -1226,9 +1236,9 @@ impl <'a> Nscript<'a>{
             NscriptWordTypes::Static =>{
                 return block.staticstrings[Nstring::trimleft(word, 1).parse::<usize>().unwrap_or(0)].to_string();
             }
-            NscriptWordTypes::Hexstring =>{
-                return hex_to_string(&Nstring::trimleft(word, 1));
-            }
+            // NscriptWordTypes::Hexstring =>{
+            //     return hex_to_string(&Nstring::trimleft(word, 1));
+            // }
             NscriptWordTypes::Macro =>{
                 return self.storage.getmacrostring(word);
             }
@@ -1311,11 +1321,11 @@ impl <'a> Nscript<'a>{
             NscriptWordTypes::Classfunc =>{
                 return self.execute_classfunction(word,&formattedblock, block);
             }
-            NscriptWordTypes::Hexstring =>{
-                let mut thisvar = NscriptVar::new("hexstring");
-                thisvar.stringdata = hex_to_string(&Nstring::trimleft(word, 1));
-                return thisvar;
-            }
+            // NscriptWordTypes::Hexstring =>{
+            //     let mut thisvar = NscriptVar::new("hexstring");
+            //     thisvar.stringdata = hex_to_string(&Nstring::trimleft(word, 1));
+            //     return thisvar;
+            // }
             NscriptWordTypes::Macro =>{
 
                 let mut var = NscriptVar::new("macro");
@@ -1731,9 +1741,9 @@ impl <'a> Nscript<'a>{
             "*" => {
                 return NscriptWordTypes::Reflection;
             }
-            "^" => {
-                return NscriptWordTypes::Hexstring;
-            }
+            // "^" => {
+            //     return NscriptWordTypes::Hexstring;
+            // }
             _ => {
                 return NscriptWordTypes::Variable;
             }

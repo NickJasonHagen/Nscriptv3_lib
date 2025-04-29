@@ -324,7 +324,7 @@ pub enum NscriptWordTypes {
     Number,
     Bool,
     Static,
-    Hexstring,
+    //Hexstring,
     Classfunc,
     Nestedfunc,
     Arraydeclaration,
@@ -371,9 +371,6 @@ impl NscriptStorage{
         match self.argtype(word){
             NscriptWordTypes::Static =>{
                 return block.staticstrings[Nstring::trimleft(word, 1).parse::<usize>().unwrap_or(0)].to_string();
-            }
-            NscriptWordTypes::Hexstring =>{
-                return hex_to_string(&Nstring::trimleft(word, 1));
             }
             NscriptWordTypes::Global => {
                 return self.getglobal(&word).stringdata.to_string();
@@ -487,9 +484,6 @@ impl NscriptStorage{
             "$" => {
                 return NscriptWordTypes::Global;//"global".to_string();
             }
-            // "[" =>{
-            //     return NscriptWordTypes::Global;//"arraydeclaration".to_string();
-            //}
             "~" => {
                 return NscriptWordTypes::Static;//"static".to_string();
             }
@@ -498,9 +492,6 @@ impl NscriptStorage{
             }
             "*" => {
                 return NscriptWordTypes::Reflection;//"reflection".to_string();
-            }
-            "^" => {
-                return NscriptWordTypes::Hexstring;//"hexstring".to_string();
             }
             _ => {
                 return NscriptWordTypes::Variable;//"variable".to_string();

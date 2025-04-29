@@ -61,7 +61,8 @@ impl  <'a> Nscript<'a>{
                             socketvar.stringdata = remote_ip.to_string();
                             self.storage.setglobal("$socketip",socketvar);
                             let mut block = NscriptCodeBlock::new("httplisten");
-                            let onconnectvar = self.executeword("server.onconnect($socketip)", &mut block);
+                            let formattedblock = block.formattedcode.clone();
+                            let onconnectvar = self.executeword("server.onconnect($socketip)",&formattedblock, &mut block);
                             if onconnectvar.stringdata == "false" {
                                 var.stringdata = format!("connection server.onconnect($socketip) returned false -> closed");
                             }
@@ -99,6 +100,7 @@ impl  <'a> Nscript<'a>{
         let mut buffer = [0; 1024];
         //stream.read(&mut buffer).unwrap();
         let mut connectionblock = NscriptCodeBlock::new("connection");
+        let  formattedblock = connectionblock.formattedcode.clone();
         match stream.read(&mut buffer) {
             Ok(_) => {
                 // procceed the connection.
@@ -161,7 +163,7 @@ impl  <'a> Nscript<'a>{
                 //newparams.push(String::from(""));
             }
         }
-        let mut webroot = self.executeword("server.serverroot",&mut connectionblock).stringdata.to_string();
+        let mut webroot = self.executeword("server.serverroot",&formattedblock,&mut connectionblock).stringdata.to_string();
         if webroot == "" {
             webroot = "./".to_string();
         }
@@ -215,7 +217,7 @@ impl  <'a> Nscript<'a>{
                         //return;
                     }
                 }
-                if bsize > nscript_usize(&self.executeword("server.POSTbytesmax", &mut connectionblock).stringdata) {
+                if bsize > nscript_usize(&self.executeword("server.POSTbytesmax",&formattedblock, &mut connectionblock).stringdata) {
                     let response = "SERVERERROR:PostSizeExceedsLimit";
                     match stream.write(response.as_bytes()) {
                         Ok(_) => {

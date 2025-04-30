@@ -804,6 +804,8 @@ impl <'a> Nscript<'a>{
         //print(&getcode,"y");
         coroutineblock.staticstrings = block.staticstrings.clone();
         coroutineblock.formattedcode = block.formattedcode.clone();
+        let scopeid = Nstring::usize(&line[line.len()-1]);
+        coroutineblock.formattedcode.code[0] = coroutineblock.formattedcode.code[scopeid-1].clone();
         //coroutineblock.subblockmap = block.subblockmap.clone();
         self.addcoroutine(&coname);
         self.storage.codeblocks.insert(coname,coroutineblock );

@@ -266,6 +266,49 @@ impl <'a> Nscript<'a>{
         }
         njhoutput.to_string()
     }
+    pub fn object_to_json(&mut self,objectname:&str) ->NscriptVar{
+        let mut var = NscriptVar::new("json");
+        let mut jsonstring = String::from("{");
+        if let Some(class) = self.storage.getclassref(&objectname){
+            for propname in class.index.clone() {
+
+                jsonstring = jsonstring + "\"" + &propname + "\": \"" + &class.getprop(&propname).stringdata + "\",";
+            }
+            if Nstring::fromright(&jsonstring, 1) == "," {
+                jsonstring = Nstring::trimright(&jsonstring, 1);
+            }
+        }
+
+        jsonstring = jsonstring + "}";
+        var.stringdata = jsonstring;
+        var
+    }
+    pub fn object_from_json(&mut self,objectname:&str,json:&str){
+        let json = Nstring::trimright(&Nstring::trimleft(&json, 1), 1); // strip {}
+
+        if let Some(class) = self.storage.getclassref(&objectname){
+            for each in split(&json, "\",") {
+                let splitprop = split(&each, "\": \"");
+                if splitprop.len() > 1 {
+                    //let nscriptprop = "".to_owned() + &obj.trim() + "." + &Nstring::trimleft(&splitprop[0], 1);
+                    let mut var = NscriptVar::new("prop");
+                    if Nstring::fromright(splitprop[1],1) == "\"" {
+                        //println!("setting [{}] with data[{}]", &nscriptprop, &splitprop[1]);
+                        var.name = Nstring::trimleft(&splitprop[0],1);
+                        var.stringdata =Nstring::trimleft(&splitprop[1],1);
+                        class.setprop(splitprop[0],var)
+                    }
+                    else{
+                        var.name = Nstring::trimleft(&splitprop[0],1);
+                        var.stringdata =splitprop[1].to_string();
+                        class.setprop(splitprop[0],var)
+
+                    }
+
+                }
+            }
+        }
+    }
     pub fn njh_objecttofile(&mut self,objectname:&str,filepath:&str){
         Nfile::write(&filepath,&self.njh_fromobject(objectname));
     }

@@ -1617,6 +1617,14 @@ impl <'a> Nscript<'a>{
                             retvar.stringvec = class.parents.clone();
                         }
                     }
+                    "tojson" =>{
+                        return self.object_to_json(&argvarvec[0].stringdata);
+                    }
+                    "fromjson" =>{
+                        if argvarvec.len() > 1{
+                             self.object_from_json(&argvarvec[0].stringdata,&argvarvec[1].stringdata);
+                        }
+                    }
                     _ => {
 
                     }

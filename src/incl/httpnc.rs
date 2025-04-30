@@ -152,21 +152,14 @@ impl  <'a> Nscript<'a>{
             url_args = split(pathparts[1], "&");
         }
         let mut name:String;
-        // clear them (as their global they will remain if a user doesnt give any args)
-        for i in 1..10 {
-            name = "$param".to_string() + &i.to_string();
-            self.storage.setglobal(&name, NscriptVar::new(&name));
-        }
-        for i in 1..10 {
-            name = "$param".to_string() + &i.to_string();
-            if url_args.len() > i - 1 {
 
-                let mut paramvar = NscriptVar::new(&name);
+        for i in 1..10 {
+            name = "$param".to_string() + &i.to_string();
+            let mut paramvar = NscriptVar::new(&name);
+            if url_args.len() > i - 1 {
                 paramvar.stringdata = decode_html_url(&url_args[i - 1].to_owned());
-                self.storage.setglobal(&name, paramvar);
-            } else {
-                //newparams.push(String::from(""));
             }
+            self.storage.setglobal(&name, paramvar);
         }
         let mut webroot = self.executeword("server.serverroot",&formattedblock,&mut connectionblock).stringdata.to_string();
         if webroot == "" {

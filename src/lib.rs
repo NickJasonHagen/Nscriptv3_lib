@@ -55,7 +55,4 @@ pub const NC_SCRIPT_DIR: &str = ".\\";
 const NC_LINE_ENDING: &'static str = "\n";
 #[cfg(not(windows))]
 pub const NC_LINE_ENDING: &'static str = "\n";
-//pub use std::io::{self, Write,Read};
-//fn main() {
-//    testmain();
-//}
+

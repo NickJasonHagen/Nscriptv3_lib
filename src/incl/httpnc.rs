@@ -413,6 +413,12 @@ impl  <'a> Nscript<'a>{
 }
 
 }
+
+pub fn nscriptfn_decode_html_url(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let mut nvar = NscriptVar::new("decode");
+    nvar.stringdata = decode_html_url(&storage.getargstring(&args[0], block));
+    nvar
+}
 pub fn decode_html_url(url: &str) -> String {
     let entities = [
         ("&amp;", "&"),

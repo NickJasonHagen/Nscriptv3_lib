@@ -139,6 +139,7 @@ impl <'a> Nscript<'a>{
             self.insertfn("aabb_removefromgroup", nscriptfn_aabb_getgroup);
             self.insertfn("aabb_getcollisions", nscriptfn_aabb_getcollisions);
             self.insertfn("aabb_removegroup", nscriptfn_aabb_getcollisions);
+            self.insertfn("decode_html_url", nscriptfn_decode_html_url);
 
         }
     }

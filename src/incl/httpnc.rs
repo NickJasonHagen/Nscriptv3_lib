@@ -152,6 +152,11 @@ impl  <'a> Nscript<'a>{
             url_args = split(pathparts[1], "&");
         }
         let mut name:String;
+        // clear them (as their global they will remain if a user doesnt give any args)
+        for i in 1..10 {
+            name = "$param".to_string() + &i.to_string();
+            self.storage.setglobal(&name, NscriptVar::new(&name));
+        }
         for i in 1..10 {
             name = "$param".to_string() + &i.to_string();
             if url_args.len() > i - 1 {

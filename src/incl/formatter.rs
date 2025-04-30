@@ -1511,7 +1511,7 @@ impl <'a> Nscript<'a>{
             getblock = func.codeblock.copy();
             args = func.args.clone();
         }else{
-            print(&format!("no functions found for [{}]",&funcname),"r");
+            print(&format!("no functions found for [{}] in block: [{}]",&funcname,&block.name),"r");
         }
         for xarg in args{
             if givenargs.len() > i{
@@ -1644,7 +1644,7 @@ impl <'a> Nscript<'a>{
                             self.njh_stringtoobject(&argvarvec[0].stringdata,& argvarvec[1].stringdata);
                         }
                     }
-                    "objecttostring"=>{
+                    "objecttostring" | "fromobject"=>{
                         var.stringdata = self.njh_fromobject(&argvarvec[0].stringdata).to_string();
                     }
                     "load" =>{

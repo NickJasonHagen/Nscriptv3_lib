@@ -49,6 +49,7 @@ impl <'a> Nscript<'a>{
         let mut filedata = "\n".to_string() + &Nstring::replace(&code,"\"{","\" {");
         filedata = self.stripcomments(&filedata);
         filedata = self.stringextract(&filedata);// pre work creates it to hex! ^hexed,
+        filedata = self.array_scopeextract(&filedata);// multiline array parse to 1 line,
         filedata = self.fixdoublespaces(&filedata);
         filedata = "\n".to_string() + &filedata;
         filedata = self.thread_scopeextract(&filedata,&mut thiscodescope);
@@ -56,6 +57,8 @@ impl <'a> Nscript<'a>{
         filedata = self.func_scopeextract(&filedata,"");
         filedata
     }
+
+    /// preproccessor insert word[0] on the line for the interpreter to speed things up..
     pub fn preproccessblock(&mut self,block:&mut NscriptCodeBlock){
         block.formattedcode.code[0] = self.preprocesscode(&mut block.formattedcode.code[0]);
         if block.formattedcode.code.len() > 0 {
@@ -66,8 +69,29 @@ impl <'a> Nscript<'a>{
         self.formattedblocks.insert(block.name.to_string(), block.formattedcode.clone());
 
     }
-    /// preproccessor insert word[0] on the line for the interpreter to speed things up..
-
+    /// this formats a multiline array to a single line
+    pub fn array_scopeextract(&mut self,code: &str) -> String {
+        let mut i = 0; //<-- serves to filter first split wich isnt if found but default.
+        let mut fixedcode = code.to_string();
+        let classes: Vec<String> = fixedcode.split("= [\n").map(String::from).collect();
+        for eachclass in classes {
+            if i > 0 {
+                if eachclass != "" {
+                    let blockend = split(&eachclass, "\n]")[0];
+                    let isblockorigin = "= [\n".to_owned() + blockend + "\n]";
+                    let replacement = Nstring::replace(blockend, ",\n", "\n");
+                    let replacement = Nstring::replace(&replacement, "\n", " ");
+                    //let replacement = Nstring::replace(&replacement, " ", "");
+                    let replacement = "= cat[] ".to_owned() + &replacement + "";
+                    //println!("array:{}",&replacement);
+                    let replacement = Nstring::replace(&replacement, ",]", "]");
+                    fixedcode = fixedcode.replace(&isblockorigin, &replacement);
+                }
+            }
+            i += 1;
+        }
+        fixedcode
+    }
     fn fixdoublespaces(&mut self,code:&str)->String{
         let mut fixed = code.to_string();
         loop {
@@ -1624,6 +1648,7 @@ impl <'a> Nscript<'a>{
                         if argvarvec.len() > 1{
                              self.object_from_json(&argvarvec[0].stringdata,&argvarvec[1].stringdata);
                         }
+                        retvar.stringdata = argvarvec[0].stringdata.to_string();
                     }
                     _ => {
 

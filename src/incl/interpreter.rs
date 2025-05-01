@@ -285,28 +285,45 @@ impl <'a> Nscript<'a>{
     }
     pub fn object_from_json(&mut self,objectname:&str,json:&str){
         let json = Nstring::trimright(&Nstring::trimleft(&json, 1), 1); // strip {}
-
+        // if it exists, extent it
         if let Some(class) = self.storage.getclassref(&objectname){
             for each in split(&json, "\",") {
                 let splitprop = split(&each, "\": \"");
                 if splitprop.len() > 1 {
-                    //let nscriptprop = "".to_owned() + &obj.trim() + "." + &Nstring::trimleft(&splitprop[0], 1);
                     let mut var = NscriptVar::new("prop");
                     if Nstring::fromright(splitprop[1],1) == "\"" {
-                        //println!("setting [{}] with data[{}]", &nscriptprop, &splitprop[1]);
                         var.name = Nstring::trimleft(&splitprop[0],1);
-                        var.stringdata =Nstring::trimleft(&splitprop[1],1);
-                        class.setprop(splitprop[0],var)
+                        var.stringdata =Nstring::trimright(&splitprop[1],1);
+                        class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
                     }
                     else{
                         var.name = Nstring::trimleft(&splitprop[0],1);
                         var.stringdata =splitprop[1].to_string();
-                        class.setprop(splitprop[0],var)
-
+                        class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
                     }
-
                 }
             }
+        }
+        // if it doesnt exist , create a new class
+        else{
+            let mut class = NscriptClass::new(&objectname);
+            for each in split(&json, "\",") {
+                let splitprop = split(&each, "\": \"");
+                if splitprop.len() > 1 {
+                    let mut var = NscriptVar::new("prop");
+                    if Nstring::fromright(splitprop[1],1) == "\"" {
+                        var.name = Nstring::trimleft(&splitprop[0],1);
+                        var.stringdata =Nstring::trimright(&splitprop[1],1);
+                       class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
+                    }
+                    else{
+                        var.name = Nstring::trimleft(&splitprop[0],1);
+                        var.stringdata =splitprop[1].to_string();
+                       class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
+                    }
+                }
+            }
+            self.storage.classes.insert(objectname.to_string(),class);
         }
     }
     pub fn njh_objecttofile(&mut self,objectname:&str,filepath:&str){

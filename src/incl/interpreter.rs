@@ -113,6 +113,8 @@ impl <'a> Nscript<'a>{
             self.insertfn("random", nscriptfn_random);
             self.insertfn("arraycontains", nscriptfn_arraycontains);
             self.insertfn("arraypush", nscriptfn_arraypush);
+            self.insertfn("arrayinsert", nscriptfn_arrayinsert);
+            self.insertfn("arraysort", nscriptfn_arraysort);
             self.insertfn("arrayretain", nscriptfn_arrayretain);
             self.insertfn("arrayshuffle", nscriptfn_arrayshuffle);
             self.insertfn("arrayreverse", nscriptfn_arrayreverse);

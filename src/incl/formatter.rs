@@ -62,10 +62,13 @@ impl <'a> Nscript<'a>{
 
     /// preproccessor insert word[0] on the line for the interpreter to speed things up..
     pub fn preproccessblock(&mut self,block:&mut NscriptCodeBlock){
-        block.formattedcode.code[0] = self.preprocesscode(&mut block.formattedcode.code[0]);
+        let mut fblock = block.formattedcode.clone();
+        block.formattedcode.code[0] = self.preprocesscode(&mut fblock.code[0]);
         if block.formattedcode.code.len() > 0 {
             for xid in 1..block.formattedcode.code.len(){
-                block.formattedcode.code[xid] = self.preprocesscode(&mut block.formattedcode.code[xid]);
+
+                let mut fblock = block.formattedcode.clone();
+                block.formattedcode.code[xid] = self.preprocesscode(&mut fblock.code[xid]);
             }
         }
         self.formattedblocks.insert(block.name.to_string(), block.formattedcode.clone());
@@ -118,7 +121,7 @@ impl <'a> Nscript<'a>{
         let formattedblock = block.formattedcode.clone();
         if let Some(returnvar) = self.executescope(&formattedblock.code[0],&formattedblock, block){
                 if returnvar.name == "return" {
-                    print(&format!("final execblock: returing [{}]",&returnvar.name),"g");
+                    //print(&format!("final execblock: returing [{}]",&returnvar.name),"g");
                     return returnvar;
                 }
         }
@@ -164,6 +167,7 @@ impl <'a> Nscript<'a>{
         }
         return toreturn;
     }
+
     /// inserts a keystring infront of the lines to speed up the runtime.
     /// this ensures that word[0] will be the right instruction
     pub fn preprocesscode(&mut self, code:&mut Vec<Vec<String>>) -> Vec<Vec<String>>{
@@ -253,7 +257,32 @@ impl <'a> Nscript<'a>{
                                     }
                                     NscriptWordTypes::Nestedfunc =>{
                                         xline.insert(0,"NFN".to_string());
-                                        preprocessedvec.push(xline.to_owned());
+                                        let extract =self.extract_nestedfunction(&xline[1]);
+                                        let breakupword = split(&extract," ");
+                                        let mut newwordvec:Vec<String> = Vec::new();
+                                        newwordvec.push("NFN".to_string());
+                                        for xword in breakupword.clone(){
+                                            match self.checkwordtype(&xword){
+                                                NscriptWordTypes::Structfn => {
+                                                    newwordvec.push("SF".to_string());
+                                                }
+                                                NscriptWordTypes::Classfunc => {
+                                                    newwordvec.push("CF".to_string());
+                                                }
+                                                _ => {
+                                                    if let Some(_) = self.rustfunctions.get_mut(&split(&xword,"(")[0].to_string()){
+                                                        newwordvec.push("RF".to_string());
+                                                    }else{
+                                                        newwordvec.push("F".to_string());
+                                                    }
+                                                }
+                                            }
+                                            let argsplit = split(xword,"(");
+                                            newwordvec.push(argsplit[0].to_string());
+                                            newwordvec.push(split(argsplit[1],")")[0].to_string());
+                                            //newwordvec.push(xword.to_string());
+                                        }
+                                        preprocessedvec.push(newwordvec);
                                     }
                                     _ =>{}
                             }
@@ -340,78 +369,78 @@ impl <'a> Nscript<'a>{
                         }
                     }
 
-                }
-                _ =>{
-                    match xline[0].as_str(){
-                        "if" | "elseif" | "else" | "match" | "spawnthread" | "coroutine" | "loop" =>{
-                            preprocessedvec.push(xline.to_owned());
-                        }
-                        "for" => {
-                            if xline[2] == "in" {
-                                xline.insert(0,"FRIN".to_string());
+                    }
+                    _ =>{
+                        match xline[0].as_str(){
+                            "if" | "elseif" | "else" | "match" | "spawnthread" | "coroutine" | "loop" =>{
                                 preprocessedvec.push(xline.to_owned());
                             }
-                            else if xline[2] == "to" {
-                                xline.insert(0,"FRTO".to_string());
-                                preprocessedvec.push(xline.to_owned());
-                            }
-                        }
-                        _ =>{
-                            match xline[1].as_str(){
-                                ":" =>{
-                                    xline.insert(0,"SETC".to_string());
+                            "for" => {
+                                if xline[2] == "in" {
+                                    xline.insert(0,"FRIN".to_string());
                                     preprocessedvec.push(xline.to_owned());
                                 }
-                                "=" => {
-                                    match xline[2].as_str(){
-                                        "vec" => {
-                                            if xline[4] == "to" {
-                                                xline.insert(0,"SVTO".to_string());
-                                                preprocessedvec.push(xline.to_owned());
-                                            }
-                                            if xline[4] == "in" {
-                                                xline.insert(0,"SVIN".to_string());
-                                                preprocessedvec.push(xline.to_owned());
-                                            }
-                                        }
-                                        "string" => {
-                                            if xline[4] == "to" {
-                                                xline.insert(0,"SSTO".to_string());
-                                                preprocessedvec.push(xline.to_owned());
-                                            }
-                                            if xline[4] == "in" {
-                                                xline.insert(0,"SSIN".to_string());
-                                                preprocessedvec.push(xline.to_owned());
-                                            }
-                                        }
-                                        "cat" => {
-                                            xline.insert(0,"SCAT".to_string());
-                                            preprocessedvec.push(xline.to_owned());
-                                        }
-                                        "cat[]" => {
-                                            xline.insert(0,"SVCAT".to_string());
-                                            preprocessedvec.push(xline.to_owned());
-                                        }
-                                        "match" => {
-                                            xline.insert(0,"SMATCH".to_string());
-                                            preprocessedvec.push(xline.to_owned());
-                                        }
-                                        "math" =>{
-                                            if xline[4] == "+" || xline[4] == "-" || xline[4] == "/"  || xline[4] == "*"{
-                                                xline.insert(0,"M4".to_string());
-                                                preprocessedvec.push(xline.to_owned());
-                                            }
-                                        }
-                                        _ =>{
-                                            if xline.len() > 3 {
-                                                if xline[3] == "+" || xline[3] == "-" || xline[3] == "/"  || xline[3] == "*"{
-                                                    xline.insert(0,"M3".to_string());
+                                else if xline[2] == "to" {
+                                    xline.insert(0,"FRTO".to_string());
+                                    preprocessedvec.push(xline.to_owned());
+                                }
+                            }
+                            _ =>{
+                                match xline[1].as_str(){
+                                    ":" =>{
+                                        xline.insert(0,"SETC".to_string());
+                                        preprocessedvec.push(xline.to_owned());
+                                    }
+                                    "=" => {
+                                        match xline[2].as_str(){
+                                            "vec" => {
+                                                if xline[4] == "to" {
+                                                    xline.insert(0,"SVTO".to_string());
                                                     preprocessedvec.push(xline.to_owned());
                                                 }
-                                                else if xline[3] == "!=" || xline[3] == ">=" || xline[3] == "<="  || xline[3] == "==" || xline[3] == "<" || xline[3] == ">"{
-                                                    xline.insert(0,"SBL".to_string());
+                                                if xline[4] == "in" {
+                                                    xline.insert(0,"SVIN".to_string());
                                                     preprocessedvec.push(xline.to_owned());
                                                 }
+                                            }
+                                            "string" => {
+                                                if xline[4] == "to" {
+                                                    xline.insert(0,"SSTO".to_string());
+                                                    preprocessedvec.push(xline.to_owned());
+                                                }
+                                                if xline[4] == "in" {
+                                                    xline.insert(0,"SSIN".to_string());
+                                                    preprocessedvec.push(xline.to_owned());
+                                                }
+                                            }
+                                            "cat" => {
+                                                xline.insert(0,"SCAT".to_string());
+                                                preprocessedvec.push(xline.to_owned());
+                                            }
+                                            "cat[]" => {
+                                                xline.insert(0,"SVCAT".to_string());
+                                                preprocessedvec.push(xline.to_owned());
+                                            }
+                                            "match" => {
+                                                xline.insert(0,"SMATCH".to_string());
+                                                preprocessedvec.push(xline.to_owned());
+                                            }
+                                            "math" =>{
+                                                if xline[4] == "+" || xline[4] == "-" || xline[4] == "/"  || xline[4] == "*"{
+                                                    xline.insert(0,"M4".to_string());
+                                                    preprocessedvec.push(xline.to_owned());
+                                                }
+                                            }
+                                            _ =>{
+                                                if xline.len() > 3 {
+                                                    if xline[3] == "+" || xline[3] == "-" || xline[3] == "/"  || xline[3] == "*"{
+                                                        xline.insert(0,"M3".to_string());
+                                                        preprocessedvec.push(xline.to_owned());
+                                                    }
+                                                    else if xline[3] == "!=" || xline[3] == ">=" || xline[3] == "<="  || xline[3] == "==" || xline[3] == "<" || xline[3] == ">"{
+                                                        xline.insert(0,"SBL".to_string());
+                                                        preprocessedvec.push(xline.to_owned());
+                                                    }
 
                                                 }
                                                 if xline.len() == 3 {
@@ -436,7 +465,6 @@ impl <'a> Nscript<'a>{
                                                                     else{
                                                                         let getargs = Nstring::stringbetween(&xline[2], "(", ")");
                                                                         let givenargs = Nstring::split(&getargs,",");
-                                                                        //xline.insert(0,"SETVVF".to_string());
                                                                         let mut newline: Vec<String>  = Vec::new();
                                                                         newline.push("SETVVF".to_string());
                                                                         newline.push(xline[0].to_string());
@@ -483,17 +511,49 @@ impl <'a> Nscript<'a>{
                                                             preprocessedvec.push(xline.to_owned());
                                                         }
                                                         NscriptWordTypes::Nestedfunc =>{
+
+                                                            let mut newwordvec:Vec<String> = Vec::new();
                                                             match self.checkwordtype(&xline[0]){
+
                                                                 NscriptWordTypes::Variable =>{
 
-                                                                    xline.insert(0,"SETVVNF".to_string());
+                                                                    newwordvec.push("SETVVNF".to_string());
+
+                                                                    // xline.insert(0,"SETVVNF".to_string());
                                                                 }
                                                                 _ =>{
-                                                                    xline.insert(0,"SETVNF".to_string());
+
+                                                                    newwordvec.push("SETVNF".to_string());
+                                                                    //xline.insert(0,"SETVNF".to_string());
                                                                 }
                                                             }
+
+                                                            newwordvec.push(xline[0].to_string());
+                                                            let extract =self.extract_nestedfunction(&xline[2]);
+                                                            let breakupword = split(&extract," ");
+                                                            for xword in breakupword.clone(){
+                                                                match self.checkwordtype(&xword){
+                                                                    NscriptWordTypes::Structfn => {
+                                                                        newwordvec.push("SF".to_string());
+                                                                    }
+                                                                    NscriptWordTypes::Classfunc => {
+                                                                        newwordvec.push("CF".to_string());
+                                                                    }
+                                                                    _ => {
+                                                                        if let Some(_) = self.rustfunctions.get_mut(&split(&xword,"(")[0].to_string()){
+                                                                            newwordvec.push("RF".to_string());
+                                                                        }else{
+                                                                            newwordvec.push("F".to_string());
+                                                                        }
+                                                                    }
+                                                                }
+                                                                let argsplit = split(xword,"(");
+                                                                newwordvec.push(argsplit[0].to_string());
+                                                                newwordvec.push(split(argsplit[1],")")[0].to_string());
+                                                            }
+                                                            preprocessedvec.push(newwordvec);
                                                             //xline.insert(0,"SETVNF".to_string());
-                                                            preprocessedvec.push(xline.to_owned());
+                                                            //preprocessedvec.push(xline.to_owned());
                                                         }
                                                         NscriptWordTypes::Variable | NscriptWordTypes::Global | NscriptWordTypes::Property |  NscriptWordTypes::Arraydeclaration | NscriptWordTypes::Bool | NscriptWordTypes::Static | NscriptWordTypes::Number | NscriptWordTypes::Macro | NscriptWordTypes::Array =>{
                                                             xline.insert(0,"SETV".to_string());
@@ -501,17 +561,15 @@ impl <'a> Nscript<'a>{
                                                         }
                                                         _ => {}
                                                     }
-
-
+                                                }
                                             }
                                         }
                                     }
-                                }
-                                "&=" =>{
-                                    xline.insert(0,"CC".to_string());
-                                    preprocessedvec.push(xline.to_owned());
-                                }
-                                "-=" =>{
+                                    "&=" =>{
+                                        xline.insert(0,"CC".to_string());
+                                        preprocessedvec.push(xline.to_owned());
+                                    }
+                                    "-=" =>{
                                     xline.insert(0,"SS".to_string());
                                     preprocessedvec.push(xline.to_owned());
                                 }
@@ -549,7 +607,29 @@ impl <'a> Nscript<'a>{
                 return retvar;
             }
             "NFN" =>{
-                 self.execute_nestedfunction(&line[1],&formattedblock, block);
+                let mut i = 0;
+                for x in (4..line.len()+3).step_by(3){
+                    let varname = "nc_nfn_".to_string() + &i.to_string();
+                    let var:NscriptVar;
+                    match line[x-3].as_str(){
+                        "SF" =>{
+                            var = self.execute_preruststructfn(&line[x-2],&line[x-1], formattedblock, block);
+                        }
+                        "CF" =>{
+                            let splitclass = split(&line[x-2],".");
+                            var = self.execute_preformattedclassfunction(&splitclass[0],&splitclass[1],&line[x-1] ,&formattedblock, block);
+                        }
+                        "RF"  =>{
+                            var = self.execute_prerustfunction(&line[x-2],&line[x-1], block);
+                        }
+                        "F" | _ =>{
+                            var = self.execute_prencfunction(&line[x-2],&Nstring::split(&line[x-1],","), formattedblock, block);
+                        }
+                    }
+                    i +=1;
+                    block.setvar(&varname, var)
+                }
+                 //self.execute_nestedfunction(&line[1],&formattedblock, block);
             }
             "SFN" =>{
                  self.execute_ruststructfn(&line[1],&formattedblock, block) ;
@@ -589,18 +669,99 @@ impl <'a> Nscript<'a>{
 
             }
             "SETVNF" =>{
-                let mut onvar = self.execute_nestedfunction(&line[3],&formattedblock, block);
-                if onvar.name == "return" {
-                    onvar.name = line[1].to_string();
+                let mut i =0;
+                for x in (5..line.len()).step_by(3){
+                    let varname = "nc_nfn_".to_string() + &i.to_string();
+                    let var:NscriptVar;
+                    match line[x-3].as_str(){
+                        "SF" =>{
+                            var = self.execute_preruststructfn(&line[x-2],&line[x-1], formattedblock, block);
+                        }
+                        "CF" =>{
+                            let splitclass = split(&line[x-2],".");
+                            var = self.execute_preformattedclassfunction(&splitclass[0],&splitclass[1],&line[x-1] ,&formattedblock, block);
+                        }
+                        "RF"  =>{
+                            var = self.execute_prerustfunction(&line[x-2],&line[x-1], block);
+                        }
+                        "F" | _ =>{
+                            var = self.execute_prencfunction(&line[x-2],&Nstring::split(&line[x-1],","), formattedblock, block);
+                        }
+                    }
+                    i +=1;
+                    block.setvar(&varname, var)
                 }
-                self.setdefiningword(&line[1], onvar,&formattedblock, block);
+                let mut var:NscriptVar;
+                let len = line.len();
+                match line[line.len()-3].as_str(){
+                    "SF" =>{
+                            var = self.execute_preruststructfn(&line[len-2],&line[len-1], formattedblock, block);
+                    }
+                    "CF" =>{
+                            let splitclass = split(&line[len-2],".");
+                            var = self.execute_preformattedclassfunction(&splitclass[0],&splitclass[1],&line[len-1] ,&formattedblock, block);
+                    }
+                    "RF" =>{
+                        var = self.execute_prerustfunction(&line[len-2],&line[len-1], block);
+                    }
+                    "F" | _ =>{
+                            var = self.execute_prencfunction(&line[len-2],&Nstring::split(&line[len-1],","), formattedblock, block);
+
+                    }
+                }
+
+                if var.name == "return" {
+                    var.name = line[1].to_string();
+                }
+                self.setdefiningword(&line[1], var,&formattedblock, block);
             }
             "SETVVNF" =>{
-                let mut onvar = self.execute_nestedfunction(&line[3],&formattedblock, block);
-                if onvar.name == "return" {
-                    onvar.name = line[3].to_string();
+                let mut i =0;
+                for x in (5..line.len()).step_by(3){
+                    let varname = "nc_nfn_".to_string() + &i.to_string();
+                    let var:NscriptVar;
+                    match line[x-3].as_str(){
+                        "SF" =>{
+                            var = self.execute_preruststructfn(&line[x-2],&line[x-1], formattedblock, block);
+                        }
+                        "CF" =>{
+                            let splitclass = split(&line[x-2],".");
+                            var = self.execute_preformattedclassfunction(&splitclass[0],&splitclass[1],&line[x-1] ,&formattedblock, block);
+                        }
+                        "RF"  =>{
+                            var = self.execute_prerustfunction(&line[x-2],&line[x-1], block);
+                        }
+                        "F" | _ =>{
+                            var = self.execute_prencfunction(&line[x-2],&Nstring::split(&line[x-1],","), formattedblock, block);
+                        }
+                    }
+                    i +=1;
+                    block.setvar(&varname, var)
                 }
-                block.setvar(&line[1], onvar);
+                let mut var:NscriptVar;
+                let len = line.len();
+                match line[line.len()-3].as_str(){
+                    "SF" =>{
+                            var = self.execute_preruststructfn(&line[len-2],&line[len-1], formattedblock, block);
+                    }
+                    "CF" =>{
+                            let splitclass = split(&line[len-2],".");
+                            var = self.execute_preformattedclassfunction(&splitclass[0],&splitclass[1],&line[len-1] ,&formattedblock, block);
+                    }
+                    "RF" =>{
+                        var = self.execute_prerustfunction(&line[len-2],&line[len-1], block);
+                    }
+                    "F" | _ =>{
+
+                            var = self.execute_prencfunction(&line[len-2],&Nstring::split(&line[len-1],","), formattedblock, block);
+
+                    }
+                }
+
+                if var.name == "return" {
+                    var.name = line[1].to_string();
+                }
+                block.setvar(&line[1],var);
             }
             "SETVSF" =>{
                 let onvar = self.execute_ruststructfn(&line[3],&formattedblock, block);
@@ -1199,6 +1360,39 @@ impl <'a> Nscript<'a>{
         };
 
     }
+    fn extract_nestedfunction(&mut self,word:&str) -> String{
+        let mut outputline = "".to_string();
+        let mut resultstring = word.to_string();
+        let mut packed: String;
+        let mut subfunction: String;
+        let mut i = 0;
+        loop {
+            // get the last find in the string using (
+            let splitstr = split(&resultstring, "(");
+            // make sure its inside the main function so bigger>2
+            if splitstr.len() > 2 {
+                //take that substring and split up to the first )
+                let splitscope = split(&splitstr[splitstr.len() - 1], ")");
+                if splitscope.len() > 0 {
+                    let splitargus = split(&splitstr[splitstr.len() - 2], ",");
+                    let thisfnnamefix = splitargus[splitargus.len() - 1]; // make sure the function
+                    subfunction = "".to_owned() + &thisfnnamefix + "(" + &splitscope[0] + ")";
+                    packed = "nc_nfn_".to_string() + &i.to_string();
+                    i +=1;
+                    resultstring = Nstring::replace(&resultstring, &subfunction, &packed);
+                    outputline = outputline + &subfunction + " ";
+                }
+            } else {
+                break;
+            }
+        }
+        //print(&resultstring,"by");
+        //
+        outputline = outputline + &resultstring;
+        outputline
+        //resultstring
+
+    }
     fn execute_nestedfunction(&mut self,word:&str,formattedblock: &NscriptFormattedCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
 
         let mut resultstring = word.to_string();
@@ -1380,6 +1574,13 @@ impl <'a> Nscript<'a>{
             }
             NscriptWordTypes::Classfunc =>{
                 return self.execute_classfunction(word,&formattedblock, block);
+            }
+            NscriptWordTypes::AssignedFunc =>{
+
+                print(&word,"br");
+                let toeval =block.getvar(&Nstring::trimleft(&word,1)).stringdata;
+                print(&toeval,"br");
+                return self.executeword(&toeval,&formattedblock, block);
             }
             // NscriptWordTypes::Hexstring =>{
             //     let mut thisvar = NscriptVar::new("hexstring");
@@ -1632,11 +1833,15 @@ impl <'a> Nscript<'a>{
         }
     }
 
+    fn execute_ruststructfn(&mut self,word:&str,formattedblock:&NscriptFormattedCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
+        let splitfunc = split(&word,"(")[0];
+        let getargs = Nstring::stringbetween(&word, "(", ")");
+        return self.execute_preruststructfn(&splitfunc, &getargs,&formattedblock, block);
+    }
     /// this executes rust structs which the user injected, their only on the main thread
     /// some built ins like object and njh are defined here
-    fn execute_ruststructfn(&mut self,word:&str,formattedblock:&NscriptFormattedCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
-        let splitfunc = split(&split(&word,"(")[0],".");
-        let getargs = Nstring::stringbetween(&word, "(", ")");
+   fn execute_preruststructfn(&mut self, funcname:&str,getargs:&str, formattedblock:&NscriptFormattedCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
+
         let givenargs = split(&getargs,",");
         let mut i = 0;
         let mut argvarvec :Vec<NscriptVar> = Vec::new();
@@ -1648,7 +1853,7 @@ impl <'a> Nscript<'a>{
             }
             i +=1;
         }
-        let splitstruct = split(&splitfunc[0],"::");
+        let splitstruct = split(&funcname,"::");
         // check for special functions which require self. for class refs etc.
         match splitstruct[0]{
             "threadsend" =>{
@@ -1817,6 +2022,9 @@ impl <'a> Nscript<'a>{
             }
             "*" => {
                 return NscriptWordTypes::Reflection;
+            }
+            "?" => {
+                return NscriptWordTypes::AssignedFunc;
             }
             // "^" => {
             //     return NscriptWordTypes::Hexstring;

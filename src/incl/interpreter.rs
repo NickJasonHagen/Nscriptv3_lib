@@ -391,6 +391,7 @@ pub enum NscriptWordTypes {
     Classfunc,
     Nestedfunc,
     Arraydeclaration,
+    AssignedFunc,
 }
 pub struct NscriptStorage{
     pub globalvars:HashMap<String,NscriptVar>,

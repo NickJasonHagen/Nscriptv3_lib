@@ -442,13 +442,15 @@ impl NscriptStorage{
                 return self.getmacrostring(word);
             }
             NscriptWordTypes::Number =>{
-                return word.to_string();
+                let thisword = Nstring::trimleft(word,1);
+                return thisword.to_string();
             }
             NscriptWordTypes::Bool => {
                 return Nstring::trimleft(&word,1);
             }
             NscriptWordTypes::Property=>{
-                let wordsplit = split(&word,".");
+                let thisword = Nstring::trimleft(word,1);
+                let wordsplit = split(&thisword,".");
                 if wordsplit.len() > 1{
                     let mut cname = wordsplit[0].trim().to_string();
                     let mut pname = wordsplit[1].trim().to_string();
@@ -464,7 +466,7 @@ impl NscriptStorage{
                     if let Some(thisclass) = self.getclassref(&cname){
                         return thisclass.getprop(&pname).stringdata;
                     }else{
-                        print(&format!("storage block:[{}] word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                        print(&format!("getargstring() storage block:[{}] word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
                         return "".to_owned();
                     }
                 }
@@ -475,13 +477,14 @@ impl NscriptStorage{
                 return evaluated;
             }
             NscriptWordTypes::Array =>{
-                let arrays = split(word,"[");
+                let thisword = Nstring::trimleft(&word, 1);
+                let arrays = split(&thisword,"[");
                     let thisvar = self.getargstringvec(arrays[0], block);
                     let index = self.getargstring(&Nstring::trimright(&arrays[1],1),block).parse::<usize>().unwrap_or(0);
                     if thisvar.len() > index{
                         return thisvar[index].to_string();
                     }else{
-                    print(&format!("storage block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&word,&block.name,&arrays[0],&index,&thisvar.len()),"r");
+                    print(&format!("getargstring() storage block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&word,&block.name,&arrays[0],&index,&thisvar.len()),"r");
                 }
                 return "".to_owned();
             }
@@ -502,7 +505,8 @@ impl NscriptStorage{
                 return block.getstringvec(word);
             }
             NscriptWordTypes::Property=>{
-                let wordsplit = split(&word,".");
+                let thisword = Nstring::trimleft(&word, 1);
+                let wordsplit = split(&thisword,".");
                 if wordsplit.len() > 1{
                     let mut cname = wordsplit[0].trim().to_string();
                     let mut pname = wordsplit[1].trim().to_string();
@@ -518,7 +522,7 @@ impl NscriptStorage{
                     if let Some(thisclass) = self.getclassref(&cname){
                         return thisclass.getprop(&pname).stringvec;
                     }else{
-                        print(&format!("storage block:[{}]  word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                        print(&format!(" getargstringve() storage block:[{}]  word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
                     }
                 }
             }
@@ -550,8 +554,9 @@ impl NscriptStorage{
                 return nscriptvar;
             }
             NscriptWordTypes::Number =>{
-                let mut newvar = NscriptVar::new(word);
-                newvar.setstring(&word);
+                let thisword = Nstring::trimleft(word,1);
+                let mut newvar = NscriptVar::new(&thisword);
+                newvar.setstring(&thisword);
                 return newvar;
             }
             NscriptWordTypes::Bool => {
@@ -566,18 +571,20 @@ impl NscriptStorage{
             }
             NscriptWordTypes::Array =>{
                 let mut returnvar = NscriptVar::new("entree");
-                let arrays = split(word,"[");
+                let thisword = Nstring::trimleft(&word, 1);
+                let arrays = split(&thisword,"[");
                 let thisvar = self.getvar(arrays[0],block);
                 let index = self.getargstring(&split(&arrays[1], "]")[0],block).parse::<usize>().unwrap_or(0);
                 if thisvar.stringvec.len() > index{
                     returnvar.stringdata = thisvar.stringvec[index].to_string();
                 }else{
-                    print(&format!("block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&word,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+                    print(&format!(" getvar() block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&word,&arrays[0],&index,&thisvar.stringvec.len()),"r");
                 }
                 return returnvar;
             }
             NscriptWordTypes::Property=>{
-                let wordsplit = split(&word,".");
+                let thisword = Nstring::trimleft(word,1);
+                let wordsplit = split(&thisword,".");
                 if wordsplit.len() > 1{
                     let mut cname = wordsplit[0].trim().to_string();
                     let mut pname = wordsplit[1].trim().to_string();
@@ -590,7 +597,7 @@ impl NscriptStorage{
                     if let Some(thisclass) = self.getclassref(&cname){
                         thisvar = thisclass.getprop(&pname);
                     }else{
-                        print(&format!("storage block:[{}]  word:[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                        print(&format!(" getvar() storage block:[{}]  word:[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&thisword,&cname,&pname),"r");
                     }
                 }
             }
@@ -619,21 +626,21 @@ impl NscriptStorage{
     }
     /// used to get the type of argument thats been given to a simplerustfn
     pub fn argtype(&mut self,word:&str) ->NscriptWordTypes{
-        if word.parse::<f64>().is_ok(){
-            return NscriptWordTypes::Number;//"number".to_string();
-        }
-        if Nstring::instring(&word, ".") && Nstring::fromright(&word,1) != ")"{
-            return NscriptWordTypes::Property;//"property".to_string();
-        }
-        if Nstring::fromleft(word, 1) != "["  &&  Nstring::fromright(&word,1) == "]" {
-            return NscriptWordTypes::Array;//"array".to_string();
-        }
+        // if word.parse::<f64>().is_ok(){
+        //     return NscriptWordTypes::Number;//"number".to_string();
+        // }
+        // if Nstring::instring(&word, ".") && Nstring::postfix(&word) != ")"{
+        //     return NscriptWordTypes::Property;//"property".to_string();
+        // }
+        // if Nstring::prefix(word) != "["  &&  Nstring::postfix(&word) == "]" {
+        //     return NscriptWordTypes::Array;//"array".to_string();
+        // }
 
         // if word == "true" || word == "false"{
         //     return NscriptWordTypes::Bool;//"bool".to_string();
         // }
-        let prefix = Nstring::fromleft(word, 1);
-        match prefix.as_str(){
+        //let prefix = Nstring::fromleft(word, 1);
+        match Nstring::prefix(word).as_str(){
             "$" => {
                 return NscriptWordTypes::Global;//"global".to_string();
             }
@@ -648,6 +655,15 @@ impl NscriptStorage{
             }
             "!" => {
                 return NscriptWordTypes::Bool;//"reflection".to_string();
+            }
+            "%" => {
+                return NscriptWordTypes::Number;//"number".to_string();
+            }
+            "&" => {
+                return NscriptWordTypes::Property;//"number".to_string();
+            }
+            "#" => {
+                return NscriptWordTypes::Array;//"number".to_string();
             }
             _ => {
                 return NscriptWordTypes::Variable;//"variable".to_string();

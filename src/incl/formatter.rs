@@ -46,6 +46,7 @@ impl <'a> Nscript<'a>{
         let mut thiscodescope = NscriptScriptScope::new(name.to_string());
         //let mut thiscodeblock = NscriptCodeBlock::new(name);
         let mut filedata = "\n".to_string() + &Nstring::replace(&code,"\"{","\" {");
+        //filedata = "\n".to_string() + &Nstring::replace(&filedata,"self.", "*self.");
         filedata = self.raw_scopeextract(&filedata);
         filedata = self.stripcomments(&filedata);
         filedata = self.prefixbooleans(&filedata);
@@ -64,16 +65,20 @@ impl <'a> Nscript<'a>{
     pub fn preproccessblock(&mut self,block:&mut NscriptCodeBlock){
         //let mut formattedblock = NscriptFormattedCodeBlock::new();
         //formattedblock.code.push(Vec::new());
-        let mut fblock = block.formattedcode.clone();
-        block.formattedcode.code[0] = self.preprocesscode(&mut fblock.code[0]);
+        let  fblock = block.formattedcode.clone();
+
+        let mut prefixedcode = self.wordtypeprefixing(&fblock.code[0] );
+        block.formattedcode.code[0] = self.preprocesscode(&mut prefixedcode);
 
         //formattedblock.code[0] = self.preprocesscode(&mut fblock.code[0]);
         if block.formattedcode.code.len() > 0 {
             for xid in 1..block.formattedcode.code.len(){
-                let mut fblock = block.formattedcode.clone();
+                let fblock = block.formattedcode.clone();
 
                 //formattedblock.code.push(Vec::new());
-                block.formattedcode.code[xid] = self.preprocesscode(&mut fblock.code[xid]);
+
+                let mut prefixedcode = self.wordtypeprefixing(&fblock.code[xid] );
+                block.formattedcode.code[xid] = self.preprocesscode(&mut prefixedcode);
                 //formattedblock.code[xid] = self.preprocesscode(&mut fblock.code[xid]);
             }
             // let last = block.formattedcode.linetypes.len().clone() - 1;
@@ -83,6 +88,103 @@ impl <'a> Nscript<'a>{
         }
         // block.formattedcode.code.push(Vec::new());
         //self.formattedblocks.insert(block.name.to_string(), formattedblock);
+    }
+    /// checks all the words in a codesheet and adds prefixes to make RT parsing go faster
+    pub fn wordtypeprefixing(&mut self,codevec:&Vec<Vec<String>>) -> Vec<Vec<String>>{
+        let mut proccessedvec : Vec<Vec<String>> = Vec::new();
+        for mut xline in codevec.clone(){
+            for x in 0..xline.len(){
+                xline[x] = Nstring::replace(&xline[x],"(","( ");
+                xline[x] = Nstring::replace(&xline[x],")"," )");
+                xline[x] = Nstring::replace(&xline[x],"[","[ ");
+                xline[x] = Nstring::replace(&xline[x],"]"," ]");
+                xline[x] = Nstring::replace(&xline[x],","," , ");
+                //xline[x] = Nstring::replace(&xline[x],"*","* ");
+                let mut wordvec:Vec<String> = Vec::new();
+
+                //first make sure syntax isnt conflicting
+                let syntaxwords = ["SCOPE","cat","cat[]", "class","func","coroutine","thread","spawnthread","string","vec",":","for" ,"if","else","elseif","math","match","=","+","-","/","*","loop","==","!=",">","<","<=","=>","&&","||","and","init","or","break","!","!!"];
+                let mut proceed = true;
+                let max = syntaxwords.len();
+                let mut i = 0;
+                loop{
+                    if syntaxwords[i] == xline[x] {
+                        proceed = false;
+                        break;
+                    }
+                    i +=1;
+                    if i == max {
+                        break;
+                    }
+                }
+                if Nstring::fromleft(&xline[x], 1) == "!" || Nstring::fromleft(&xline[x], 1) == "@"  || Nstring::fromleft(&xline[x], 1) == "&"||
+                Nstring::fromleft(&xline[x], 1) == "+" || xline[x] == "--" || xline[x] == "-" || Nstring::fromleft(&xline[x], 1) == "^" ||
+                Nstring::fromleft(&xline[x], 1) == "~" || Nstring::fromleft(&xline[x], 1) == "$"{
+                    proceed = false;
+                }
+                if Nstring::fromleft(&xline[x],2) == "c:" || Nstring::fromleft(&xline[x],2) == "f:"|| Nstring::fromleft(&xline[x],2) == "v:"{
+                    proceed = false;
+                }
+                if &xline[x] == ""{
+                    proceed = false;
+                }
+                // if all syntax is checked we parse the word and add prefixes
+                if proceed{
+                    for mut arg in Nstring::split(&xline[x]," "){
+                        // if its a number we add %
+                        proceed = true;
+                        if Nstring::fromright(&arg,1) == "(" || arg == "" || arg == "," ||  arg == ")" ||
+                        Nstring::fromleft(&arg, 1) == "!" || Nstring::fromleft(&arg, 1) == "@" ||
+                        Nstring::fromleft(&arg, 1) == "^" || Nstring::fromleft(&arg, 1) == "~" ||
+                        Nstring::fromleft(&arg, 1) == "$"{
+                            proceed = false;
+                        }
+
+                        if proceed{
+                            if arg.parse::<f64>().is_ok(){
+                                arg = "%".to_string() + &arg;
+                                wordvec.push(arg);
+                            }
+
+                            //if it is a property we add .
+                            else if Nstring::instring(&arg, ".") && Nstring::postfix(&arg) != "(" {
+
+                                arg = "&".to_string() + &arg;
+                                wordvec.push(arg);
+                            }
+                            // // if its a array we add #
+                            else if Nstring::prefix(&arg) != "[" && Nstring::postfix(&arg) == "[" {
+                                arg = "#".to_string() + &arg;
+                                wordvec.push(arg);
+                            }
+                            else{
+                                wordvec.push(arg);
+                            }
+                        }
+                        else{
+                            wordvec.push(arg);
+                        }
+                    }
+                    //print(&format!("word [{}] became [{}]",&xline[x],wordvec.join("")),"bg");
+                    xline[x] = wordvec.join("");
+
+                }
+            }
+            let mut teststring = String::new();
+            for x in &proccessedvec{
+                teststring = teststring + &x.join(" ") + "\n";
+            }
+            //print(&teststring,"bb");
+            let wlen = xline.len();
+            if wlen > 1 {
+                if xline[wlen-2] == "SCOPE" {
+                    xline[wlen-1] = Nstring::trimleft(&xline[wlen-1], 1);
+                }
+            }
+            proccessedvec.push(xline);
+
+        }
+        return proccessedvec;
     }
     /// this formats a multiline array to a single line
     pub fn array_scopeextract(&mut self,code: &str) -> String {
@@ -535,23 +637,23 @@ impl <'a> Nscript<'a>{
                                         match xline[2].as_str(){
                                             "vec" => {
                                                 if xline[4] == "to" {
-                                                    xline.insert(0,"SVTO".to_string());
+                                                    xline.insert(0,"vt".to_string());
                                                     preprocessedvec.push(xline.to_owned());
 
                                                 }
                                                 if xline[4] == "in" {
-                                                    xline.insert(0,"SVIN".to_string());
+                                                    xline.insert(0,"vi".to_string());
                                                     preprocessedvec.push(xline.to_owned());
 
                                                 }
                                             }
                                             "string" => {
                                                 if xline[4] == "to" {
-                                                    xline.insert(0,"SSTO".to_string());
+                                                    xline.insert(0,"st".to_string());
                                                     preprocessedvec.push(xline.to_owned());
                                                 }
                                                 if xline[4] == "in" {
-                                                    xline.insert(0,"SSIN".to_string());
+                                                    xline.insert(0,"si".to_string());
                                                     preprocessedvec.push(xline.to_owned());
                                                 }
                                             }
@@ -861,7 +963,7 @@ impl <'a> Nscript<'a>{
                 return retvar;
             }
             "RP" =>{
-                let mut retvar = self.storage.classgetprop(&line[1],&line[2], block);
+                let mut retvar = self.storage.classgetprop(&Nstring::trimleft(&line[1],1),&line[2], block);
                 retvar.name = "return".to_string();
                 return retvar;
             }
@@ -903,19 +1005,19 @@ impl <'a> Nscript<'a>{
             "L" =>{
                 return self.execute_spawnloop(&line,&formattedblock,block);
             }
-            "SVIN" =>{
+            "vi" =>{
                 let get = self.execute_vecloopsin(&line,&formattedblock, block);
                 self.setdefiningword(&line[1], get, &formattedblock,block);
             }
-            "SVTO" =>{
+            "vt" =>{
                 let get = self.execute_vecloopsto(&line,&formattedblock, block);
                 self.setdefiningword(&line[1], get, &formattedblock,block);
             }
-            "SSIN" =>{
+            "si" =>{
                 let get = self.execute_stringloopsin(&line,&formattedblock, block);
                 self.setdefiningword(&line[1], get, &formattedblock,block);
             }
-            "SSTO" =>{
+            "st" =>{
                 let get = self.execute_stringloopsto(&line,&formattedblock, block);
                 self.setdefiningword(&line[1], get, &formattedblock,block);
             }
@@ -1425,7 +1527,9 @@ impl <'a> Nscript<'a>{
                 self.storage.setglobal(&word, equalsfrom);
             }
             NscriptWordTypes::Property => {
-                let splitword = split(&word,".");
+                let thisword = Nstring::trimleft(&word, 1);
+                //print(&thisword,"bm");
+                let splitword = split(&thisword,".");
                 if splitword.len() > 1{
                     let mut classname = splitword[0].to_string();
                     let trimmedname = Nstring::trimleft(&splitword[0],1);
@@ -1437,6 +1541,7 @@ impl <'a> Nscript<'a>{
                     if  Nstring::fromleft(&propname, 1)  == "*" {
                         propname = self.storage.getargstring(&trimmedprop,block);
                     }
+                    //print(&classname,"bm");
                     if let Some(thisclass) = self.getclassref(&classname){
                         thisclass.setprop(&propname, equalsfrom);
                     }
@@ -1451,7 +1556,8 @@ impl <'a> Nscript<'a>{
                 block.setvar(&word, equalsfrom);
             }
             NscriptWordTypes::Array =>{
-                let wordsplit = split(&word,"[");
+                let thisword = Nstring::trimleft(&word, 1);
+                let wordsplit = split(&thisword,"[");
                 let mut var = self.storage.getvar(&wordsplit[0],block);
                 let idvar = self.storage.getargstring(&Nstring::trimright(&wordsplit[1],1),block).parse::<usize>().unwrap_or(0);
                 if idvar < var.stringvec.len(){
@@ -1462,6 +1568,10 @@ impl <'a> Nscript<'a>{
                 }
                 self.setdefiningword(wordsplit[0], var,&formattedblock, block);
 
+            }
+            NscriptWordTypes::Reflection =>{
+                let trimmed = Nstring::trimleft(word, 1);
+                 self.setdefiningword(&trimmed, equalsfrom,formattedblock,block);
             }
             _ =>{
 
@@ -1605,7 +1715,8 @@ impl <'a> Nscript<'a>{
                 return block.getstring(word);
             }
             NscriptWordTypes::Property=>{
-                let wordsplit = split(&word,".");
+                let thisword = Nstring::trimleft(word,1);
+                let wordsplit = split(&thisword,".");
                 if wordsplit.len() > 1{
                     let mut cname = wordsplit[0].trim().to_string();
                     let mut pname = wordsplit[1].trim().to_string();
@@ -1621,13 +1732,14 @@ impl <'a> Nscript<'a>{
                     if let Some(thisclass) = self.getclassref(&cname){
                         return thisclass.getprop(&pname).stringdata;
                     }else{
-                        print(&format!("block[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&cname,&pname),"r");
+                        print(&format!("nscript::getwordstring() block[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&cname,&pname),"r");
                         return "".to_owned();
                     }
                 }
             }
             NscriptWordTypes::Number  =>{
-                return word.to_owned();
+                let thisword = Nstring::trimleft(word,1);
+                return thisword.to_owned();
             }
             NscriptWordTypes::Bool => {
                 return Nstring::trimleft(&word,1);
@@ -1641,13 +1753,14 @@ impl <'a> Nscript<'a>{
                 return evaluated;
             }
             NscriptWordTypes::Array =>{
-                let arrays = split(word,"[");
+                let thisword = Nstring::trimleft(&word, 1);
+                let arrays = split(&thisword,"[");
                     let thisvar = self.storage.getvar(arrays[0], block);
                     let index = self.getwordstring(&split(&arrays[1], "]")[0],&formattedblock,block).parse::<usize>().unwrap_or(0);
                     if thisvar.stringvec.len() > index{
                         return thisvar.stringvec[index].to_string();
                     }else{
-                    print(&format!("block[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+                    print(&format!("nscript::getwordstring() block[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
                 }
                 return "".to_owned();
             }
@@ -1700,7 +1813,8 @@ impl <'a> Nscript<'a>{
                 return block.getvar(word).clone();
             }
             NscriptWordTypes::Property=>{
-                let wordsplit = split(&word,".");
+                let thisword = Nstring::trimleft(&word, 1);
+                let wordsplit = split(&thisword,".");
                 if wordsplit.len() > 1{
                     let mut cname = wordsplit[0].trim().to_string();
                     let mut pname = wordsplit[1].trim().to_string();
@@ -1718,8 +1832,9 @@ impl <'a> Nscript<'a>{
                 }
             }
             NscriptWordTypes::Number  =>{
-                let mut newvar = NscriptVar::new(word);
-                newvar.setstring(&word);
+                let thisword = Nstring::trimleft(&word, 1);
+                let mut newvar = NscriptVar::new(&thisword);
+                newvar.setstring(&thisword);
                 return newvar;
             }
             NscriptWordTypes::Bool => {
@@ -1737,7 +1852,8 @@ impl <'a> Nscript<'a>{
             }
             NscriptWordTypes::Array =>{
                 let mut returnvar = NscriptVar::new("entree");
-                let arrays = split(word,"[");
+                let thisword = Nstring::trimleft(&word, 1);
+                let arrays = split(&thisword,"[");
                 let thisvar = self.executeword(arrays[0],&formattedblock, block);
                 let index = self.storage.getargstring(&split(&arrays[1], "]")[0],block).parse::<usize>().unwrap_or(0);
                 if thisvar.stringvec.len() > index{
@@ -1796,12 +1912,12 @@ impl <'a> Nscript<'a>{
         if let Some(func) = self.storage.functions.get_mut(&funcname.to_string()){
             let mut getblock = func.codeblock.clone();
             let args = func.args.clone();
-            let len = givenargs.len();
-            for xarg in 0..func.args.len(){
-                if len > xarg{
+            //let len = givenargs.len();
+            for xarg in 0..givenargs.len(){
+               // if len > xarg{
                     let get = self.storage.getvar(&givenargs[xarg],block);
                     getblock.setvar(&args[xarg],get);
-                }
+                //}
             }
 
             let formattedblockfunc = getblock.formattedcode.clone();
@@ -1825,12 +1941,10 @@ impl <'a> Nscript<'a>{
         if let Some(func) = self.storage.functions.get_mut(&funcname.to_string()){
             let mut getblock = func.codeblock.clone();
             let  args = func.args.clone();
-            let len = args.len();
-            for xarg in 4..line.len(){
-                if i <= len{
+            //let len = args.len();
+            for xarg in 4..4+args.len(){
                     let get = self.storage.getvar(&line[xarg],block);
                     getblock.setvar(&args[i],get);
-                }
                 i +=1;
             }
 
@@ -1864,12 +1978,12 @@ impl <'a> Nscript<'a>{
         if let Some(func) = self.storage.functions.get(&funcname){
             let mut getblock = func.codeblock.to_owned();
             let  args = func.args.to_owned();
-            let len = givenargs.len();
-            for xarg in 0..args.len(){
-                if len > xarg{
+            //let len = givenargs.len();
+            for xarg in 0..givenargs.len(){
+                //if len > xarg{
                     let get = self.storage.getvar(&givenargs[xarg],block);
                     getblock.setvar(&args[xarg],get);
-                }
+                //}
             }
             let formattedblockfunc = getblock.formattedcode.clone();
 
@@ -1911,10 +2025,10 @@ impl <'a> Nscript<'a>{
             //args = thisfunc.args.clone();
             getblock = thisfunc.codeblock.clone();
             for xarg in 0..thisfunc.args.len(){
-                if givenargs.len() > xarg{
+                //if givenargs.len() > xarg{
                     let get = self.storage.getvar(&givenargs[xarg],block);
                     getblock.setvar(&thisfunc.args[xarg],get);
-                }
+                //}
             }
 
             let formattedblockfunc = getblock.formattedcode.clone();
@@ -1944,11 +2058,11 @@ impl <'a> Nscript<'a>{
         let mut i = 0;
         let mut argvarvec :Vec<NscriptVar> = Vec::new();
         for xarg in &givenargs{
-            if givenargs.len() > i{
+            //if givenargs.len() > i{
                 let mut get = self.storage.getvar(&givenargs[i], block);
                 get.name = xarg.to_string();
                 argvarvec.push(get);
-            }
+            //}
             i +=1;
         }
         let splitstruct = split(&funcname,"::");
@@ -2052,12 +2166,12 @@ impl <'a> Nscript<'a>{
     }
 
     fn checkdefiningwordtype(&mut self,word:&str) -> NscriptWordTypes{
-        if Nstring::instring(&word, ".") && Nstring::fromright(&word,1) != ")"{
-            return NscriptWordTypes::Property;//"property".to_string();
-        }
-        if Nstring::fromleft(word, 1) != "["  &&  Nstring::fromright(&word,1) == "]" {
-            return NscriptWordTypes::Array;//"array".to_string();
-        }
+        // if Nstring::instring(&word, ".") && Nstring::fromright(&word,1) != ")"{
+        //     return NscriptWordTypes::Property;//"property".to_string();
+        // }
+        // if Nstring::fromleft(word, 1) != "["  &&  Nstring::fromright(&word,1) == "]" {
+        //     return NscriptWordTypes::Array;//"array".to_string();
+        // }
         match Nstring::fromleft(word, 1).as_str(){
             "$" => {
                 return NscriptWordTypes::Global;
@@ -2066,6 +2180,12 @@ impl <'a> Nscript<'a>{
             "*" => {
                 return NscriptWordTypes::Reflection;
             }
+            "&" => {
+                return NscriptWordTypes::Property;
+            }
+            "#" =>{
+                return NscriptWordTypes::Array;
+            }
             _ => {
                 return NscriptWordTypes::Variable;
             }
@@ -2073,8 +2193,8 @@ impl <'a> Nscript<'a>{
     }
     /// used to check what a word / type is
     fn checkwordtype(&mut self,word:&str) -> NscriptWordTypes{
-
-        if Nstring::fromright(&word,1) == ")" {
+//let fr =Nstring::postfix(&word);
+        if Nstring::postfix(&word) == ")" {
             let splitsubs = split(&word,"(");
             if splitsubs.len()>2{
                 return NscriptWordTypes::Nestedfunc;
@@ -2091,17 +2211,15 @@ impl <'a> Nscript<'a>{
             }
             return NscriptWordTypes::Function;
         }
-        if word.parse::<f64>().is_ok(){
-            return NscriptWordTypes::Number;
-        }
-        if Nstring::instring(&word, ".") {
-            return NscriptWordTypes::Property;
-        }
-        if Nstring::fromleft(word, 1) != "["  &&  Nstring::fromright(&word,1) == "]" {
-            return NscriptWordTypes::Array;
-        }
-        let prefix = Nstring::fromleft(word, 1);
-        match prefix.as_str(){
+        // if word.parse::<f64>().is_ok(){
+        //     return NscriptWordTypes::Number;
+        // }
+
+        // if Nstring::fromleft(word, 1) != "["  &&  Nstring::postfix(&word) == "]" {
+        //     return NscriptWordTypes::Array;
+        // }
+        //let pre = Nstring::prefix(&word);
+        match Nstring::prefix(&word).as_str(){
             "$" => {
                 return NscriptWordTypes::Global;
             }
@@ -2120,10 +2238,22 @@ impl <'a> Nscript<'a>{
             "*" => {
                 return NscriptWordTypes::Reflection;
             }
+            "%" =>{
+                return NscriptWordTypes::Number;
+            }
+            "#" =>{
+                return NscriptWordTypes::Array;
+            }
+            "&" =>{
+                return NscriptWordTypes::Property;
+            }
             "?" => {
                 return NscriptWordTypes::AssignedFunc;
             }
             _ => {
+                // if Nstring::instring(&word, ".") {
+                //     return NscriptWordTypes::Property;
+                // }
                 return NscriptWordTypes::Variable;
             }
         }

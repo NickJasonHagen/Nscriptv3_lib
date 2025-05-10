@@ -196,6 +196,22 @@ impl Nstring {
             return s.to_string();
         }
     }
+    pub fn prefix(s: &str) -> String {
+        let len = s.len();
+        if 0 < len {
+            return String::from(&s[0..1]);
+        } else {
+            return String::new();
+        }
+    }
+    pub fn postfix(s: &str) -> String {
+        let len = s.len();
+        if 0 < len {
+            return String::from(&s[len-1..len]);
+        } else {
+            return String::new();
+        }
+    }
     pub fn fromleft(s: &str, f: usize) -> String {
         let len = s.len();
         if f < len {

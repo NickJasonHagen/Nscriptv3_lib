@@ -215,7 +215,7 @@ impl  <'a> Nscript<'a>{
                         //return;
                     }
                 }
-                if bsize > nscript_usize(&self.executeword("server.POSTbytesmax",&formattedblock, &mut connectionblock).stringdata) {
+                if bsize > nscript_usize(&self.executeword("&server.POSTbytesmax",&formattedblock, &mut connectionblock).stringdata) {
                     let response = "SERVERERROR:PostSizeExceedsLimit";
                     match stream.write(response.as_bytes()) {
                         Ok(_) => {

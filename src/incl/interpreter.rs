@@ -378,6 +378,7 @@ pub enum NscriptWordTypes {
     Reflection,
     Global,
     Function,
+    RustFunction,
     Structfn,
     Number,
     Bool,
@@ -386,7 +387,7 @@ pub enum NscriptWordTypes {
     Classfunc,
     Nestedfunc,
     Arraydeclaration,
-    AssignedFunc,
+    //AssignedFunc,
 }
 pub struct NscriptStorage{
     pub globalvars:HashMap<String,NscriptVar>,
@@ -455,13 +456,13 @@ impl NscriptStorage{
                     let mut cname = wordsplit[0].trim().to_string();
                     let mut pname = wordsplit[1].trim().to_string();
                     if Nstring::fromleft(&wordsplit[0], 1) ==  "*" {
-                        cname = self.getargstring(&Nstring::trimleft(&wordsplit[0],1), block);
+                        cname = self.getargstring(&Nstring::trimleft(&cname,1), block);
                     }
                     if Nstring::fromleft(&cname, 1) ==  "$" {
-                        cname = self.getargstring(&wordsplit[0], block);
+                        cname = self.getargstring(&cname, block);
                     }
-                    if Nstring::fromleft(&wordsplit[1], 1) ==  "*" {
-                        pname = self.getargstring(&Nstring::trimleft(&wordsplit[1], 1),block) ;
+                    if Nstring::fromleft(&pname, 1) ==  "*" {
+                        pname = self.getargstring(&Nstring::trimleft(&pname, 1),block) ;
                     }
                     if let Some(thisclass) = self.getclassref(&cname){
                         return thisclass.getprop(&pname).stringdata;
@@ -591,13 +592,16 @@ impl NscriptStorage{
                     if Nstring::fromleft(&wordsplit[0], 1) ==  "*" {
                         cname = self.getargstring(&Nstring::trimleft(&wordsplit[0],1), block);
                     }
+                    if Nstring::fromleft(&cname, 1) ==  "$" {
+                        cname = self.getargstring(&wordsplit[0], block);
+                    }
                     if Nstring::fromleft(&wordsplit[1], 1) ==  "*" {
                         pname = self.getargstring(&Nstring::trimleft(&wordsplit[1], 1),block) ;
                     }
                     if let Some(thisclass) = self.getclassref(&cname){
                         thisvar = thisclass.getprop(&pname);
                     }else{
-                        print(&format!(" getvar() storage block:[{}]  word:[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&thisword,&cname,&pname),"r");
+                        print(&format!(" getvar() storage block:[{}]  word:[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
                     }
                 }
             }

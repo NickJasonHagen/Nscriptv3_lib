@@ -62,7 +62,7 @@ impl  <'a> Nscript<'a>{
                             self.storage.setglobal("$socketip",socketvar);
                             let mut block = NscriptCodeBlock::new("httplisten");
                             let formattedblock = block.formattedcode.clone();
-                            let onconnectvar = self.executeword("server.onconnect($socketip)",&formattedblock, &mut block);
+                            let onconnectvar = self.executeword("\\server.onconnect($socketip)",&formattedblock, &mut block);
                             if onconnectvar.stringdata == "false" {
                                 var.stringdata = format!("connection server.onconnect($socketip) returned false -> closed");
                             }
@@ -97,6 +97,7 @@ impl  <'a> Nscript<'a>{
         // text files are on the main thread for other downloads it goes to a other thread
         // .nc files are being regonised and they will return their return results to the user browser.
         // --------------------------------------------------------------------------------------
+
         let mut buffer = [0; 1024];
         //stream.read(&mut buffer).unwrap();
         let mut connectionblock = NscriptCodeBlock::new("connection");
@@ -111,7 +112,9 @@ impl  <'a> Nscript<'a>{
                 return;
             }
         }
+
         let request = String::from_utf8_lossy(&buffer[..]);
+
         //vmap.setvar("server.request".to_owned(), &request);
         if Nstring::instring(&request, "B blob data") {
             println!("(debug->returning) Blob data entering: {}", &request);
@@ -175,7 +178,6 @@ impl  <'a> Nscript<'a>{
         if Nfile::checkexists(&checkthis) {
             file_path = webroot.clone() + "domains/" + &domainname + "/public/" + &pathparts[0];
         }
-
         if request_parts[0] == "POST" {
             let mut postdata:String;// String::new();
                 let mut postvar = NscriptVar::new("$POSTPACKET");

@@ -159,6 +159,18 @@ pub fn nscriptfn_trimleft(args:&Vec<String>,block :&mut NscriptCodeBlock , stora
     }
     return neovar;
 }
+pub fn nscriptfn_toupper(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let mut neovar = NscriptVar::new("result");
+    let value = storage.getargstring(&args[0], block).to_uppercase();
+    neovar.stringdata = value.to_string();
+    return neovar;
+}
+pub fn nscriptfn_tolower(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let mut neovar = NscriptVar::new("result");
+    let value = storage.getargstring(&args[0], block).to_lowercase();
+    neovar.stringdata = value.to_string();
+    return neovar;
+}
 impl Nstring {
 
     pub fn replace(s: &str, f: &str, r: &str) -> String {
@@ -186,6 +198,25 @@ impl Nstring {
             return s.to_string();
         }
     }
+    pub fn trimprefix(s: &str) -> &str {
+        let len = s.len();
+        if len > 0 {
+            return &s[1..len];
+        }
+        else {
+            return s;
+        }
+    }
+    pub fn trimsuffix(s: &str) -> &str {
+        let len = s.len();
+        if len > 0 {
+            return &s[0..len - 1];
+        }
+        else {
+
+            return s;
+        }
+    }
     pub fn trimright(s: &str, f: usize) -> String {
         let len = s.len();
         if s.len() > f {
@@ -196,20 +227,20 @@ impl Nstring {
             return s.to_string();
         }
     }
-    pub fn prefix(s: &str) -> String {
+    pub fn prefix(s: &str) -> &str {
         let len = s.len();
         if 0 < len {
-            return String::from(&s[0..1]);
+            return &s[0..1];
         } else {
-            return String::new();
+            return &"";
         }
     }
-    pub fn postfix(s: &str) -> String {
+    pub fn postfix(s: &str) -> &str {
         let len = s.len();
         if 0 < len {
-            return String::from(&s[len-1..len]);
+            return &s[len-1..len];
         } else {
-            return String::new();
+            return &"";
         }
     }
     pub fn fromleft(s: &str, f: usize) -> String {

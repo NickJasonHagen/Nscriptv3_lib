@@ -381,13 +381,13 @@ impl AABB {
   }
 
 
-pub fn nscriptfn_aabb_newbox(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_newbox(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("addbox");
     let objname = storage.getargstring(&args[0],block);
     var.stringdata = storage.nscript3d.collisionbox_newbox(&objname);
     return var;
 }
-pub fn nscriptfn_aabb_sizedbox(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_sizedbox(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("addbox");
     if args.len() > 3 {
         let objname = storage.getargstring(&args[0],block);
@@ -398,7 +398,7 @@ pub fn nscriptfn_aabb_sizedbox(args:&Vec<String>,block :&mut NscriptCodeBlock , 
     }
     return var;
 }
-pub fn nscriptfn_aabb_addtogroup(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_addtogroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let var = NscriptVar::new("aabb");
     if args.len() > 1 {
         let objname = storage.getargstring(&args[0],block);
@@ -407,7 +407,7 @@ pub fn nscriptfn_aabb_addtogroup(args:&Vec<String>,block :&mut NscriptCodeBlock 
     }
     return var;
 }
-pub fn nscriptfn_aabb_removefromgroup(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_removefromgroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let var = NscriptVar::new("aabb");
     if args.len() > 1 {
         let objname = storage.getargstring(&args[0],block);
@@ -416,19 +416,19 @@ pub fn nscriptfn_aabb_removefromgroup(args:&Vec<String>,block :&mut NscriptCodeB
     }
     return var;
 }
-pub fn nscriptfn_aabb_getgroup(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_getgroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("aabb");
     let object = storage.getargstring(&args[0],block);
     var.stringvec = storage.nscript3d.collisionbox_getgroup(&object);
     return var;
 }
-pub fn nscriptfn_aabb_removegroup(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_removegroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let var = NscriptVar::new("aabb");
     let object = storage.getargstring(&args[0],block);
     storage.nscript3d.collisionbox_removegroup(&object);
     return var;
 }
-pub fn nscriptfn_aabb_getcollisions(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_getcollisions(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("aabb");
     if args.len() > 1 {
         let object = storage.getargstring(&args[0],block);
@@ -438,7 +438,7 @@ pub fn nscriptfn_aabb_getcollisions(args:&Vec<String>,block :&mut NscriptCodeBlo
 
     return var;
 }
-pub fn nscriptfn_aabb_setposition(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_setposition(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let var = NscriptVar::new("addbox");
     if args.len() > 3 {
         let objname = storage.getargstring(&args[0],block);
@@ -449,7 +449,7 @@ pub fn nscriptfn_aabb_setposition(args:&Vec<String>,block :&mut NscriptCodeBlock
     }
     return var;
 }
-pub fn nscriptfn_aabb_setscale(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_setscale(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let var = NscriptVar::new("addbox");
     if args.len() > 3 {
         let objname = storage.getargstring(&args[0],block);
@@ -460,7 +460,7 @@ pub fn nscriptfn_aabb_setscale(args:&Vec<String>,block :&mut NscriptCodeBlock , 
     }
     return var;
 }
-pub fn nscriptfn_aabb_setrotation(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_aabb_setrotation(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let var = NscriptVar::new("addbox");
     if args.len() > 3 {
         let objname = storage.getargstring(&args[0],block);

@@ -1,11 +1,8 @@
 
 use crate::*;
 //pub type NscriptSimpleFunctions = fn(&Vec<NscriptVar>) -> NscriptVar;
-pub type NscriptSimpleFunctions = fn(&Vec<String>,block:&mut NscriptCodeBlock, &mut NscriptStorage) -> NscriptVar;
-// pub fn emptyfnbuffer(_vec: Vec<NscriptVar>) -> NscriptVar {
-//     // Default behavior
-//     None
-// }
+pub type NscriptSimpleFunctions = fn(&Vec<&str>,block:&mut NscriptCodeBlock, &mut NscriptStorage) -> NscriptVar;
+
 /// NscriptScript main struct
 pub struct Nscript<'a>{
     // for user created structs
@@ -20,8 +17,6 @@ pub struct Nscript<'a>{
     pub tcplisteners: HashMap<String,TcpListener>,
     pub storage: NscriptStorage,
     pub formattedblocks: HashMap<String,NscriptFormattedCodeBlock>,
-    //pub compiledblocks:  Vec<NscriptCompiledCodeBlock<'a>>,
-    //pub tcp: NscriptTcp,
 }
 
 impl <'a> Nscript<'a>{
@@ -38,8 +33,6 @@ impl <'a> Nscript<'a>{
             tcplisteners:HashMap::new(),
             storage:NscriptStorage::new(),
             formattedblocks:HashMap::new(),
-            //compiledblocks:Vec::new(),
-            //tcp:NscriptTcp::new(),
         }
     }
     pub fn new() -> Nscript<'a> {
@@ -150,7 +143,7 @@ impl <'a> Nscript<'a>{
     pub fn setcmdarguments(&mut self){
         let args: Vec<String> = env::args().collect();
         let mut i = 0;
-        for givenarg in args.clone() {
+        for givenarg in &args {
             let v = "".to_owned() + &givenarg.to_owned();
             let key ="$cmdarg".to_owned() + &i.to_string();
             let mut argvar = NscriptVar::new(&key);
@@ -389,11 +382,9 @@ pub enum NscriptWordTypes {
     Number,
     Bool,
     Static,
-    //Hexstring,
     Classfunc,
     Nestedfunc,
     Arraydeclaration,
-    //AssignedFunc,
 }
 pub struct NscriptStorage{
     pub globalvars:HashMap<String,NscriptVar>,
@@ -440,22 +431,25 @@ impl NscriptStorage{
                 return block.staticstrings[Nstring::trimprefix(word).parse::<usize>().unwrap_or(0)].to_string();
             }
             NscriptWordTypes::Variable=>{
-                return block.getstring(word);
+                return block.getstring(word).to_string();
             }
             NscriptWordTypes::Property=>{
                 let thisword = Nstring::trimprefix(word);
                 let wordsplit = split(&thisword,".");
                 if wordsplit.len() > 1{
-                    let mut cname = wordsplit[0].trim().to_string();
-                    let mut pname = wordsplit[1].trim().to_string();
+                    let  cname:Box<str>;
+                    let  pname :Box<str>;
                     if Nstring::prefix(&wordsplit[0]) ==  "*" {
-                        cname = self.getargstring(&Nstring::trimprefix(&cname), block);
+                        cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block).into();
                     }
-                    // if Nstring::fromleft(&cname, 1) ==  "$" {
-                    //     cname = self.getargstring(&cname, block);
-                    // }
-                    if Nstring::prefix(&pname,) ==  "*" {
-                        pname = self.getargstring(&Nstring::trimprefix(&pname),block) ;
+                    else{
+                        cname = wordsplit[0].trim().into();
+                    }
+                    if Nstring::prefix(&wordsplit[1]) ==  "*" {
+                        pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block).into() ;
+                    }
+                    else{
+                        pname = wordsplit[1].trim().into();
                     }
                     if let Some(thisclass) = self.getclassref(&cname){
                         return thisclass.getprop(&pname).stringdata;
@@ -473,7 +467,7 @@ impl NscriptStorage{
                 return Nstring::trimprefix(&word).to_owned();
             }
             NscriptWordTypes::Macro => {
-                return self.getmacrostring(word);
+                return self.getmacrostring(word).to_string();
             }
             NscriptWordTypes::Global => {
                 return self.getglobal(&word).stringdata;
@@ -501,13 +495,82 @@ impl NscriptStorage{
         word.to_string()
     }
 
+    pub fn getevaluatablewordstr(&mut self,word:&str, block:&mut NscriptCodeBlock) -> Box<str>{
+
+         match self.argtype(word){
+            NscriptWordTypes::Static =>{
+                return block.staticstrings[Nstring::trimprefix(word).parse::<usize>().unwrap_or(0)].to_string().into();
+            }
+            NscriptWordTypes::Variable=>{
+                return block.getstr(word).into();
+            }
+            NscriptWordTypes::Property=>{
+                let thisword = Nstring::trimprefix(word);
+                let wordsplit = split(&thisword,".");
+                if wordsplit.len() > 1{
+                    let  cname:Box<str>;// = wordsplit[0].trim().into();
+                    let  pname :Box<str>;//= wordsplit[1].trim().into();
+                    if Nstring::prefix(&wordsplit[0]) ==  "*" {
+                        cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block).into();
+                    }
+                    else{
+                        cname = wordsplit[0].trim().into();
+                    }
+                    if Nstring::prefix(&wordsplit[1]) ==  "*" {
+                        pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block).into() ;
+                    }
+                    else{
+                        pname = wordsplit[1].trim().into();
+                    }
+                    if let Some(thisclass) = self.getclassref(&cname){
+                        return thisclass.getprop(&pname).stringdata.into();
+                    }else{
+                        print(&format!("nscript::getwordstring() block[{}] word [{}]is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                        return "".into();
+                    }
+                }
+            }
+            NscriptWordTypes::Number  =>{
+                let thisword = Nstring::trimprefix(word);
+                return thisword.into();
+            }
+
+            NscriptWordTypes::Macro =>{
+                return self.getmacrostring(word).into();
+            }
+            NscriptWordTypes::Global => {
+                return self.getglobal(&word).stringdata.into();
+            }
+            NscriptWordTypes::Bool => {
+                return Nstring::trimleft(&word,1).into();
+            }
+
+            NscriptWordTypes::Array =>{
+                let thisword = Nstring::trimprefix(&word);
+                let arrays = split(&thisword,"[");
+                    let thisvar = self.getvar(arrays[0], block);
+                    let index = self.getevaluatablewordstr(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
+                    if thisvar.stringvec.len() > index{
+                        return thisvar.stringvec[index].as_str().into();
+                    }else{
+                    print(&format!("nscript::getwordstring() block[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+                }
+                return "".into();
+            }
+
+            _ => {
+                //return self.getvar(word,&NscriptWordTypes::Variable,&formattedblock, block).stringdata.into();
+                return block.getstr(word).into();
+            }
+        };
+
+        return "".into();
+    }
+
 
     //used to get the Vec<String> from injected simplerustfn
     pub fn getargstringvec(&mut self,word:&str,block: &mut NscriptCodeBlock) -> Vec<String>{
         match self.argtype(word){
-            NscriptWordTypes::Global => {
-                return self.getglobal(&word).stringvec;
-            }
             NscriptWordTypes::Variable=>{
                 return block.getstringvec(word);
             }
@@ -515,23 +578,29 @@ impl NscriptStorage{
                 let thisword = Nstring::trimprefix(&word);
                 let wordsplit = split(&thisword,".");
                 if wordsplit.len() > 1{
-                    let mut cname = wordsplit[0].trim().to_string();
-                    let mut pname = wordsplit[1].trim().to_string();
+                    let  cname:Box<str>;
+                    let  pname :Box<str>;
                     if Nstring::prefix(&wordsplit[0]) ==  "*" {
-                        cname = self.getargstring(&Nstring::trimprefix(&wordsplit[0]), block);
+                        cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block).into();
                     }
-                    // if Nstring::fromleft(&cname, 1) ==  "$" {
-                    //     cname = self.getargstring(&wordsplit[0], block);
-                    // }
+                    else{
+                        cname = wordsplit[0].trim().into();
+                    }
                     if Nstring::prefix(&wordsplit[1]) ==  "*" {
-                        pname = self.getargstring(&Nstring::trimprefix(&wordsplit[1]),block) ;
+                        pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block).into() ;
+                    }
+                    else{
+                        pname = wordsplit[1].trim().into();
                     }
                     if let Some(thisclass) = self.getclassref(&cname){
                         return thisclass.getprop(&pname).stringvec;
                     }else{
-                        print(&format!(" getargstringve() storage block:[{}]  word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                        print(&format!(" getargstringvec() storage block:[{}]  word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
                     }
                 }
+            }
+            NscriptWordTypes::Global => {
+                return self.getglobal(&word).stringvec;
             }
             _ => {
             }
@@ -543,21 +612,39 @@ impl NscriptStorage{
     pub fn getvar(&mut self,word:&str,block: &mut NscriptCodeBlock) -> NscriptVar{
         let mut thisvar = NscriptVar::new(&word);
         match self.argtype(word){
-            NscriptWordTypes::Global => {
-                return self.getglobal(&word);
-            }
+
             NscriptWordTypes::Variable=>{
                 thisvar.stringvec = block.getstringvec(word);
                 thisvar.stringdata = block.getstring(word);
             }
+            NscriptWordTypes::Property=>{
+                let thisword = Nstring::trimprefix(word);
+                let wordsplit = split(&thisword,".");
+                if wordsplit.len() > 1{
+                    let  cname:Box<str>;
+                    let  pname :Box<str>;
+                    if Nstring::prefix(&wordsplit[0]) ==  "*" {
+                        cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block).into();
+                    }
+                    else{
+                        cname = wordsplit[0].trim().into();
+                    }
+                    if Nstring::prefix(&wordsplit[1]) ==  "*" {
+                        pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block).into() ;
+                    }
+                    else{
+                        pname = wordsplit[1].trim().into();
+                    }
+                    if let Some(thisclass) = self.getclassref(&cname){
+                        thisvar = thisclass.getprop(&pname);
+                    }else{
+                        print(&format!(" getvar() storage block:[{}]  word:[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                    }
+                }
+            }
             NscriptWordTypes::Static=>{
                 let mut nscriptvar = NscriptVar::new("stc");
                 nscriptvar.stringdata = block.staticstrings[Nstring::trimleft(&word,1).parse::<usize>().unwrap_or(0)].to_string();
-                return nscriptvar;
-            }
-            NscriptWordTypes::Macro=>{
-                let mut nscriptvar = NscriptVar::new("stc");
-                nscriptvar.stringdata = self.getmacrostring(&word);
                 return nscriptvar;
             }
             NscriptWordTypes::Number =>{
@@ -566,6 +653,15 @@ impl NscriptStorage{
                 newvar.setstring(&thisword);
                 return newvar;
             }
+            NscriptWordTypes::Global => {
+                return self.getglobal(&word);
+            }
+            NscriptWordTypes::Macro=>{
+                let mut nscriptvar = NscriptVar::new("stc");
+                nscriptvar.stringdata = self.getmacrostring(&word).to_string();
+                return nscriptvar;
+            }
+
             NscriptWordTypes::Bool => {
                 let mut newvar = NscriptVar::new(word);
                 newvar.setstring(&Nstring::trimprefix(&word));
@@ -589,25 +685,7 @@ impl NscriptStorage{
                 }
                 return returnvar;
             }
-            NscriptWordTypes::Property=>{
-                let thisword = Nstring::trimprefix(word);
-                let wordsplit = split(&thisword,".");
-                if wordsplit.len() > 1{
-                    let mut cname = wordsplit[0].trim().to_string();
-                    let mut pname = wordsplit[1].trim().to_string();
-                    if Nstring::prefix(&wordsplit[0]) ==  "*" {
-                        cname = self.getargstring(&Nstring::trimprefix(&wordsplit[0]), block);
-                    }
-                    if Nstring::prefix(&wordsplit[1]) ==  "*" {
-                        pname = self.getargstring(&Nstring::trimprefix(&wordsplit[1]),block) ;
-                    }
-                    if let Some(thisclass) = self.getclassref(&cname){
-                        thisvar = thisclass.getprop(&pname);
-                    }else{
-                        print(&format!(" getvar() storage block:[{}]  word:[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
-                    }
-                }
-            }
+
             _ => {
             }
         }
@@ -664,7 +742,7 @@ impl NscriptStorage{
             }
         }
     }
-    pub fn getmacrostring(&mut self,word:&str)->String{
+    pub fn getmacrostring(&mut self,word:&str)->Box<str>{
 
         let time = chrono::Utc::now();
         let macrostring  = match word{
@@ -735,7 +813,7 @@ impl NscriptStorage{
                 "".to_string()
             }
         };
-        macrostring
+        macrostring.into()
 
     }
 
@@ -810,12 +888,14 @@ pub struct NscriptFormattedCodeBlock{
 
     pub codeblock: String,
     pub code: Vec<Vec<Vec<String>>>,// all the subscopes, if else loop coroutines
+    pub boxedcode: Vec<Vec<Vec<Box<str>>>>,// all the subscopes, if else loop coroutines
 }
 impl NscriptFormattedCodeBlock{
     pub fn new()->NscriptFormattedCodeBlock{
          NscriptFormattedCodeBlock{
             codeblock: String::new(),
             code: Vec::new(),
+            boxedcode: Vec::new(),
         }
     }
 
@@ -826,14 +906,15 @@ impl NscriptFormattedCodeBlock{
 pub struct NscriptCodeBlock{
     pub name: String,
     pub insubblock: usize,// all the subscopes, if else loop coroutines
-    pub strings: HashMap<String,String>,// scope variables
+    pub strings: HashMap< String,String>,// scope variables
     pub stringsvec: HashMap<String,Vec<String>>,// scope variables
-    pub staticstrings: Vec<String>,// scope variables
+    pub staticstrings: Vec<Box<str>>,// scope variables
     pub ifscopedepth: usize,//used for parsing nested ifscopes
     pub ifscopes: Vec<bool>,// used for nested elseif else scopes
     pub inloop: usize, // used for nested loops
     pub breakloop: Vec<bool>, // used to break the right nested loop.
     pub formattedcode: NscriptFormattedCodeBlock, // used to break the right nested loop.
+    pub emptystr: String, // ref to return if none found.
 }
 
 impl NscriptCodeBlock{
@@ -849,6 +930,7 @@ impl NscriptCodeBlock{
             inloop: 0,
             breakloop: Vec::new(),
             formattedcode: NscriptFormattedCodeBlock::new(),
+            emptystr : "".to_string(),
         };
         this.ifscopes.push(false);
         this.breakloop.push(false);
@@ -867,6 +949,14 @@ impl NscriptCodeBlock{
         }
         else{
             return "".to_string();
+        }
+    }
+    pub fn getstr(&mut self,namref:&str) ->&str{
+        if let Some(data) = self.strings.get(&namref.to_string()){
+            return &data;
+        }
+        else{
+            return &self.emptystr;
         }
     }
     /// stored Vec<String> for NscriptVar types.
@@ -958,11 +1048,11 @@ impl NscriptCodeBlock{
                         parsingtext = Nstring::replace(&parsingtext, &torep, &repwith);
                     }
                     let stringdata = hex_to_string(&hexstring);
-                    self.staticstrings.push(stringdata.to_string());
+                    self.staticstrings.push(stringdata.into_boxed_str());
                 }
             }
         }
-        self.staticstrings.push("".to_string());
+        self.staticstrings.push("".to_string().into_boxed_str());
         self.formattedcode.codeblock = parsingtext.to_string();
     }
     /// tokenizing and assinging subscopes
@@ -1085,8 +1175,8 @@ impl NscriptVar{
         }
     }
     /// returns the string value of the variable
-    pub fn getstring(&mut self) -> String{
-        return self.stringdata.to_string();
+    pub fn getstring(&mut self) -> &str{
+        return &self.stringdata;
     }
     pub fn getnumber(&mut self) -> u64{
         return self.stringdata.parse::<u64>().unwrap_or(0);
@@ -1098,7 +1188,7 @@ impl NscriptVar{
 /// Nscript user scripted functions
 #[derive(Clone)]
 pub struct NscriptFunc{
-    pub name: String,
+    pub name: Box<str>,
     pub args:Vec<String>,
     pub codeblock:NscriptCodeBlock,
 }
@@ -1106,7 +1196,7 @@ pub struct NscriptFunc{
 impl NscriptFunc{
     pub fn new(name:String,args:Vec<String>)->NscriptFunc{
         NscriptFunc{
-            name: name.to_string(),
+            name: name.to_string().into_boxed_str(),
             args: args,
             codeblock: NscriptCodeBlock::new(&name),
         }
@@ -1115,37 +1205,37 @@ impl NscriptFunc{
 
 #[derive(Clone)]
 pub struct NscriptClass{
-    pub name: String,
-    pub index: Vec<String>,
+    pub name: Box<str>,
+    pub index: Vec<Box<str>>,
     properties: HashMap<String,NscriptVar>,
-    pub functionindex: Vec<String>,
+    pub functionindex: Vec<Box<str>>,
     pub functions: HashMap<String,NscriptFunc>,
-    pub parents: Vec<String>,
-    pub children: Vec<String>,
+    //pub parents: Vec<String>,
+    //pub children: Vec<String>,
 }
 
 impl NscriptClass{
     pub fn new(name:&str) -> NscriptClass{
         NscriptClass{
-            name: name.to_string(),
+            name: name.into(),
             index: Vec::new(),
             properties: HashMap::new(),
             functionindex: Vec::new(),
             functions: HashMap::new(),
-            parents: Vec::new(),
-            children: Vec::new(),
+            //parents: Vec::new(),
+           // children: Vec::new(),
         }
     }
 
     pub fn copyto(&mut self, name:&str) -> NscriptClass{
         let mut this = NscriptClass{
-            name: name.to_string(),
+            name: name.into(),
             index: self.index.clone(),
             properties: HashMap::new(),
             functionindex:Vec::new(),
             functions:HashMap::new(),
-            parents: Vec::new(),
-            children: Vec::new(),
+            //parents: Vec::new(),
+            //children: Vec::new(),
         };
 
         for xprop in self.index.clone(){
@@ -1154,8 +1244,8 @@ impl NscriptClass{
         for xprop in self.functionindex.clone(){
             this.setfunc(&xprop, self.getfunc(&xprop));
         };
-        this.parents.push(self.name.to_string());
-        self.children.push(this.name.to_string());
+        //this.parents.push(self.name.to_string());
+        //self.children.push(this.name.to_string());
 
         this
     }
@@ -1176,7 +1266,7 @@ impl NscriptClass{
                 self.properties.insert(name.to_string(),prop);
             }
             else{
-                self.index.push(name.to_string());
+                self.index.push(name.into());
                 self.properties.insert(name.to_string(),prop);
             }
         }
@@ -1191,11 +1281,12 @@ impl NscriptClass{
         }
     }
     pub fn removeprop(&mut self,name:&str){
-        self.index.retain(|x| x != name);
+        self.functionindex.retain(|x| x.to_owned().into_string() != name);
         self.properties.remove(name);
     }
     pub fn removefunc(&mut self,name:&str){
-        self.functionindex.retain(|x| x != name);
+        //self.functionindex.retain(| x:Box<str>| x.into() != name);
+        self.functionindex.retain(|x| x.to_owned().into_string() != name);
         self.functions.remove(name);
     }
     pub fn setfunc(&mut self, name:&str,mut prop:NscriptFunc){
@@ -1206,7 +1297,7 @@ impl NscriptClass{
             self.functions.insert(name.to_string(),prop);
         }
         else{
-            self.functionindex.push(name.to_string());
+            self.functionindex.push(name.into());
             self.functions.insert(name.to_string(),prop);
         }
     }

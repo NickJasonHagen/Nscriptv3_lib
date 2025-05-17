@@ -2,7 +2,7 @@ use crate::*;
 use std::{char, time::{SystemTime, UNIX_EPOCH}};
 pub struct Nstring {
 }
-pub fn nscriptfn_split(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_split(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut thisvar = NscriptVar::new("var");
     if args.len() > 1 {
         let mut delim = "".to_string();
@@ -19,7 +19,7 @@ pub fn nscriptfn_split(args:&Vec<String>,block :&mut NscriptCodeBlock , storage 
     thisvar
 }
 
-pub fn nscriptfn_replace(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_replace(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() > 2{
         let value = Nstring::replace(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block));
@@ -29,7 +29,7 @@ pub fn nscriptfn_replace(args:&Vec<String>,block :&mut NscriptCodeBlock , storag
     }
     return neovar;
 }
-pub fn nscriptfn_stringtoeval(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_stringtoeval(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     let mut return_val = storage.getargstring(&args[0], block);
 
@@ -45,12 +45,12 @@ pub fn nscriptfn_stringtoeval(args:&Vec<String>,block :&mut NscriptCodeBlock , s
     neovar.stringdata = return_val;
     return neovar;
 }
-pub fn nscriptfn_len(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_len(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     neovar.stringdata = storage.getargstringvec(&args[0],block).len().to_string();
     neovar
 }
-pub fn nscriptfn_instring(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_instring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() < 2 {
         neovar.stringdata = "false".to_string();
@@ -65,7 +65,7 @@ pub fn nscriptfn_instring(args:&Vec<String>,block :&mut NscriptCodeBlock , stora
     }
     neovar
 }
-pub fn nscriptfn_stringbetween(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_stringbetween(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() < 2 {
         neovar.stringdata = "".to_string();
@@ -76,7 +76,7 @@ pub fn nscriptfn_stringbetween(args:&Vec<String>,block :&mut NscriptCodeBlock , 
     }
     neovar
 }
-pub fn nscriptfn_stringbetweennested(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_stringbetweennested(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() < 2 {
         neovar.stringdata = "".to_string();
@@ -87,12 +87,12 @@ pub fn nscriptfn_stringbetweennested(args:&Vec<String>,block :&mut NscriptCodeBl
     }
     neovar
 }
-pub fn nscriptfn_trim(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_trim(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     neovar.stringdata = storage.getargstring(&args[0],block);
     neovar
 }
-pub fn nscriptfn_contains(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_contains(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() > 1{
         let value = Nstring::instring(&storage.getargstring(&args[0],block), & storage.getargstring(&args[1],block) );
@@ -103,7 +103,7 @@ pub fn nscriptfn_contains(args:&Vec<String>,block :&mut NscriptCodeBlock , stora
     return neovar;
 }
 
-pub fn nscriptfn_join(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_join(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() > 0{
         let mut tojoin = "".to_string();
@@ -117,7 +117,7 @@ pub fn nscriptfn_join(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :
     return neovar;
 }
 
-pub fn nscriptfn_fromleft(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_fromleft(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() > 1{
         let string = Nstring::fromleft(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
@@ -128,7 +128,7 @@ pub fn nscriptfn_fromleft(args:&Vec<String>,block :&mut NscriptCodeBlock , stora
     return neovar;
 }
 
-pub fn nscriptfn_fromright(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_fromright(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() > 1{
         let string = Nstring::fromright(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
@@ -139,7 +139,7 @@ pub fn nscriptfn_fromright(args:&Vec<String>,block :&mut NscriptCodeBlock , stor
     return neovar;
 }
 
-pub fn nscriptfn_trimright(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_trimright(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() > 1{
         let string = Nstring::trimright(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
@@ -149,7 +149,7 @@ pub fn nscriptfn_trimright(args:&Vec<String>,block :&mut NscriptCodeBlock , stor
     }
     return neovar;
 }
-pub fn nscriptfn_trimleft(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_trimleft(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() > 1{
         let string = Nstring::trimleft(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
@@ -159,13 +159,13 @@ pub fn nscriptfn_trimleft(args:&Vec<String>,block :&mut NscriptCodeBlock , stora
     }
     return neovar;
 }
-pub fn nscriptfn_toupper(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_toupper(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     let value = storage.getargstring(&args[0], block).to_uppercase();
     neovar.stringdata = value.to_string();
     return neovar;
 }
-pub fn nscriptfn_tolower(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_tolower(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     let value = storage.getargstring(&args[0], block).to_lowercase();
     neovar.stringdata = value.to_string();
@@ -366,12 +366,12 @@ pub struct Ntimer {
 
 }
 
-pub fn nscriptfn_timerinit(_var:&Vec<String>,_block:&mut NscriptCodeBlock , _storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_timerinit(_var:&Vec<&str>,_block:&mut NscriptCodeBlock , _storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new("timer");
     var.stringdata = Ntimer::init().to_string();
     var
 }
-pub fn nscriptfn_timerdiff(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_timerdiff(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new("timer");
     var.stringdata = Ntimer::diff(storage.getargstring(&args[0], block).parse::<i64>().unwrap_or(0)).to_string();
     var
@@ -392,7 +392,7 @@ impl Ntimer {
     }
 }
 
-pub fn nscriptfn_hextostring(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
+pub fn nscriptfn_hextostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("var");
     match Vec::from_hex(storage.getargstring(&args[0], block)) {
         Ok(bytes) => var.stringdata = String::from_utf8_lossy(&bytes).to_string(),
@@ -400,7 +400,7 @@ pub fn nscriptfn_hextostring(args:&Vec<String>,block :&mut NscriptCodeBlock , st
     }
     var
 }
-pub fn nscriptfn_stringtohex(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
+pub fn nscriptfn_stringtohex(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("var");
     let hex_chars: Vec<char> = "0123456789ABCDEF".chars().collect();
     let string = storage.getargstring(&args[0], block);
@@ -450,7 +450,7 @@ pub fn string_to_eval(string_: &str) -> String {
 
     return return_val;
 }
-pub fn nscriptfn_print(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_print(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut color = "".to_string();
     if args.len() > 1 {
         color = storage.getargstring(&args[1], block);
@@ -541,13 +541,13 @@ impl NscriptStructBinding for Nfile{
     }
 }
 
-pub fn nscriptfn_fileread(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_fileread(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
     if args.len() > 0 {thisvar.stringdata = Nfile::read(&storage.getargstring(&args[0], block));}
     thisvar
 }
 
-pub fn nscriptfn_filewrite(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_filewrite(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
     if args.len() > 1 {
         thisvar.stringdata = Nfile::write(&storage.getargstring(&args[0], block),&storage.getargstring(&args[1], block));
@@ -555,12 +555,12 @@ pub fn nscriptfn_filewrite(args:&Vec<String>,block :&mut NscriptCodeBlock , stor
     thisvar
 }
 
-pub fn nscriptfn_fileexists(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_fileexists(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
     thisvar.stringdata = Nfile::checkexists(&storage.getargstring(&args[0], block)).to_string();
     thisvar
 }
-pub fn nscriptfn_listdir(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_listdir(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
     let mut fullp = false;
     if args.len() > 1{
@@ -571,12 +571,12 @@ pub fn nscriptfn_listdir(args:&Vec<String>,block :&mut NscriptCodeBlock , storag
     thisvar.stringvec = Nfile::dirtolist(&storage.getargstring(&args[0], block), fullp);
     thisvar
 }
-pub fn nscriptfn_filesize(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_filesize(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
     thisvar.stringdata = Nfile::filesize(&storage.getargstring(&args[0], block));
     thisvar
 }
-pub fn nscriptfn_filesizebytes(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_filesizebytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
     thisvar.stringdata = Nfile::filesizebytes(&storage.getargstring(&args[0], block)).to_string();
     thisvar
@@ -682,7 +682,7 @@ impl Nfile {
     }
 }
 
-pub fn nscriptfn_call_program(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let var = NscriptVar::new("var");
     let mut non_empty_args :Vec<String>= Vec::new();
     for xarg in args{
@@ -705,7 +705,7 @@ pub fn nscriptfn_call_program(args:&Vec<String>,block :&mut NscriptCodeBlock , s
     if let Ok(_) = output.spawn(){};
     var
 }
-pub fn nscriptfn_cat(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new("cat");
     let mut string = "".to_string();
     for xcat in args{
@@ -714,7 +714,7 @@ pub fn nscriptfn_cat(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&
     var.stringdata = string;
     return var;
 }
-pub fn nscriptfn_call_programwait(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_call_programwait(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new("var");
     let mut non_empty_args :Vec<String>= Vec::new();
     for xarg in args{
@@ -752,13 +752,13 @@ pub fn nscriptfn_call_programwait(args:&Vec<String>,block :&mut NscriptCodeBlock
     var.stringdata = result.to_string();
     var
 }
-pub fn nscriptfn_sleep(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage)->NscriptVar {
+pub fn nscriptfn_sleep(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage)->NscriptVar {
     let milliseconds = storage.getargstring(&args[0], block).parse::<u64>().unwrap_or(0);
     let duration = Duration::from_millis(milliseconds);
     thread::sleep(duration);
     return NscriptVar::new("sleep");
 }
-pub fn nscriptfn_random(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_random(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     if args.len() > 1 {
         let min = &storage.getargstring(&args[0], block);
         let max = &storage.getargstring(&args[1], block);
@@ -796,7 +796,7 @@ pub fn nscriptfn_random(args:&Vec<String>,block :&mut NscriptCodeBlock , storage
     return NscriptVar::new("error");
 }
 
-pub fn nscriptfn_arraypush(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_arraypush(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
     var.stringdata = storage.getargstring(&args[0], block);
     var.stringvec = storage.getargstringvec(&args[0], block);
@@ -806,7 +806,7 @@ pub fn nscriptfn_arraypush(args:&Vec<String>,block :&mut NscriptCodeBlock , stor
     return var;
 }
 
-pub fn nscriptfn_arraycontains(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_arraycontains(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
     var.stringdata = storage.getargstring(&args[0], block);
     var.stringvec = storage.getargstringvec(&args[0], block);
@@ -816,7 +816,7 @@ pub fn nscriptfn_arraycontains(args:&Vec<String>,block :&mut NscriptCodeBlock , 
     return var;
 }
 
-pub fn nscriptfn_arrayretain(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_arrayretain(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
     var.stringdata = storage.getargstring(&args[0], block);
     var.stringvec = storage.getargstringvec(&args[0], block);
@@ -825,7 +825,7 @@ pub fn nscriptfn_arrayretain(args:&Vec<String>,block :&mut NscriptCodeBlock , st
     }
     return var
 }
-pub fn nscriptfn_arrayshuffle(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_arrayshuffle(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
     var.stringdata = storage.getargstring(&args[0], block);
     var.stringvec = storage.getargstringvec(&args[0], block);
@@ -833,7 +833,7 @@ pub fn nscriptfn_arrayshuffle(args:&Vec<String>,block :&mut NscriptCodeBlock , s
     var.stringvec.shuffle(&mut rng);
     return var;
 }
-pub fn nscriptfn_arrayreverse(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_arrayreverse(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
     var.stringdata = storage.getargstring(&args[0], block);
     var.stringvec = storage.getargstringvec(&args[0], block);
@@ -845,7 +845,7 @@ pub fn nscriptfn_arrayreverse(args:&Vec<String>,block :&mut NscriptCodeBlock , s
     var.stringvec = newvec;
     return var;
 }
-pub fn nscriptfn_arrayinsert(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_arrayinsert(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
     if args.len() > 2{
     var.stringdata = storage.getargstring(&args[0], block);
@@ -857,7 +857,7 @@ pub fn nscriptfn_arrayinsert(args:&Vec<String>,block :&mut NscriptCodeBlock , st
     }
     return var;
 }
-pub fn nscriptfn_arraysearch(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_arraysearch(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
 
     var.stringdata = storage.getargstring(&args[0], block);
@@ -871,13 +871,13 @@ pub fn nscriptfn_arraysearch(args:&Vec<String>,block :&mut NscriptCodeBlock , st
     var.stringvec = newvec;
     return var;
 }
-pub fn nscriptfn_arraysort(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_arraysort(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new("ret");
     var.stringvec =  storage.getargstringvec(&args[0],block);
     var.stringvec.sort();
     var
 }
-pub fn nscriptfn_arrayfilter(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_arrayfilter(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
     var.stringdata = storage.getargstring(&args[0], block);
     var.stringvec = storage.getargstringvec(&args[0], block);
@@ -898,7 +898,7 @@ pub fn create_directory(dir_path: &str) -> String {
 }
 
 // Move a file from the source path to the destination path
-pub fn nscriptfn_filemove(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
+pub fn nscriptfn_filemove(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
 
     let mut var = NscriptVar::new("filemove");
     if args.len() < 2 {
@@ -918,7 +918,7 @@ pub fn nscriptfn_filemove(args:&Vec<String>,block :&mut NscriptCodeBlock , stora
 }
 
 // Copy a file from the source path to the destination path
-pub fn nscriptfn_filecopy(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
+pub fn nscriptfn_filecopy(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("filemove");
     if args.len() < 2 {
         print!("wrong arguments for filemove (source , destination)");
@@ -934,7 +934,7 @@ pub fn nscriptfn_filecopy(args:&Vec<String>,block :&mut NscriptCodeBlock , stora
 }
 
 // Delete a file at the specified path
-pub fn nscriptfn_filedelete(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
+pub fn nscriptfn_filedelete(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("filedelete");
     match fs::remove_file(storage.getargstring(&args[0], block)) {
         Ok(_) => var.stringdata = format!("File deleted successfully"),
@@ -944,7 +944,7 @@ pub fn nscriptfn_filedelete(args:&Vec<String>,block :&mut NscriptCodeBlock , sto
 }
 
 // Delete a directory and all its contents
-pub fn nscriptfn_directory_delete(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
+pub fn nscriptfn_directory_delete(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
 
     let mut var = NscriptVar::new("filedelete");
     let directory = storage.getargstring(&args[0], block);
@@ -956,7 +956,7 @@ pub fn nscriptfn_directory_delete(args:&Vec<String>,block :&mut NscriptCodeBlock
 }
 
 // Move a directory from the source path to the destination path
-pub fn nscriptfn_directory_move(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_directory_move(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("filemove");
     if args.len() < 2 {
         print!("wrong arguments for dirmove (source , destination)");
@@ -970,7 +970,7 @@ pub fn nscriptfn_directory_move(args:&Vec<String>,block :&mut NscriptCodeBlock ,
     return var;
 }
 
-pub fn nscriptfn_terminalinput(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_terminalinput(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut var = NscriptVar::new("terminalinput");
     let  message = storage.getargstring(&args[0], block);
     let mut default = "".to_string();
@@ -993,7 +993,7 @@ pub fn nscriptfn_terminalinput(args:&Vec<String>,block :&mut NscriptCodeBlock , 
     var
 }
 
-pub fn nscriptfn_splitselect(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_splitselect(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut var = NscriptVar::new("splitselect");
     if args.len() > 2 {
         let id = storage.getargstring(&args[2], block).parse::<usize>().unwrap_or(0);
@@ -1010,7 +1010,7 @@ pub fn nscriptfn_splitselect(args:&Vec<String>,block :&mut NscriptCodeBlock , st
     var
 }
 
-pub fn nscriptfn_base64tostring(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_base64tostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut var = NscriptVar::new("base64tostring");
     if let Ok(basethis) = BASE64_STANDARD.decode(&storage.getargstring(&args[0], block)){
         var.stringdata = String::from_utf8(basethis).unwrap();
@@ -1019,7 +1019,7 @@ pub fn nscriptfn_base64tostring(args:&Vec<String>,block :&mut NscriptCodeBlock ,
     var.stringdata = "error".to_string();
         return var;
 }
-pub fn nscriptfn_stringtobase64(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+pub fn nscriptfn_stringtobase64(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut var = NscriptVar::new("base64tostring");
     var.stringdata = BASE64_STANDARD.encode(&storage.getargstring(&args[0], block));
     return var;
@@ -1027,7 +1027,7 @@ pub fn nscriptfn_stringtobase64(args:&Vec<String>,block :&mut NscriptCodeBlock ,
 }
 
 //
-pub fn nscriptfn_tcplistener(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_tcplistener(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("tcplisten");
     if args.len() < 2 {
         print!("wrong arguments for  tcplistener (ip , port)");
@@ -1039,7 +1039,7 @@ pub fn nscriptfn_tcplistener(args:&Vec<String>,block :&mut NscriptCodeBlock , st
     return var;
 }
 
-pub fn nscriptfn_tcpconnect(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_tcpconnect(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("tcplisten");
     if args.len() < 2 {
         print!("wrong arguments for tcpconnect (ip , port)");
@@ -1051,14 +1051,14 @@ pub fn nscriptfn_tcpconnect(args:&Vec<String>,block :&mut NscriptCodeBlock , sto
     return var;
 }
 
-pub fn nscriptfn_tcpaccept(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_tcpaccept(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("tcpaccept");
     let socket = storage.getargstring(&args[0], block);
     var.stringdata = storage.tcp.accept(&socket);
     return var;
 }
 
-pub fn nscriptfn_tcpdisconnect(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_tcpdisconnect(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("tcpdisconnect");
     let socket = storage.getargstring(&args[0], block);
     var.stringdata = storage.tcp.disconnect(&socket);
@@ -1066,13 +1066,13 @@ pub fn nscriptfn_tcpdisconnect(args:&Vec<String>,block :&mut NscriptCodeBlock , 
 }
 
 
-pub fn nscriptfn_tcpreceive(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_tcpreceive(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("tcpreceive");
     let socket = storage.getargstring(&args[0], block);
     var.stringdata = storage.tcp.receive(&socket);
     return var;
 }
-pub fn nscriptfn_tcpsend(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+pub fn nscriptfn_tcpsend(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("tcpsend");
     if args.len() < 2 {
         print!("wrong arguments for tcpsend (socket , msg)");

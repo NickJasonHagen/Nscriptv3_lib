@@ -414,7 +414,7 @@ impl  <'a> Nscript<'a>{
 
 }
 
-pub fn nscriptfn_decode_html_url(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_decode_html_url(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut nvar = NscriptVar::new("decode");
     nvar.stringdata = decode_html_url(&storage.getargstring(&args[0], block));
     nvar
@@ -720,7 +720,7 @@ pub fn html_encode(s_txt: &str) -> String {
 
 
 /// mapped as httpget()
-pub fn nscriptfn_get_http_content(args:&Vec<String>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
+pub fn nscriptfn_get_http_content(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("httpget");
     if args.len() < 3 {
         return var;

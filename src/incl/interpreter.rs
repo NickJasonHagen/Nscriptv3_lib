@@ -17,6 +17,8 @@ pub struct Nscript<'a>{
     pub tcplisteners: HashMap<String,TcpListener>,
     pub storage: NscriptStorage,
     pub formattedblocks: HashMap<String,NscriptFormattedCodeBlock>,
+    pub codestorage: CodeStorage,
+    pub userfunctions: HashMap<String,NscriptFunc>,
 }
 
 impl <'a> Nscript<'a>{
@@ -33,6 +35,8 @@ impl <'a> Nscript<'a>{
             tcplisteners:HashMap::new(),
             storage:NscriptStorage::new(),
             formattedblocks:HashMap::new(),
+            codestorage: CodeStorage::new(),
+            userfunctions:HashMap::new(),
         }
     }
     pub fn new() -> Nscript<'a> {
@@ -61,6 +65,9 @@ impl <'a> Nscript<'a>{
     pub fn insertstruct(&mut self, key: &'a str, value: &'a mut dyn  NscriptStructBinding)   {
         self.ruststructsindex.push(key.to_string());
         self.ruststructs.insert(key, value);
+    }
+    pub fn insertuserfunction(&mut self, key: String, value: NscriptFunc)   {
+        self.userfunctions.insert(key, value);
     }
     /// inserts function bindings from rust to Nscript these functions must be of public type NscriptSimpleFunctions
     pub fn insertfn(&mut self,name:&str,func: NscriptSimpleFunctions){
@@ -241,13 +248,12 @@ impl <'a> Nscript<'a>{
         }
     }
     pub fn getformattedblock(&mut self,blockref:&str)->NscriptFormattedCodeBlock{
-
         if let Some(this) = self.formattedblocks.get(blockref){
             return this.clone();
         }
         else{
             print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
-            return NscriptFormattedCodeBlock::new();
+            return NscriptFormattedCodeBlock::new("NULLBLOCK");
         }
     }
     pub fn getblockref(&mut self,blockref:&str)->Option<&mut NscriptCodeBlock>{
@@ -386,6 +392,53 @@ pub enum NscriptWordTypes {
     Nestedfunc,
     Arraydeclaration,
 }
+pub struct CodeStorage{
+    string: HashMap<String,String >, // stores the raw code as a string
+    raw: HashMap<String,Vec<Vec<Vec<String>>> >,// arawvector
+    boxed: HashMap<String,Vec<Vec<Vec<Box<str>>>> >,
+}
+impl CodeStorage{
+    pub fn new() ->CodeStorage{
+        CodeStorage{
+            string: HashMap::new(),
+            raw: HashMap::new(),
+            boxed: HashMap::new(),
+        }
+    }
+    pub fn setstring(&mut self,name:String,code:String){
+        self.string.insert(name,code);
+    }
+    pub fn setraw(&mut self,name:String,code:Vec<Vec<Vec<String>>>){
+        self.raw.insert(name,code);
+    }
+    pub fn setboxed(&mut self,name:String,code:Vec<Vec<Vec<Box<str>>>>){
+        self.boxed.insert(name,code);
+    }
+    pub fn getstring(&mut self,name:&String)->String{
+        if let Some(vec) = self.string.get(name){
+            vec.to_owned()
+        }
+        else{
+            String::new()
+        }
+    }
+    pub fn getboxed(&mut self,name:&String)->Vec<Vec<Vec<Box<str>>>>{
+        if let Some(vec) = self.boxed.get(name){
+            vec.to_owned()
+        }
+        else{
+            Vec::new()
+        }
+    }
+    pub fn getraw(&mut self,name:&String)->Vec<Vec<Vec<String>>>{
+        if let Some(vec) = self.raw.get(name){
+            vec.to_owned()
+        }
+        else{
+            Vec::new()
+        }
+    }
+}
 pub struct NscriptStorage{
     pub globalvars:HashMap<String,NscriptVar>,
     pub codeblocks:HashMap<String,NscriptCodeBlock>,
@@ -394,6 +447,7 @@ pub struct NscriptStorage{
     pub tcp: NscriptTcp,
     pub nscript3d: Nscript3d,
 }
+
 impl NscriptStorage{
     pub fn new() ->NscriptStorage{
         NscriptStorage{
@@ -406,7 +460,7 @@ impl NscriptStorage{
         }
     }
     pub fn getglobal(&mut self,name:&str) ->NscriptVar{
-        if let Some(res) = self.globalvars.get_mut(name){
+        if let Some(res) = self.globalvars.get(name){
             return res.clone();
         }
         NscriptVar::new(name)//<-not found,ret new
@@ -423,6 +477,30 @@ impl NscriptStorage{
             None
         }
     }
+    pub fn setprop(&mut self,name:&str,prop:&str,var:NscriptVar,block:&mut NscriptCodeBlock){
+        let  cname:Box<str>;
+        let  pname :Box<str>;
+        if Nstring::prefix(&name) ==  "*" {
+            cname = self.getevaluatablewordstr(&Nstring::trimprefix(&name), block).into();
+        }
+        else{
+            cname = name.trim().into();
+        }
+        if Nstring::prefix(&name) ==  "*" {
+            pname = self.getevaluatablewordstr(&Nstring::trimprefix(&name),block).into() ;
+        }
+        else{
+            pname = prop.trim().into();
+        }
+        if let Some(thisclass) = self.classes.get_mut(&cname.to_string()){
+            thisclass.setprop(&pname, var);
+        }
+        else{
+            let mut newclass = NscriptClass::new(&cname);
+            newclass.setprop(&pname, var);
+            self.classes.insert(cname.to_string(),newclass);
+        }
+    }
     /// used for simplerustfn and interpreter know variables(non nc functions nor word function
     /// check) for retrieving strings
     pub fn getargstring(&mut self,word:&str,block: &mut NscriptCodeBlock) -> String{
@@ -436,7 +514,7 @@ impl NscriptStorage{
             NscriptWordTypes::Property=>{
                 let thisword = Nstring::trimprefix(word);
                 let wordsplit = split(&thisword,".");
-                if wordsplit.len() > 1{
+                //if wordsplit.len() > 1{
                     let  cname:Box<str>;
                     let  pname :Box<str>;
                     if Nstring::prefix(&wordsplit[0]) ==  "*" {
@@ -452,12 +530,12 @@ impl NscriptStorage{
                         pname = wordsplit[1].trim().into();
                     }
                     if let Some(thisclass) = self.getclassref(&cname){
-                        return thisclass.getprop(&pname).stringdata;
+                        return thisclass.getpropstr(&pname).to_string();
                     }else{
                         print(&format!("getargstring() storage block:[{}] word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
                         return "".to_owned();
                     }
-                }
+                //}
             }
             NscriptWordTypes::Number =>{
                 let thisword = Nstring::trimprefix(word);
@@ -494,10 +572,28 @@ impl NscriptStorage{
         }
         word.to_string()
     }
-
+    pub fn checkdefiningwordtype(&mut self,word:&str) -> NscriptWordTypes{
+        match Nstring::prefix(word){
+            "&" => {
+                return NscriptWordTypes::Property;
+            }
+            "$" => {
+                return NscriptWordTypes::Global;
+            }
+            "*" => {
+                return NscriptWordTypes::Reflection;
+            }
+            "#" =>{
+                return NscriptWordTypes::Array;
+            }
+            _ => {
+                return NscriptWordTypes::Variable;
+            }
+        }
+    }
     pub fn getevaluatablewordstr(&mut self,word:&str, block:&mut NscriptCodeBlock) -> Box<str>{
 
-         match self.argtype(word){
+         match self.checkdefiningwordtype(word){
             NscriptWordTypes::Static =>{
                 return block.staticstrings[Nstring::trimprefix(word).parse::<usize>().unwrap_or(0)].to_string().into();
             }
@@ -523,28 +619,17 @@ impl NscriptStorage{
                         pname = wordsplit[1].trim().into();
                     }
                     if let Some(thisclass) = self.getclassref(&cname){
-                        return thisclass.getprop(&pname).stringdata.into();
+                        return thisclass.getpropstr(&pname).into();
                     }else{
                         print(&format!("nscript::getwordstring() block[{}] word [{}]is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
                         return "".into();
                     }
                 }
             }
-            NscriptWordTypes::Number  =>{
-                let thisword = Nstring::trimprefix(word);
-                return thisword.into();
-            }
 
-            NscriptWordTypes::Macro =>{
-                return self.getmacrostring(word).into();
-            }
             NscriptWordTypes::Global => {
                 return self.getglobal(&word).stringdata.into();
             }
-            NscriptWordTypes::Bool => {
-                return Nstring::trimleft(&word,1).into();
-            }
-
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);
                 let arrays = split(&thisword,"[");
@@ -610,17 +695,17 @@ impl NscriptStorage{
     }
     //used to get the Vec<String> from injected simplerustfn
     pub fn getvar(&mut self,word:&str,block: &mut NscriptCodeBlock) -> NscriptVar{
-        let mut thisvar = NscriptVar::new(&word);
         match self.argtype(word){
-
             NscriptWordTypes::Variable=>{
-                thisvar.stringvec = block.getstringvec(word);
-                thisvar.stringdata = block.getstring(word);
+                return NscriptVar::newvar(&word, block.getstring(word),block.getstringvec(word));
+                // thisvar.stringvec = block.getstringvec(word);
+                // thisvar.stringdata = block.getstring(word);
+                // return thisvar;
             }
             NscriptWordTypes::Property=>{
                 let thisword = Nstring::trimprefix(word);
                 let wordsplit = split(&thisword,".");
-                if wordsplit.len() > 1{
+                //if wordsplit.len() > 1{
                     let  cname:Box<str>;
                     let  pname :Box<str>;
                     if Nstring::prefix(&wordsplit[0]) ==  "*" {
@@ -636,36 +721,41 @@ impl NscriptStorage{
                         pname = wordsplit[1].trim().into();
                     }
                     if let Some(thisclass) = self.getclassref(&cname){
-                        thisvar = thisclass.getprop(&pname);
+                       return thisclass.getprop(&pname);
                     }else{
                         print(&format!(" getvar() storage block:[{}]  word:[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
                     }
-                }
+                //}
             }
             NscriptWordTypes::Static=>{
-                let mut nscriptvar = NscriptVar::new("stc");
-                nscriptvar.stringdata = block.staticstrings[Nstring::trimleft(&word,1).parse::<usize>().unwrap_or(0)].to_string();
-                return nscriptvar;
+                // let mut nscriptvar = NscriptVar::new("stc");
+                // nscriptvar.stringdata = block.staticstrings[Nstring::trimleft(&word,1).parse::<usize>().unwrap_or(0)].to_string();
+                // return nscriptvar;
+                return NscriptVar::newstring("stc", block.staticstrings[Nstring::trimleft(&word,1).parse::<usize>().unwrap_or(0)].to_string());
             }
             NscriptWordTypes::Number =>{
-                let thisword = Nstring::trimprefix(word);
-                let mut newvar = NscriptVar::new(&thisword);
-                newvar.setstring(&thisword);
-                return newvar;
+                 let thisword = Nstring::trimprefix(word);
+                // let mut newvar = NscriptVar::new(&thisword);
+                // newvar.setstring(&thisword);
+                // return newvar;
+                return NscriptVar::newstring(&thisword,thisword.to_string());
             }
             NscriptWordTypes::Global => {
                 return self.getglobal(&word);
             }
             NscriptWordTypes::Macro=>{
-                let mut nscriptvar = NscriptVar::new("stc");
-                nscriptvar.stringdata = self.getmacrostring(&word).to_string();
-                return nscriptvar;
+                return NscriptVar::newstring("macro", self.getmacrostring(&word).to_string());
+                // let mut nscriptvar = NscriptVar::new("stc");
+                // nscriptvar.stringdata = self.getmacrostring(&word).to_string();
+                // return nscriptvar;
             }
 
             NscriptWordTypes::Bool => {
-                let mut newvar = NscriptVar::new(word);
-                newvar.setstring(&Nstring::trimprefix(&word));
-                return newvar;
+
+                return NscriptVar::newstring("bool", Nstring::trimprefix(&word).to_string());
+                // let mut newvar = NscriptVar::new(word);
+                // newvar.setstring(&Nstring::trimprefix(&word));
+                // return newvar;
             }
             NscriptWordTypes::Reflection =>{
                 let toreflect = Nstring::trimprefix(word);
@@ -673,24 +763,24 @@ impl NscriptStorage{
                 return evaluated;
             }
             NscriptWordTypes::Array =>{
-                let mut returnvar = NscriptVar::new("entree");
+                //let mut returnvar = NscriptVar::new("entree");
                 let thisword = Nstring::trimprefix(&word);
                 let arrays = split(&thisword,"[");
                 let thisvar = self.getvar(arrays[0],block);
                 let index = self.getargstring(&Nstring::trimprefix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
                 if thisvar.stringvec.len() > index{
-                    returnvar.stringdata = thisvar.stringvec[index].to_string();
+                    return NscriptVar::newstring("e",thisvar.stringvec[index].to_string());
                 }else{
                     print(&format!(" getvar() block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&word,&arrays[0],&index,&thisvar.stringvec.len()),"r");
                 }
-                return returnvar;
+                return NscriptVar::new("entree");
             }
 
             _ => {
             }
         }
-
-       thisvar
+return NscriptVar::new("error");
+       //thisvar
     }
     pub fn classgetprop(&mut self,class:&str,prop:&str, block:&mut NscriptCodeBlock) ->NscriptVar{
         let mut cname = class.to_string();
@@ -886,117 +976,19 @@ pub enum FormattedLineTypes{
 #[derive(Clone)]
 pub struct NscriptFormattedCodeBlock{
 
+    pub name: Box<str>,
     pub codeblock: String,
     pub code: Vec<Vec<Vec<String>>>,// all the subscopes, if else loop coroutines
     pub boxedcode: Vec<Vec<Vec<Box<str>>>>,// all the subscopes, if else loop coroutines
 }
 impl NscriptFormattedCodeBlock{
-    pub fn new()->NscriptFormattedCodeBlock{
+    pub fn new(blockname:&str)->NscriptFormattedCodeBlock{
          NscriptFormattedCodeBlock{
+            name: blockname.into(),
             codeblock: String::new(),
             code: Vec::new(),
             boxedcode: Vec::new(),
         }
-    }
-
-}
-
-/// this struct contains the vectors with code
-#[derive(Clone)]
-pub struct NscriptCodeBlock{
-    pub name: String,
-    pub insubblock: usize,// all the subscopes, if else loop coroutines
-    pub strings: HashMap< String,String>,// scope variables
-    pub stringsvec: HashMap<String,Vec<String>>,// scope variables
-    pub staticstrings: Vec<Box<str>>,// scope variables
-    pub ifscopedepth: usize,//used for parsing nested ifscopes
-    pub ifscopes: Vec<bool>,// used for nested elseif else scopes
-    pub inloop: usize, // used for nested loops
-    pub breakloop: Vec<bool>, // used to break the right nested loop.
-    pub formattedcode: NscriptFormattedCodeBlock, // used to break the right nested loop.
-    pub emptystr: String, // ref to return if none found.
-}
-
-impl NscriptCodeBlock{
-    pub fn new(nameref:&str) -> NscriptCodeBlock{
-        let mut this = NscriptCodeBlock{
-            name: nameref.to_string(),
-            insubblock: 0,
-            strings: HashMap::new(),
-            stringsvec: HashMap::new(),
-            staticstrings: Vec::new(),
-            ifscopedepth: 0,
-            ifscopes: Vec::new(),
-            inloop: 0,
-            breakloop: Vec::new(),
-            formattedcode: NscriptFormattedCodeBlock::new(),
-            emptystr : "".to_string(),
-        };
-        this.ifscopes.push(false);
-        this.breakloop.push(false);
-        this
-    }
-
-    pub fn formattedblock(&self) ->&NscriptFormattedCodeBlock{
-        &self.formattedcode
-    }
-    pub fn setstring(&mut self,namref:&str,string:String){
-        self.strings.insert(namref.to_string(),string);
-    }
-    pub fn getstring(&mut self,namref:&str) ->String{
-        if let Some(data) = self.strings.get(&namref.to_string()){
-            return data.to_string();
-        }
-        else{
-            return "".to_string();
-        }
-    }
-    pub fn getstr(&mut self,namref:&str) ->&str{
-        if let Some(data) = self.strings.get(&namref.to_string()){
-            return &data;
-        }
-        else{
-            return &self.emptystr;
-        }
-    }
-    /// stored Vec<String> for NscriptVar types.
-    pub fn setstringvec(&mut self,namref:&str,stringvec:Vec<String>){
-        self.stringsvec.insert(namref.to_string(),stringvec);
-    }
-
-    /// stored Vec<String> for NscriptVar types.
-    pub fn getstringvec(&mut self,namref:&str) ->Vec<String>{
-        if let Some(data) = self.stringsvec.get(&namref.to_string()){
-            return data.to_owned();
-        }
-        else{
-            return Vec::new();
-        }
-    }
-    pub fn subblocktostring(&mut self,subblock:usize) -> String{
-        let mut outputstring = "".to_string();
-        for xline in self.formattedcode.code[subblock-1].clone(){
-            outputstring = outputstring + &xline.join(" ") + "\n";
-        }
-        return outputstring
-    }
-    pub fn blocktostring(&mut self) -> String{
-        let mut outputstring = "".to_string();
-        for xline in self.formattedcode.code[0].clone(){
-            outputstring = outputstring + &xline.join(" ") + "\n";
-        }
-        return outputstring
-    }
-    pub fn ifset(&mut self,set:bool){
-        self.ifscopes[self.ifscopedepth] = set;
-    }
-    pub fn ifdown(&mut self){
-        self.ifscopedepth -=1;
-        self.ifscopes =self.ifscopes[0..self.ifscopes.len()-1].to_vec();
-    }
-    pub fn ifup(&mut self){
-        self.ifscopes.push(false);
-        self.ifscopedepth +=1;
     }
     pub fn formatargumentspaces(&mut self, code: &str) -> String {
         let mut line: String; // buffer used for changes
@@ -1025,9 +1017,19 @@ impl NscriptCodeBlock{
         }
         fixed
     }
+    ///creates a Vector lines Vector words, used for parsing.
+    pub fn codetovector(&mut self,code: &str) -> Vec<Vec<String>>{
+        let mut codearray: Vec<Vec<String>> = Vec::new();
+        let linearray: Vec<String> = code.split("\n").map(|s| s.trim().to_string()).collect();
+        for line in &linearray{
+            let wordvec = line.trim().split(" ").map(|s| s.to_string()).collect();
+            codearray.push(wordvec);
+        }
+        codearray
+    }
     /// pre-formatting: all the converted hexed static strings will be assinged a variable
-    fn convertstaticstrings(&mut self){
-        let mut parsingtext = Nstring::replace(&self.formattedcode.codeblock.to_string(),"\"{","\" {");
+    fn convertstaticstrings(&mut self,block:&mut NscriptCodeBlock){
+        let mut parsingtext = Nstring::replace(&self.codeblock.to_string(),"\"{","\" {");
         let mut staticstringcount = 0;
         let chars = ["\n"," ",",",")","]"];
         for xchar in chars{
@@ -1048,22 +1050,22 @@ impl NscriptCodeBlock{
                         parsingtext = Nstring::replace(&parsingtext, &torep, &repwith);
                     }
                     let stringdata = hex_to_string(&hexstring);
-                    self.staticstrings.push(stringdata.into_boxed_str());
+                    block.staticstrings.push(stringdata.into_boxed_str());
                 }
             }
         }
-        self.staticstrings.push("".to_string().into_boxed_str());
-        self.formattedcode.codeblock = parsingtext.to_string();
+        block.staticstrings.push("".to_string().into_boxed_str());
+        self.codeblock = parsingtext.to_string();
     }
     /// tokenizing and assinging subscopes
-    pub fn formatblock(&mut self) {
+    pub fn formatblock(&mut self,block:&mut NscriptCodeBlock) {
         //self.subblockmap = Vec::new();
-        self.convertstaticstrings();
-        let mut parsingtext = self.formattedcode.codeblock.to_string();
+        self.convertstaticstrings(block);
+        let mut parsingtext = self.codeblock.to_string();
         let mut toreturn: String;
         let mut scopecounter = 1;
-        self.breakloop.push(false);
-        self.formattedcode.code.push(Vec::new());
+        block.breakloop.push(false);
+        self.code.push(Vec::new());
         loop {
             let splitstr = split(&parsingtext, "{");
             if splitstr.len() > 1 {
@@ -1071,10 +1073,10 @@ impl NscriptCodeBlock{
                 scopecounter +=1;
                 let scopeid = scopecounter.to_string();
                 let scopekey =" SCOPE ".to_string() + &scopeid;
-                self.breakloop.push(false);
+                block.breakloop.push(false);
                 let formattedscope = self.formatargumentspaces(&isscope);
                 let codevec = self.codetovector(&formattedscope);
-                self.formattedcode.code.push(codevec);
+                self.code.push(codevec);
                 let toreplace = "{".to_owned() + &isscope + "}";
                 parsingtext = Nstring::replace(&parsingtext, &toreplace, &scopekey);
                 parsingtext = Nstring::replace(&parsingtext,"  ", " ");
@@ -1085,30 +1087,114 @@ impl NscriptCodeBlock{
         }
         toreturn = self.formatargumentspaces(&toreturn);
         let codevec = self.codetovector(&toreturn);
-        self.formattedcode.code[0] = codevec.clone();
-        //self.codeblockvector = codevec;
-        self.formattedcode.codeblock = toreturn.to_string();
+        self.code[0] = codevec.clone();
+        self.codeblock = toreturn.to_string();
 
-    }
-    ///creates a Vector lines Vector words, used for parsing.
-    pub fn codetovector(&mut self,code: &str) -> Vec<Vec<String>>{
-        let mut codearray: Vec<Vec<String>> = Vec::new();
-        let linearray: Vec<String> = code.split("\n").map(|s| s.trim().to_string()).collect();
-        for line in &linearray{
-            let wordvec = line.trim().split(" ").map(|s| s.to_string()).collect();
-            codearray.push(wordvec);
-        }
-        codearray
     }
     /// used for pre formatting,
     pub fn setcode(&mut self, codestring:String){
         //print(&codestring,"p");
-        self.formattedcode.codeblock = codestring.to_string();
+        self.codeblock = codestring.to_string();
     }
     /// stores formatted code
      pub fn setcodevector(&mut self, codestring:Vec<Vec<String>>){
-        self.formattedcode.code[0] = codestring;
+        self.code[0] = codestring;
     }
+
+}
+
+
+/// this struct contains the vectors with code
+#[derive(Clone)]
+pub struct NscriptCodeBlock{
+    pub name: String,
+    pub insubblock: usize,// all the subscopes, if else loop coroutines
+    pub strings: HashMap< String,String>,// scope variables
+    pub stringsvec: HashMap<String,Vec<String>>,// scope variables
+    pub staticstrings: Vec<Box<str>>,// scope variables
+    pub ifscopedepth: usize,//used for parsing nested ifscopes
+    pub ifscopes: Vec<bool>,// used for nested elseif else scopes
+    pub inloop: usize, // used for nested loops
+    pub breakloop: Vec<bool>, // used to break the right nested loop.
+}
+
+impl NscriptCodeBlock{
+    pub fn new(nameref:&str) -> NscriptCodeBlock{
+        let mut this = NscriptCodeBlock{
+            name: nameref.to_string(),
+            insubblock: 0,
+            strings: HashMap::new(),
+            stringsvec: HashMap::new(),
+            staticstrings: Vec::new(),
+            ifscopedepth: 0,
+            ifscopes: Vec::new(),
+            inloop: 0,
+            breakloop: Vec::new(),
+        };
+        this.ifscopes.push(false);
+        this.breakloop.push(false);
+        this
+    }
+    pub fn setstring(&mut self,namref:&str,string:String){
+        self.strings.insert(namref.to_string(),string);
+    }
+    pub fn getstring(&mut self,namref:&str) ->String{
+        if let Some(data) = self.strings.get(&namref.to_string()){
+            return data.to_string();
+        }
+        else{
+            return "".to_string();
+        }
+    }
+    pub fn getstr(&mut self,namref:&str) ->&str{
+        if let Some(data) = self.strings.get(&namref.to_string()){
+            return &data;
+        }
+        else{
+            return &EMPTYSTR;
+        }
+    }
+    /// stored Vec<String> for NscriptVar types.
+    pub fn setstringvec(&mut self,namref:&str,stringvec:Vec<String>){
+        self.stringsvec.insert(namref.to_string(),stringvec);
+    }
+
+    /// stored Vec<String> for NscriptVar types.
+    pub fn getstringvec(&mut self,namref:&str) ->Vec<String>{
+        if let Some(data) = self.stringsvec.get(&namref.to_string()){
+            return data.to_owned();
+        }
+        else{
+            return Vec::new();
+        }
+    }
+    pub fn ifsetup(&mut self,set:bool){
+        self.ifscopes[self.ifscopedepth] = set;
+        self.ifscopes.push(false);
+        self.ifscopedepth +=1;
+    }
+    // pub fn ifset(&mut self,set:bool){
+    //     self.ifscopes[self.ifscopedepth] = set;
+    // }
+    pub fn ifset(&mut self,set:bool){
+        self.ifscopes[self.ifscopedepth] = set;
+    }
+    pub fn ifdown(&mut self){
+        self.ifscopedepth -=1;
+        self.ifscopes =self.ifscopes[0..self.ifscopes.len()-1].to_vec();
+    }
+    pub fn ifup(&mut self){
+        self.ifscopes.push(false);
+        self.ifscopedepth +=1;
+    }
+    // pub fn ifdown(&mut self){
+    //     self.ifscopedepth -=1;
+    //     self.ifscopes =self.ifscopes[0..self.ifscopes.len()-1].to_vec();
+    // }
+    // pub fn ifup(&mut self){
+    //     self.ifscopes.push(false);
+    //     self.ifscopedepth +=1;
+    // }
     ///copies a variable from the block for mutable purposes
     pub fn getvar(&mut self,name:&str)->NscriptVar{
         let mut var = NscriptVar::new(&name);
@@ -1174,6 +1260,27 @@ impl NscriptVar{
             stringvec:Vec::new(),
         }
     }
+    pub fn newstring(name:&str,stringset:String) -> NscriptVar{
+        NscriptVar{
+            name: name.to_string(),
+            stringdata: stringset,
+            stringvec:Vec::new(),
+        }
+    }
+    pub fn newvar(name:&str,stringset:String,vecset:Vec<String>) -> NscriptVar{
+        NscriptVar{
+            name: name.to_string(),
+            stringdata: stringset,
+            stringvec:vecset,
+        }
+    }
+    pub fn newvec(name:&str,vecset:Vec<String>) -> NscriptVar{
+        NscriptVar{
+            name: name.to_string(),
+            stringdata: "".to_string(),
+            stringvec:vecset,
+        }
+    }
     /// returns the string value of the variable
     pub fn getstring(&mut self) -> &str{
         return &self.stringdata;
@@ -1189,16 +1296,18 @@ impl NscriptVar{
 #[derive(Clone)]
 pub struct NscriptFunc{
     pub name: Box<str>,
-    pub args:Vec<String>,
+    pub args:Vec<Box<str>>,
     pub codeblock:NscriptCodeBlock,
+    pub formattedcodeblock:NscriptFormattedCodeBlock,
 }
 
 impl NscriptFunc{
-    pub fn new(name:String,args:Vec<String>)->NscriptFunc{
+    pub fn new(name:String,args:Vec<Box<str>>)->NscriptFunc{
         NscriptFunc{
             name: name.to_string().into_boxed_str(),
             args: args,
             codeblock: NscriptCodeBlock::new(&name),
+            formattedcodeblock: NscriptFormattedCodeBlock::new(&name),
         }
     }
 }
@@ -1210,8 +1319,6 @@ pub struct NscriptClass{
     properties: HashMap<String,NscriptVar>,
     pub functionindex: Vec<Box<str>>,
     pub functions: HashMap<String,NscriptFunc>,
-    //pub parents: Vec<String>,
-    //pub children: Vec<String>,
 }
 
 impl NscriptClass{
@@ -1222,8 +1329,6 @@ impl NscriptClass{
             properties: HashMap::new(),
             functionindex: Vec::new(),
             functions: HashMap::new(),
-            //parents: Vec::new(),
-           // children: Vec::new(),
         }
     }
 
@@ -1231,18 +1336,16 @@ impl NscriptClass{
         let mut this = NscriptClass{
             name: name.into(),
             index: self.index.clone(),
-            properties: HashMap::new(),
-            functionindex:Vec::new(),
-            functions:HashMap::new(),
-            //parents: Vec::new(),
-            //children: Vec::new(),
+            properties: self.properties.clone(),//HashMap::new(),
+            functionindex:self.functionindex.clone(),
+            functions:HashMap::new(),// required for the self var to be good
         };
-
-        for xprop in self.index.clone(){
-            this.setprop(&xprop, self.getprop(&xprop));
-        };
+        //
+        // for xprop in self.index.clone(){
+        //     this.setprop(&xprop, self.getprop(&xprop));
+        // };
         for xprop in self.functionindex.clone(){
-            this.setfunc(&xprop, self.getfunc(&xprop));
+            this.setfunc(&xprop, self.getfunc(&xprop)); // will set self.
         };
         //this.parents.push(self.name.to_string());
         //self.children.push(this.name.to_string());
@@ -1273,11 +1376,19 @@ impl NscriptClass{
 
     }
     pub fn getprop(&mut self,name:&str) ->NscriptVar{
-        if let Some(this) = self.properties.get_mut(name){
-            this.clone()
+        if let Some(this) = self.properties.get(name){
+             this.clone()
         }
         else{
             NscriptVar::new(name)
+        }
+    }
+    pub fn getpropstr(&mut self,name:&str) ->Box<str>{
+        if let Some(this) = self.properties.get(name){
+            this.stringdata.to_string().into()
+        }
+        else{
+           "".into()
         }
     }
     pub fn removeprop(&mut self,name:&str){
@@ -1293,7 +1404,7 @@ impl NscriptClass{
         let mut var = NscriptVar::new("self");
         var.stringdata = self.name.to_string();
         prop.codeblock.setvar("self", var);
-        if let Some(_) = self.functions.get_mut(name){
+        if let Some(_) = self.functions.get(name){
             self.functions.insert(name.to_string(),prop);
         }
         else{
@@ -1302,7 +1413,7 @@ impl NscriptClass{
         }
     }
     pub fn getfunc(&mut self,name:&str) ->NscriptFunc{
-        if let Some(this) = self.functions.get_mut(name){
+        if let Some(this) = self.functions.get(name){
             return this.clone();
         }
         else{

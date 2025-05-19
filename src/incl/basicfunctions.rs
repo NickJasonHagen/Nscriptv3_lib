@@ -3,20 +3,21 @@ use std::{char, time::{SystemTime, UNIX_EPOCH}};
 pub struct Nstring {
 }
 pub fn nscriptfn_split(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut thisvar = NscriptVar::new("var");
+    //let mut thisvar = NscriptVar::new("var");
     if args.len() > 1 {
         let mut delim = "".to_string();
         if  args.len() > 1{
             delim = storage.getargstring(&args[1], block).to_string();
         }
-        for xitem in split(&storage.getargstring(&args[0], block),&delim){
-            thisvar.stringvec.push(xitem.to_string());
-        }
+        return NscriptVar::newvec("split",Nstring::split(&storage.getargstring(&args[0], block),&delim));
+        // for xitem in split(&storage.getargstring(&args[0], block),&delim){
+        //     thisvar.stringvec.push(xitem.to_string());
+        // }
     }
     else{
         println!("Error on givenarguments for func split");
     }
-    thisvar
+    NscriptVar::new("var")
 }
 
 pub fn nscriptfn_replace(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
@@ -367,14 +368,17 @@ pub struct Ntimer {
 }
 
 pub fn nscriptfn_timerinit(_var:&Vec<&str>,_block:&mut NscriptCodeBlock , _storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new("timer");
-    var.stringdata = Ntimer::init().to_string();
-    var
+
+    return NscriptVar::newstring("timer", Ntimer::init().to_string());
+    //let mut var = NscriptVar::new("timer");
+    //var.stringdata = Ntimer::init().to_string();
+    //var
 }
 pub fn nscriptfn_timerdiff(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new("timer");
-    var.stringdata = Ntimer::diff(storage.getargstring(&args[0], block).parse::<i64>().unwrap_or(0)).to_string();
-    var
+    return NscriptVar::newstring("timer", Ntimer::diff(storage.getargstring(&args[0], block).parse::<i64>().unwrap_or(0)).to_string());
+    // let mut var = NscriptVar::new("timer");
+    // var.stringdata = Ntimer::diff(storage.getargstring(&args[0], block).parse::<i64>().unwrap_or(0)).to_string();
+    // var
 }
 impl Ntimer {
     pub fn init() -> i64 {
@@ -706,12 +710,13 @@ pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     var
 }
 pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new("cat");
+    //let mut var = NscriptVar::new("cat");
     let mut string = "".to_string();
     for xcat in args{
         string = string + &storage.getargstring(&xcat, block);
     }
-    var.stringdata = string;
+    //var.stringdata = string;
+    let var = NscriptVar::newstring("cat", string);
     return var;
 }
 pub fn nscriptfn_call_programwait(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{

@@ -17,7 +17,8 @@ pub struct Nscript<'a>{
     pub tcplisteners: HashMap<String,TcpListener>,
     pub storage: NscriptStorage,
     pub formattedblocks: HashMap<String,NscriptFormattedCodeBlock>,
-    pub codestorage: CodeStorage,
+    pub executableblocks: HashMap<String,NscriptExecutableCodeBlock>,
+    //pub codestorage: CodeStorage,
     pub userfunctions: HashMap<String,NscriptFunc>,
 }
 
@@ -35,7 +36,8 @@ impl <'a> Nscript<'a>{
             tcplisteners:HashMap::new(),
             storage:NscriptStorage::new(),
             formattedblocks:HashMap::new(),
-            codestorage: CodeStorage::new(),
+            executableblocks:HashMap::new(),
+            //codestorage: CodeStorage::new(),
             userfunctions:HashMap::new(),
         }
     }
@@ -229,6 +231,14 @@ impl <'a> Nscript<'a>{
             NscriptFunc::new("notfounderror".to_string(),Vec::new())
         }
     }
+    pub fn getfuncref(&mut self,name:&str)->&NscriptFunc{
+        if let Some(thisclass) = self.storage.functions.get(name){
+            thisclass
+        }
+        else{
+            &self.storage.emptyfunc
+        }
+    }
     pub fn getclassref(&mut self,name:&str)->Option<&mut NscriptClass>{
         if let Some(thisclass) = self.storage.classes.get_mut(name.trim()){
             Some(thisclass)
@@ -392,53 +402,53 @@ pub enum NscriptWordTypes {
     Nestedfunc,
     Arraydeclaration,
 }
-pub struct CodeStorage{
-    string: HashMap<String,String >, // stores the raw code as a string
-    raw: HashMap<String,Vec<Vec<Vec<String>>> >,// arawvector
-    boxed: HashMap<String,Vec<Vec<Vec<Box<str>>>> >,
-}
-impl CodeStorage{
-    pub fn new() ->CodeStorage{
-        CodeStorage{
-            string: HashMap::new(),
-            raw: HashMap::new(),
-            boxed: HashMap::new(),
-        }
-    }
-    pub fn setstring(&mut self,name:String,code:String){
-        self.string.insert(name,code);
-    }
-    pub fn setraw(&mut self,name:String,code:Vec<Vec<Vec<String>>>){
-        self.raw.insert(name,code);
-    }
-    pub fn setboxed(&mut self,name:String,code:Vec<Vec<Vec<Box<str>>>>){
-        self.boxed.insert(name,code);
-    }
-    pub fn getstring(&mut self,name:&String)->String{
-        if let Some(vec) = self.string.get(name){
-            vec.to_owned()
-        }
-        else{
-            String::new()
-        }
-    }
-    pub fn getboxed(&mut self,name:&String)->Vec<Vec<Vec<Box<str>>>>{
-        if let Some(vec) = self.boxed.get(name){
-            vec.to_owned()
-        }
-        else{
-            Vec::new()
-        }
-    }
-    pub fn getraw(&mut self,name:&String)->Vec<Vec<Vec<String>>>{
-        if let Some(vec) = self.raw.get(name){
-            vec.to_owned()
-        }
-        else{
-            Vec::new()
-        }
-    }
-}
+// pub struct CodeStorage{
+//     string: HashMap<String,String >, // stores the raw code as a string
+//     raw: HashMap<String,Vec<Vec<Vec<String>>> >,// arawvector
+//     boxed: HashMap<String,Vec<Vec<Vec<Box<str>>>> >,
+// }
+// impl CodeStorage{
+//     pub fn new() ->CodeStorage{
+//         CodeStorage{
+//             string: HashMap::new(),
+//             raw: HashMap::new(),
+//             boxed: HashMap::new(),
+//         }
+//     }
+//     pub fn setstring(&mut self,name:String,code:String){
+//         self.string.insert(name,code);
+//     }
+//     pub fn setraw(&mut self,name:String,code:Vec<Vec<Vec<String>>>){
+//         self.raw.insert(name,code);
+//     }
+//     pub fn setboxed(&mut self,name:String,code:Vec<Vec<Vec<Box<str>>>>){
+//         self.boxed.insert(name,code);
+//     }
+//     pub fn getstring(&mut self,name:&String)->String{
+//         if let Some(vec) = self.string.get(name){
+//             vec.to_owned()
+//         }
+//         else{
+//             String::new()
+//         }
+//     }
+//     pub fn getboxed(&mut self,name:&String)->Vec<Vec<Vec<Box<str>>>>{
+//         if let Some(vec) = self.boxed.get(name){
+//             vec.to_owned()
+//         }
+//         else{
+//             Vec::new()
+//         }
+//     }
+//     pub fn getraw(&mut self,name:&String)->Vec<Vec<Vec<String>>>{
+//         if let Some(vec) = self.raw.get(name){
+//             vec.to_owned()
+//         }
+//         else{
+//             Vec::new()
+//         }
+//     }
+// }
 pub struct NscriptStorage{
     pub globalvars:HashMap<String,NscriptVar>,
     pub codeblocks:HashMap<String,NscriptCodeBlock>,
@@ -446,6 +456,7 @@ pub struct NscriptStorage{
     pub functions:HashMap<String,NscriptFunc>,
     pub tcp: NscriptTcp,
     pub nscript3d: Nscript3d,
+    pub emptyfunc: NscriptFunc,
 }
 
 impl NscriptStorage{
@@ -457,6 +468,7 @@ impl NscriptStorage{
             functions:HashMap::new(),
             tcp:NscriptTcp::new(),
             nscript3d:Nscript3d::new(),
+            emptyfunc:NscriptFunc::new("".to_string(),Vec::new()),
         }
     }
     pub fn getglobal(&mut self,name:&str) ->NscriptVar{
@@ -974,6 +986,17 @@ pub enum FormattedLineTypes{
     End,
 }
 #[derive(Clone)]
+pub struct NscriptExecutableCodeBlock{
+    pub boxedcode: Vec<Vec<Vec<Box<str>>>>,// all the subscopes, if else loop coroutines
+}
+impl NscriptExecutableCodeBlock{
+    pub fn new()->NscriptExecutableCodeBlock{
+         NscriptExecutableCodeBlock{
+            boxedcode: Vec::new(),
+        }
+    }
+}
+#[derive(Clone)]
 pub struct NscriptFormattedCodeBlock{
 
     pub name: Box<str>,
@@ -1280,6 +1303,9 @@ impl NscriptVar{
             stringdata: "".to_string(),
             stringvec:vecset,
         }
+    }
+    pub fn setreturn(&mut self){
+        self.name = "return".to_string();
     }
     /// returns the string value of the variable
     pub fn getstring(&mut self) -> &str{

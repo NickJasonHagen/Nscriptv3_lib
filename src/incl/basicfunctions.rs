@@ -461,9 +461,9 @@ pub fn nscriptfn_print(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
     }
     let string = storage.getargstring(&args[0], block);
     print(&string,&color);
-    let mut var = NscriptVar::new("var");
-    var.stringdata = string;
-    return var;
+    return NscriptVar::newstring("var",string);
+    //var.stringdata = string;
+    //return var;
 
 }
 pub fn print(m: &str, color: &str) {

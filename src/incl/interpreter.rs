@@ -20,6 +20,7 @@ pub struct Nscript<'a>{
     pub executableblocks: HashMap<String,NscriptExecutableCodeBlock>,
     //pub codestorage: CodeStorage,
     pub userfunctions: HashMap<String,NscriptFunc>,
+    pub emptyexecutableblock: NscriptExecutableCodeBlock,// <- so we can send back a ref
 }
 
 impl <'a> Nscript<'a>{
@@ -39,6 +40,7 @@ impl <'a> Nscript<'a>{
             executableblocks:HashMap::new(),
             //codestorage: CodeStorage::new(),
             userfunctions:HashMap::new(),
+            emptyexecutableblock:NscriptExecutableCodeBlock::new(),
         }
     }
     pub fn new() -> Nscript<'a> {
@@ -172,8 +174,6 @@ impl <'a> Nscript<'a>{
                                 let msg: NscriptVar = match receiver.try_recv(){
                                     Ok(m) =>m,
                                     Err(_e) =>{
-
-                                        //println!("no recv ret errror var [{}] ",&e);
                                         NscriptVar::new("error")
                                     },
                                 };
@@ -264,6 +264,24 @@ impl <'a> Nscript<'a>{
         else{
             print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
             return NscriptFormattedCodeBlock::new("NULLBLOCK");
+        }
+    }
+    pub fn getexecutableblock(&self,blockref:&str)->NscriptExecutableCodeBlock{
+        if let Some(this) = self.executableblocks.get(blockref){
+            return this.clone();
+        }
+        else{
+            print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
+            return NscriptExecutableCodeBlock::new();
+        }
+    }
+    pub fn getexecutableblockref(&self,blockref:&str)->&NscriptExecutableCodeBlock{
+        if let Some(this) = self.executableblocks.get(blockref){
+            return this;
+        }
+        else{
+            print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
+            return &self.emptyexecutableblock;
         }
     }
     pub fn getblockref(&mut self,blockref:&str)->Option<&mut NscriptCodeBlock>{
@@ -1324,7 +1342,8 @@ pub struct NscriptFunc{
     pub name: Box<str>,
     pub args:Vec<Box<str>>,
     pub codeblock:NscriptCodeBlock,
-    pub formattedcodeblock:NscriptFormattedCodeBlock,
+    //pub formattedcodeblock:NscriptFormattedCodeBlock,
+    pub executablecodeblock:NscriptExecutableCodeBlock,
 }
 
 impl NscriptFunc{
@@ -1333,7 +1352,8 @@ impl NscriptFunc{
             name: name.to_string().into_boxed_str(),
             args: args,
             codeblock: NscriptCodeBlock::new(&name),
-            formattedcodeblock: NscriptFormattedCodeBlock::new(&name),
+            //formattedcodeblock: NscriptFormattedCodeBlock::new(&name),
+            executablecodeblock: NscriptExecutableCodeBlock::new(),
         }
     }
 }

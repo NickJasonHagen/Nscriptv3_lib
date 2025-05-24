@@ -61,7 +61,7 @@ impl  <'a> Nscript<'a>{
                             socketvar.stringdata = remote_ip.to_string();
                             self.storage.setglobal("$socketip",socketvar);
                             let mut block = NscriptCodeBlock::new("httplisten");
-                            let formattedblock = NscriptFormattedCodeBlock::new(&block.name);//.formattedcode.clone();
+                            let formattedblock = NscriptExecutableCodeBlock::new();//.formattedcode.clone();
                             let onconnectvar = self.executeword("\\server.onconnect($socketip)",&formattedblock, &mut block);
                             if onconnectvar.stringdata == "false" {
                                 var.stringdata = format!("connection server.onconnect($socketip) returned false -> closed");
@@ -101,7 +101,7 @@ impl  <'a> Nscript<'a>{
         let mut buffer = [0; 1024];
         //stream.read(&mut buffer).unwrap();
         let mut connectionblock = NscriptCodeBlock::new("connection");
-        let  formattedblock = NscriptFormattedCodeBlock::new("connection");
+        let  formattedblock = NscriptExecutableCodeBlock::new();
         match stream.read(&mut buffer) {
             Ok(_) => {
                 // procceed the connection.

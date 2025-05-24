@@ -368,17 +368,10 @@ pub struct Ntimer {
 }
 
 pub fn nscriptfn_timerinit(_var:&Vec<&str>,_block:&mut NscriptCodeBlock , _storage :&mut NscriptStorage) -> NscriptVar{
-
     return NscriptVar::newstring("timer", Ntimer::init().to_string());
-    //let mut var = NscriptVar::new("timer");
-    //var.stringdata = Ntimer::init().to_string();
-    //var
 }
 pub fn nscriptfn_timerdiff(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     return NscriptVar::newstring("timer", Ntimer::diff(storage.getargstring(&args[0], block).parse::<i64>().unwrap_or(0)).to_string());
-    // let mut var = NscriptVar::new("timer");
-    // var.stringdata = Ntimer::diff(storage.getargstring(&args[0], block).parse::<i64>().unwrap_or(0)).to_string();
-    // var
 }
 impl Ntimer {
     pub fn init() -> i64 {

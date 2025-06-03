@@ -2359,13 +2359,14 @@ impl <'a> Nscript<'a>{
             if i > 0 {
                 if Nstring::fromleft(&eachclass.trim(), 1) == "{" {
                     let extractedscope = self.extract_scope(&eachclass);
-                    let block = " = ^".to_string() + &string_to_hex(&extractedscope);
+                    let block = " = ^".to_string() + &string_to_hex(&Nstring::trimleft(&Nstring::trimright(&extractedscope,2),2));
                     let toreplace = " = raw".to_owned() + &split(&eachclass, "{")[0] + &extractedscope;
                     parsecode = parsecode.replace(&toreplace, &block);
                 }
             }
             i += 1;
         }
+
         parsecode
     }
 

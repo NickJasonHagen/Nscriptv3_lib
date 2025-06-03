@@ -1266,7 +1266,7 @@ impl NscriptCodeBlock{
 }
 /// implement this to add new Nscript rust functions and bind them
 pub trait NscriptStructBinding {
-    fn neocat_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>) -> NscriptVar;
+    fn nscript_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>) -> NscriptVar;
 }
 /// Temp struct for executing scopes, disposes when done. ( garbage collector)
 pub struct NscriptScriptScope{

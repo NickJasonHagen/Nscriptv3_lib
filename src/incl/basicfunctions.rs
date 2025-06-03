@@ -517,7 +517,7 @@ pub struct Nfile {
 }
 
 impl NscriptStructBinding for Nfile{
-    fn neocat_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>) -> NscriptVar {
+    fn nscript_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>) -> NscriptVar {
         let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
         match tocall {
             "listdir" | "dirlist" =>{

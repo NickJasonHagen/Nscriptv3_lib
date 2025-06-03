@@ -58,7 +58,7 @@ impl <'a> Nscript<'a>{
         filedata = "\n".to_string() + &Nstring::replace(&filedata,"\"{","\" {");
 
         filedata = self.stripcomments(&filedata);
-
+        filedata = Nstring::replace(&filedata,"\n{","{");
         filedata = self.batchrustsinglelinefunctions(&filedata);
         filedata = Nstring::replace(&filedata,"\n.", ".");// multiline chains to singleline
         filedata = self.stringextract(&filedata);// pre work creates it to hex! ^hexed,
@@ -1697,6 +1697,9 @@ impl <'a> Nscript<'a>{
             NscriptWordTypes::Classfunc => {
                 return self.execute_classfunction(word, block).stringdata;
             }
+            NscriptWordTypes::Nestedfunc => {
+                return self.execute_nestedfunction(word,formattedblock,  block).stringdata;
+            }
             NscriptWordTypes::Macro =>{
                 return self.storage.getmacrostring(word).to_string();
             }
@@ -2067,7 +2070,7 @@ impl <'a> Nscript<'a>{
             }
             _ =>{ // user imports !!
                 if let Some(userstruct) = self.ruststructs.get_mut(splitstruct[0]){
-                    return userstruct.neocat_exec(splitstruct[1], &argvarvec);
+                    return userstruct.nscript_exec(splitstruct[1], &argvarvec);
                 }
                 else{
                     print(&format!("cant find userstruct::[{}]::[{}]",&splitstruct[0],&splitstruct[1]),"r");

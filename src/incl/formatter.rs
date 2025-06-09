@@ -1,7 +1,7 @@
 
 use crate::*;
 
-impl <'a> Nscript<'a>{
+impl  Nscript{
     pub fn parsefile(&mut self,file:&str) -> NscriptVar{
         let filedata = "\n".to_string() + &read_file_utf8(file);
         return self.parsecode(&filedata,&file);
@@ -57,11 +57,11 @@ impl <'a> Nscript<'a>{
         let mut filedata = self.raw_scopeextract(&code);
         filedata = "\n".to_string() + &Nstring::replace(&filedata,"\"{","\" {");
 
+        filedata = self.stringextract(&filedata);// pre work creates it to hex! ^hexed,
         filedata = self.stripcomments(&filedata);
         filedata = Nstring::replace(&filedata,"\n{","{");
         filedata = self.batchrustsinglelinefunctions(&filedata);
         filedata = Nstring::replace(&filedata,"\n.", ".");// multiline chains to singleline
-        filedata = self.stringextract(&filedata);// pre work creates it to hex! ^hexed,
         filedata = Nstring::replace(&filedata,"else if", "elseif");
         filedata = self.prefixbooleans(&filedata);
         filedata = self.array_scopeextract(&filedata);// multiline array parse to 1 line,
@@ -87,14 +87,14 @@ impl <'a> Nscript<'a>{
                         }
                         _ =>{
 
-                    (returnstring,thisline) = Nscript::checkbatchedfnbuffer(thisline.to_string(),xline, returnstring);
+                            (returnstring,thisline) = Nscript::checkbatchedfnbuffer(thisline.to_string(),xline, returnstring);
                         }
                     }
 
                 }
                 else{
 
-                (returnstring,thisline) = Nscript::checkbatchedfnbuffer(thisline.to_string(),xline, returnstring);
+                    (returnstring,thisline) = Nscript::checkbatchedfnbuffer(thisline.to_string(),xline, returnstring);
 
                 }
 
@@ -1174,7 +1174,7 @@ impl <'a> Nscript<'a>{
             }
             "d" =>{
                 let retvar = self.executeword(&line[2],&formattedblock,block);
-                print(&format!("Debuggin!\n  block:[{}]>> {} => \n   >  var string:[{}] \n   >  array contents:[{}]",&block.name,&line[1],&retvar.stringdata,&retvar.stringvec.join(",")),&line[1]);
+                print(&format!("Debuggin!\n  block:[{}]\n   >  word name:[{}] \n   >  var string:[{}] \n   >  array contents:[{}]",&block.name,&line[2],&retvar.stringdata,&retvar.stringvec.join(",")),&line[1]);
                 //return retvar;
             }
             // "r" =>{
@@ -1246,12 +1246,13 @@ impl <'a> Nscript<'a>{
         executablecode.boxedcode[0] = formattedblock.boxedcode[scopeid-1].clone();
         //executablecode.boxedcode = formattedcode.boxedcode.clone();
         self.executableblocks.insert(coname.to_string(),executablecode.clone());
-        for xl in &executablecode.boxedcode[0]{
-            for xa in xl {
-
-                print(&xa,"r");
-            }
-        }
+// print(&coname,"bp");
+//         for xl in &executablecode.boxedcode[0]{
+//             for xa in xl {
+//
+//                 print(&xa,"r");
+//             }
+//         }
         self.addcoroutine(&coname);
         //self.formattedblocks.insert(coname.to_string(), executablecode);
         self.storage.codeblocks.insert(coname,coroutineblock );
@@ -2069,7 +2070,7 @@ impl <'a> Nscript<'a>{
                 return var;
             }
             _ =>{ // user imports !!
-                if let Some(userstruct) = self.ruststructs.get_mut(splitstruct[0]){
+                if let Some(userstruct) = self.ruststructsowned.get_mut(splitstruct[0]){
                     return userstruct.nscript_exec(splitstruct[1], &argvarvec);
                 }
                 else{
@@ -2184,6 +2185,7 @@ impl <'a> Nscript<'a>{
     fn stringextract(&mut self,filedata : &str) -> String {
         let mut parsingtext = Nstring::replace(&filedata.to_string(), "\\\"", "#!@NSCRIPTQUOTE#@!");
         parsingtext = Nstring::replace(&parsingtext, "\"\"", "@emptystring");
+        //print(&parsingtext,"bp");
         loop {
             let splitstr = Nstring::stringbetween(&parsingtext, "\"", "\"");
             if splitstr != "" {

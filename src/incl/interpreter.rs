@@ -4,9 +4,10 @@ use crate::*;
 pub type NscriptSimpleFunctions = fn(&Vec<&str>,block:&mut NscriptCodeBlock, &mut NscriptStorage) -> NscriptVar;
 
 /// NscriptScript main struct
-pub struct Nscript<'a>{
+pub struct Nscript{
     // for user created structs
-    pub ruststructs: HashMap<&'a str, &'a mut dyn NscriptStructBinding>, // map for all the rust fn bindings.
+    pub ruststructsowned: HashMap<Box<str>,Box<dyn NscriptStructBinding>>, // map for all the rust fn bindings.
+    //pub ruststructs: HashMap<&'a str, &'a mut dyn NscriptStructBinding>, // map for all the rust fn bindings.
     pub ruststructsindex: Vec<String>, // map for all the rust fn bindings.
     pub rustfunctions: HashMap<String, NscriptSimpleFunctions>, // map for all the rust fn bindings.
     pub rustfunctionsindex: Vec<String>, // map for all the rust fn bindings.
@@ -22,11 +23,13 @@ pub struct Nscript<'a>{
     pub userfunctions: HashMap<String,NscriptFunc>,
     pub emptyexecutableblock: NscriptExecutableCodeBlock,// <- so we can send back a ref
 }
+//ok
 
-impl <'a> Nscript<'a>{
-    fn setclean() ->Nscript<'a>{
+impl  Nscript{
+    fn setclean() ->Nscript{
         Nscript {
-            ruststructs: HashMap::new(),
+            ruststructsowned: HashMap::new(),
+            //ruststructs: HashMap::new(),
             ruststructsindex: Vec::new(),
             rustfunctions: HashMap::new(),
             rustfunctionsindex: Vec::new(),
@@ -43,18 +46,18 @@ impl <'a> Nscript<'a>{
             emptyexecutableblock:NscriptExecutableCodeBlock::new(),
         }
     }
-    pub fn new() -> Nscript<'a> {
+    pub fn new() -> Nscript {
         let mut this = Nscript::setclean();
         this.setbasicfunctions();
         this.setcmdarguments();
         this
     }
-    pub fn thread() -> Nscript<'a> {
+    pub fn thread() -> Nscript {
         let mut this = Nscript::setclean();
         this.setcmdarguments();
         this
     }
-    pub fn newthread(&mut self) -> Nscript<'a> {
+    pub fn newthread(&mut self) -> Nscript{
         let mut this = Nscript::setclean();
         for xfn in self.rustfunctionsindex.clone(){
             if let Some(fnr) = self.rustfunctions.get(&xfn){
@@ -64,11 +67,17 @@ impl <'a> Nscript<'a>{
         this.setcmdarguments();
         this
     }
+
+    // pub fn insertstruct(&mut self, key: &'a str, value: &'a mut dyn  NscriptStructBinding)   {
+    //     self.ruststructsindex.push(key.to_string());
+    //     self.ruststructs.insert(key, value);
+    // }
+
     /// inserts a Rust function into the fnmap users can create their own function bindings using
     /// this. functions are required to have the NscriptFunc Trait implemented.
-    pub fn insertstruct(&mut self, key: &'a str, value: &'a mut dyn  NscriptStructBinding)   {
+    pub fn insertstructowned(&mut self, key: &str, value: impl NscriptStructBinding +'static)   {
         self.ruststructsindex.push(key.to_string());
-        self.ruststructs.insert(key, value);
+        self.ruststructsowned.insert(key.to_string().into(), Box::new(value));
     }
     pub fn insertuserfunction(&mut self, key: String, value: NscriptFunc)   {
         self.userfunctions.insert(key, value);
@@ -467,6 +476,26 @@ pub enum NscriptWordTypes {
 //         }
 //     }
 // }
+/// contains customdata hashmaps can be used in rustfn
+pub struct NscriptData{
+    pub vec_int:HashMap<String,Vec<i64>>,
+    pub vec_float:HashMap<String,Vec<f64>>,
+    pub vec_string:HashMap<String,Vec<String>>,
+    pub vec_vecstring:HashMap<String,Vec<Vec<String>>>,
+    pub vec_vec3f64:HashMap<String,Vec<[f64;3]>>,
+
+}
+impl NscriptData{
+    fn new()->NscriptData{
+        NscriptData{
+            vec_string:HashMap::new(),
+            vec_int:HashMap::new(),
+            vec_float:HashMap::new(),
+            vec_vecstring:HashMap::new(),
+            vec_vec3f64:HashMap::new(),
+        }
+    }
+}
 pub struct NscriptStorage{
     pub globalvars:HashMap<String,NscriptVar>,
     pub codeblocks:HashMap<String,NscriptCodeBlock>,
@@ -475,6 +504,7 @@ pub struct NscriptStorage{
     pub tcp: NscriptTcp,
     pub nscript3d: Nscript3d,
     pub emptyfunc: NscriptFunc,
+    pub customdata: NscriptData,
 }
 
 impl NscriptStorage{
@@ -487,6 +517,7 @@ impl NscriptStorage{
             tcp:NscriptTcp::new(),
             nscript3d:Nscript3d::new(),
             emptyfunc:NscriptFunc::new("".to_string(),Vec::new()),
+            customdata: NscriptData::new(),
         }
     }
     pub fn getglobal(&mut self,name:&str) ->NscriptVar{
@@ -877,11 +908,88 @@ return NscriptVar::new("error");
             "@boxcorner2" => "┐".to_string(),
             "@boxcorner3" => "└".to_string(),
             "@boxcorner4" => "┘".to_string(),
-
+            "@e_bread" => { "🍞".to_string() },
+            "@e_sandwich" => { "🥪".to_string() },
+            "@e_fish" => { "🐟".to_string() },
+            "@e_fries" => { "🍟".to_string() },
+            "@e_coke" => { "🥤".to_string() },
+            "@e_water" => { "💧".to_string() },
+            "@e_wine" => { "🍷".to_string() },
+            "@e_burger" => { "🍔".to_string() },
+            "@e_hot_dog" => { "🌭".to_string() },
+            "@e_ice_cream" => { "🍦".to_string() },
+            "@e_drinks" => { "🥤".to_string() },
+            "@e_taco" => { "🌯".to_string() },
+            "@e_pizza" => { "🍕".to_string() },
+            "@e_sushi" => { "🍣".to_string() },
+            "@e_banana" => { "🍌".to_string() },
+            "@e_apple" => { "🍎".to_string() },
+            "@e_cash" => { "💸".to_string() },
+            "@e_book" => { "📖".to_string() },
+            "@e_pen" => { "✏️".to_string() },
+            "@e_phone" => { "📱".to_string() },
+            "@e_TV" => { "📺".to_string() },
+            "@e_computer" => { "💻".to_string() },
+            "@e_gamepad" => { "🎮".to_string() },
+            "@e_bike" => { "🚴".to_string()},
+            "@e_airplane" => { "✈️".to_string() },
+            "@e_ship" => { "🛳️".to_string() },
+            "@e_sun" => { "☀️".to_string() },
+            "@e_moon" => { "🌕".to_string() },
+            "@e_clouds" => { "☁️".to_string() },
+            "@e_smile" => { "🙂".to_string() },
+            "@e_bigsmile" => { "😁".to_string() },
+            "@e_invertedsmile" => { "🙃".to_string() },
+            "@e_meltmile" => { "🫠".to_string() },
+            "@e_wink" => { "😉".to_string() },
+            "@e_blush" => { "😊".to_string() },
+            "@e_tearsmile" => { "🥲".to_string() },
+            "@e_yum" => { "😋".to_string() },
+            "@e_tongue" => { "😛".to_string() },
+            "@e_tonguewink" => { "😜".to_string() },
+            "@e_thinking" => { "🤔".to_string() },
+            "@e_salute" => { "🫡".to_string() },
+            "@e_zippedmouth" => { "🤐".to_string() },
+            "@e_tired" => { "🫩".to_string() },
+            "@e_sick" => { "🤢".to_string() },
+            "@e_puke" => { "🤮".to_string() },
+            "@e_sneeze" => { "🤧".to_string() },
+            "@e_hot" => { "🥵".to_string() },
+            "@e_cold" => { "🥶".to_string() },
+            "@e_drunk" => { "🥴".to_string() },
+            "@e_mindblown" => { "🤯".to_string() },
+            "@e_cowbow" => { "🤠".to_string() },
+            "@e_party" => { "🥳".to_string() },
+            "@e_disguised" => { "🥸".to_string() },
+            "@e_glasses" => { "😎".to_string() },
+            "@e_sad" => { "🙁".to_string() },
+            "@e_worried" => { "😟".to_string() },
+            "@e_shocked" => { "😮".to_string() },
+            "@e_hushed" => { "😯".to_string() },
+            "@e_mad" => { "🤬".to_string() },
+            "@e_skull" => { "☠".to_string() },
+            "@e_turd" => { "💩".to_string() },
+            "@e_ghost" => { "👻".to_string() },
+            "@e_blueheart" => { "💙".to_string() },
+            "@e_heart" => { "🧡".to_string() },
+            "@e_blackheart" => { "🖤".to_string() },
+            "@e_okhand" => { "👌".to_string() },
+            "@e_midlefinger" => { "🖕".to_string() },
+            "@e_thumb" => { "👍".to_string() },
+            "@e_strong" => { "💪".to_string() },
+            "@e_rice" => { "🍚".to_string() },
+            "@e_floppy" => { "💾".to_string() },
+            "@e_cdbox" | "@e_dvdbox" => { "💽".to_string() },
+            "@e_cd" | "@e_dvd" => { "📀".to_string() },
+            "@e_magnifier" => { "🔍".to_string() },
+            "@e_printer" => { "🖨".to_string() },
+            "@e_speaker" => { "🔊".to_string() },
+            "@e_check" => { "✅".to_string() },
+            "@e_cross" => { "❌".to_string() },
             "@nscriptpath" => {
-                let  string = "~/.neocat".to_string();
-                //var.stringdata
-                if let Ok(value) = env::var("NEOCATPATH") {
+            let  string = "~/.nscript".to_string();
+        //var.stringdata
+        if let Ok(value) = env::var("NSCRIPT_PATH") {
                     value
                 }else{
                     string

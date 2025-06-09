@@ -1,7 +1,7 @@
 
 use crate::*;
 
-impl  <'a> Nscript<'a>{
+impl  Nscript{
     pub fn httpexec(&mut self, tocall:&str,args:&Vec<NscriptVar>) -> NscriptVar{
         match tocall{
             "bind" => {
@@ -170,7 +170,7 @@ impl  <'a> Nscript<'a>{
         }
 
         let mut file_path = Nstring::replace(
-            &format!("{}{}{}", &webroot, "/public/", &pathparts[0]),
+            &format!("{}{}{}", &webroot, "/", &pathparts[0]),
             "/..",
             "",
         );

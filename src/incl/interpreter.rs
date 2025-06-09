@@ -478,21 +478,27 @@ pub enum NscriptWordTypes {
 // }
 /// contains customdata hashmaps can be used in rustfn
 pub struct NscriptData{
-    pub vec_int:HashMap<String,Vec<i64>>,
-    pub vec_float:HashMap<String,Vec<f64>>,
-    pub vec_string:HashMap<String,Vec<String>>,
-    pub vec_vecstring:HashMap<String,Vec<Vec<String>>>,
-    pub vec_vec3f64:HashMap<String,Vec<[f64;3]>>,
+    pub map_vec_int:HashMap<String,Vec<i64>>,
+    pub map_vec_float:HashMap<String,Vec<f64>>,
+    pub map_vec_string:HashMap<String,Vec<String>>,
+    pub map_vec_vecstring:HashMap<String,Vec<Vec<String>>>,
+    pub map_vec_vec3f64:HashMap<String,Vec<[f64;3]>>,
+    pub static_vec_string:Vec<String>,
+    pub static_vec_vec_string:Vec<Vec<String>>,
+    pub static_vec_string_vector3:Vec<(String,f64,f64,f64)>,
 
 }
 impl NscriptData{
     fn new()->NscriptData{
         NscriptData{
-            vec_string:HashMap::new(),
-            vec_int:HashMap::new(),
-            vec_float:HashMap::new(),
-            vec_vecstring:HashMap::new(),
-            vec_vec3f64:HashMap::new(),
+            map_vec_string:HashMap::new(),
+            map_vec_int:HashMap::new(),
+            map_vec_float:HashMap::new(),
+            map_vec_vecstring:HashMap::new(),
+            map_vec_vec3f64:HashMap::new(),
+            static_vec_string:Vec::new(),
+            static_vec_vec_string:Vec::new(),
+            static_vec_string_vector3:Vec::new(),
         }
     }
 }
@@ -1374,7 +1380,7 @@ impl NscriptCodeBlock{
 }
 /// implement this to add new Nscript rust functions and bind them
 pub trait NscriptStructBinding {
-    fn nscript_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>) -> NscriptVar;
+    fn nscript_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>,storage: &mut NscriptStorage) -> NscriptVar;
 }
 /// Temp struct for executing scopes, disposes when done. ( garbage collector)
 pub struct NscriptScriptScope{

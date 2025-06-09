@@ -2071,7 +2071,7 @@ impl  Nscript{
             }
             _ =>{ // user imports !!
                 if let Some(userstruct) = self.ruststructsowned.get_mut(splitstruct[0]){
-                    return userstruct.nscript_exec(splitstruct[1], &argvarvec);
+                    return userstruct.nscript_exec(splitstruct[1], &argvarvec,&mut self.storage);
                 }
                 else{
                     print(&format!("cant find userstruct::[{}]::[{}]",&splitstruct[0],&splitstruct[1]),"r");

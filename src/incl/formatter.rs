@@ -1027,6 +1027,7 @@ impl  Nscript{
             }
             "SC" =>{
                 self.execute_setclassfromclass(&line[1],&line[3],&formattedblock, block);
+
                 return NscriptVar::new("line");
             }
             "L" =>{
@@ -1351,6 +1352,7 @@ impl  Nscript{
             let class = parentclass.copyto(&thisclass);
             self.insertclass(&thisclass, class);
         }
+        self.execute_classfunction(&format!("2{}.construct()",thisclass), block);
     }
     /// a for loop : something = vec x to 10{}
     fn execute_vecloopsin(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block: &mut NscriptCodeBlock) -> NscriptVar{
@@ -1966,7 +1968,9 @@ impl  Nscript{
                 };
                 return NscriptVar::new("func");
             }else{
-                print(&format!("cant find classfn [{}].[{}]",&funcname,&classname),"r");
+                if funcname != "construct".into() && funcname != "destruct".into() {
+                    print(&format!("cant find classfn [{}].[{}]",&funcname,&classname),"r");
+                }
                 return NscriptVar::new("error");
             }
         };
@@ -2013,7 +2017,14 @@ impl  Nscript{
                         }
                     }
                     "delete" =>{
+                        self.execute_classfunction(&format!("2{}.destruct()",&argvarvec[0].stringdata), block);
                         self.storage.classes.remove(&argvarvec[0].stringdata);
+                    }
+                    "deleteproperty" =>{
+                        //self.execute_classfunction(&format!("2{}.destruct()",&argvarvec[0].stringdata), block);
+                        if let Some(class) = self.storage.classes.get_mut(&argvarvec[0].stringdata){
+                            class.removeprop(&argvarvec[1].stringdata);
+                        }
                     }
                     "tojson" =>{
                         return self.object_to_json(&argvarvec[0].stringdata);

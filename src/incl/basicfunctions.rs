@@ -894,6 +894,13 @@ pub fn create_directory(dir_path: &str) -> String {
         Err(err) => format!("Error creating directory: {:?}", err),
     }
 }
+pub fn copy_directory(dir_path: &str, todir_path: &str) -> String {
+    match fs::copy(dir_path,todir_path) {
+        Ok(_) => format!("Directory '{}' created successfully", dir_path),
+        Err(err) => format!("Error creating directory: {:?}", err),
+    }
+}
+
 
 // Move a file from the source path to the destination path
 pub fn nscriptfn_filemove(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {

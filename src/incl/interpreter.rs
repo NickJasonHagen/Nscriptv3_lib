@@ -485,7 +485,7 @@ pub struct NscriptData{
     pub map_vec_vec3f64:HashMap<String,Vec<[f64;3]>>,
     pub static_vec_string:Vec<String>,
     pub static_vec_vec_string:Vec<Vec<String>>,
-    pub static_vec_string_vector3:Vec<(String,f64,f64,f64)>,
+    pub static_vec_vec_string_vector3:Vec<Vec<(String,f64,f64,f64)>>,
 
 }
 impl NscriptData{
@@ -498,7 +498,7 @@ impl NscriptData{
             map_vec_vec3f64:HashMap::new(),
             static_vec_string:Vec::new(),
             static_vec_vec_string:Vec::new(),
-            static_vec_string_vector3:Vec::new(),
+            static_vec_vec_string_vector3:Vec::new(),
         }
     }
 }
@@ -964,7 +964,7 @@ return NscriptVar::new("error");
             "@e_cold" => { "🥶".to_string() },
             "@e_drunk" => { "🥴".to_string() },
             "@e_mindblown" => { "🤯".to_string() },
-            "@e_cowbow" => { "🤠".to_string() },
+            "@e_cowboy" => { "🤠".to_string() },
             "@e_party" => { "🥳".to_string() },
             "@e_disguised" => { "🥸".to_string() },
             "@e_glasses" => { "😎".to_string() },
@@ -1552,7 +1552,7 @@ impl NscriptClass{
         }
     }
     pub fn removeprop(&mut self,name:&str){
-        self.functionindex.retain(|x| x.to_owned().into_string() != name);
+        self.index.retain(|x| x.to_owned().into_string() != name);
         self.properties.remove(name);
     }
     pub fn removefunc(&mut self,name:&str){

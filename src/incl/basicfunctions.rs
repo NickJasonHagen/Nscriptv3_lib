@@ -30,6 +30,18 @@ pub fn nscriptfn_replace(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
     }
     return neovar;
 }
+pub fn nscriptfn_replacebyref(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    if args.len() > 2{
+        let mut refvar = storage.getvar(args[0], block);
+        let value = Nstring::replace(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block));
+        refvar.stringdata = value.to_string();
+        storage.setdefiningword(args[0], refvar, block);
+    }else{
+        print("string::replace arguments missing, returing nothing","r");
+    }
+
+    return NscriptVar::new("res");
+}
 pub fn nscriptfn_stringtoeval(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     let mut return_val = storage.getargstring(&args[0], block);
@@ -711,6 +723,13 @@ pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mu
     //var.stringdata = string;
     let var = NscriptVar::newstring("cat", string);
     return var;
+}
+pub fn nscriptfn_vec(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let mut vec = NscriptVar::new("v");
+    for xcat in args{
+        vec.stringvec.push(storage.getargstring(&xcat, block));
+    }
+    return vec;
 }
 pub fn nscriptfn_call_programwait(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new("var");

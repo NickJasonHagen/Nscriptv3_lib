@@ -94,7 +94,9 @@ impl  Nscript{
             self.insertfn("timerinit", nscriptfn_timerinit);
             self.insertfn("trim", nscriptfn_trim);
             self.insertfn("len", nscriptfn_len);
+            self.insertfn("vec", nscriptfn_vec);
             self.insertfn("uppercase", nscriptfn_toupper);
+            self.insertfn("replacebyref", nscriptfn_replacebyref);
             self.insertfn("lowercase", nscriptfn_tolower);
             self.insertfn("stringbetween", nscriptfn_stringbetween);
             self.insertfn("split", nscriptfn_split);
@@ -526,6 +528,65 @@ impl NscriptStorage{
             customdata: NscriptData::new(),
         }
     }
+    pub fn setdefiningword(&mut self,word:&str,equalsfrom: NscriptVar, block:&mut NscriptCodeBlock)->NscriptVar{
+        match self.checkdefiningwordtype(&word){
+            NscriptWordTypes::Variable => {
+                block.setvar(&word, equalsfrom);
+            }
+            NscriptWordTypes::Property => {
+                let thisword = Nstring::trimprefix(&word);
+                let splitword = split(&thisword,".");
+                if splitword.len() > 1{
+                    let classname:String; // = splitword[0].to_string();
+                    if Nstring::prefix(&splitword[0]) == "*" {
+                        classname = self.getargstring(&Nstring::trimprefix(&splitword[0]),block);
+                    }
+                    else{
+                        classname = splitword[0].to_string();
+                    }
+                    let propname:String;// = splitword[1].to_string();
+                    if  Nstring::prefix(&splitword[1])  == "*" {
+                        propname = self.getargstring(&Nstring::trimprefix(&splitword[1]),block);
+                    }
+                    else{
+                        propname = splitword[1].to_string();
+                    }
+                    if let Some(thisclass) = self.getclassref(&classname){
+                        thisclass.setprop(&propname, equalsfrom);
+                    }
+                    else{
+                        let mut newclass = NscriptClass::new(&classname);
+                        newclass.setprop(&propname, equalsfrom);
+                        self.classes.insert(classname,newclass);
+                    }
+                }
+            }
+            NscriptWordTypes::Global => {
+                self.setglobal(&word, equalsfrom);
+            }
+            NscriptWordTypes::Array =>{
+                let thisword = Nstring::trimprefix(&word);
+                let wordsplit = split(&thisword,"[");
+                let mut var = self.getvar(&wordsplit[0],block);
+                let idvar = self.getargstring(&Nstring::trimsuffix(&wordsplit[1]),block).parse::<usize>().unwrap_or(0);
+                if idvar < var.stringvec.len(){
+                    var.stringvec[idvar] = equalsfrom.stringdata;
+                }
+                else {
+                    print(&format!("block [{}] array [{}] tries to set a index but its out of bounds",&block.name,&wordsplit[0]),"r");
+                }
+                self.setdefiningword(wordsplit[0], var, block);
+            }
+            NscriptWordTypes::Reflection =>{
+                 self.setdefiningword(&Nstring::trimprefix(word), equalsfrom,block);
+            }
+            _ =>{
+
+            }
+        };
+        return NscriptVar::new("v");
+    }
+
     pub fn getglobal(&mut self,name:&str) ->NscriptVar{
         if let Some(res) = self.globalvars.get(name){
             return res.clone();
@@ -993,7 +1054,7 @@ return NscriptVar::new("error");
             "@e_check" => { "✅".to_string() },
             "@e_cross" => { "❌".to_string() },
             "@nscriptpath" => {
-            let  string = "~/.nscript".to_string();
+            let  string = "~/nscript".to_string();
         //var.stringdata
         if let Ok(value) = env::var("NSCRIPT_PATH") {
                     value

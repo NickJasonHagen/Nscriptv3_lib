@@ -1,4 +1,4 @@
-
+use std::process;
 use crate::*;
 
 impl  Nscript{
@@ -709,8 +709,21 @@ impl  Nscript{
                             _ =>{
                                 match xline[1].as_str(){
                                     ":" =>{
-                                        xline.insert(0,"SC".to_string());
-                                        preprocessedvec.push(xline.to_owned());
+                                        if xline.len() == 3{
+                                            xline.insert(0,"SC".to_string());
+                                            preprocessedvec.push(xline.to_owned());
+                                        }else{
+
+                                            let mut newwordvec:Vec<String> = Vec::new();
+                                            newwordvec.push("OCF".to_string());
+                                            newwordvec.push(xline[0].to_string());
+                                            let splitfunc = split(&xline[2],"(");
+                                            let funcname = split(splitfunc[0],".")[1];
+                                            newwordvec.push(funcname.to_string());
+                                            newwordvec.push(Nstring::trimsuffix(&splitfunc[1]).to_string());// push args
+                                            newwordvec.push(xline[xline.len()-1].clone());// push args
+                                            preprocessedvec.push(newwordvec.to_owned());
+                                        }
 
                                     }
                                     "=" => {
@@ -784,12 +797,6 @@ impl  Nscript{
                                                             if split(&x,"(").len() > 2 {
                                                                 newwordvec.push(format!("3{}",x));
                                                             }else{
-                                                                // let classname = split(&x,".")[0].to_string();
-                                                                // let args = Nstring::trimsuffix(&split(&x,"(")[1]).to_string();
-                                                                // let funcname = split(split(&x,".")[1],"(")[0].to_string();
-                                                                // newwordvec.push(classname);
-                                                                // newwordvec.push(funcname);
-                                                                // newwordvec.push(args);
                                                                 newwordvec.push(x);
                                                             }
                                                         }
@@ -1091,25 +1098,9 @@ impl  Nscript{
                         index+=3;
                     }
                 }
-                // for x in 1..line.len(){
-                //     if Nstring::prefix(&line[x]) == "3"{ self.execute_nestedfunction(&line[x],&formattedblock, block) ;}
-                //     else{self.execute_classfunction(&line[x], block) ;}
-                // }
             }
             "sCH" =>{
                 let mut retvar= NscriptVar::new("ch");
-                // let mut index = 3;
-                // let max = line.len()-4;
-                // while index < max{
-                //     if Nstring::prefix(&line[index]) == "3"{
-                //         self.execute_nestedfunction(&line[index],&formattedblock, block) ;
-                //     }
-                //     else{
-                //         self.execute_preformattedclassfunction(&line[index],&line[index+1],&line[index+2], block) ;
-                //     }
-                //
-                //     index+=3;
-                // }
                 for x in 3..line.len(){
                     if Nstring::prefix(&line[x]) == "3"{
                         retvar = self.execute_nestedfunction(&line[x],&formattedblock, block);
@@ -1118,22 +1109,36 @@ impl  Nscript{
                         retvar = self.execute_classfunction(&line[x], block) ;
                     }
                 }
-                // if Nstring::prefix(&line[line.len()-1]) == "3"{
-                //     retvar = self.execute_nestedfunction(&line[index-3],&formattedblock, block);
-                //     }
-                // else{
-                //     retvar = self.execute_preformattedclassfunction(&line[index-3],&line[index-2],&line[index-1], block) ;
-                // }
                 self.setdefiningword(&line[1], retvar, &formattedblock,block);
-                //return retvar;
             }
             "SC" =>{
                 self.execute_setclassfromclass(&line[1],&line[3],&formattedblock, block);
 
                 return NscriptVar::new("line");
             }
+            "OCF" =>{ // Set classfunction without using the function scope
+
+                let mut executablecode = self.getexecutableblock(&block.name);
+                executablecode.boxedcode[0] = executablecode.boxedcode[Nstring::usize(&line[4])-1].clone();
+                let classref = self.storage.getargstring(&line[1], block);
+                if let Some(class) = self.storage.getclassref(&classref){
+                    let mut argbox :Vec<Box<str>> = Vec::new();
+                    for xarg in split(&line[3],","){
+                        argbox.push(xarg.into());
+                    }
+                    let mut func = NscriptFunc::new(line[2].to_string(), argbox);
+                    func.executablecodeblock = executablecode;
+                    let mut thisblock = NscriptCodeBlock::new(&(classref.trim().to_string()+"."+&line[2].trim()));
+                    let  varself = NscriptVar::newstring("self",classref.to_string());
+                    func.codeblock = block.clone();
+                    thisblock.setvar("self",varself);
+                    //print(&format!("OCF:{} {} {}",&line[1],&line[2],&line[3]),"g");
+                    class.setfunc(&line[2], func);
+                }
+                return NscriptVar::new("line");
+            }
             "L" =>{
-                 self.execute_spawnloop(&line,&formattedblock,block);
+                self.execute_spawnloop(&line,&formattedblock,block);
             }
             "vi" =>{
                 let get = self.execute_vecloopsin(&line,&formattedblock, block);
@@ -1301,6 +1306,7 @@ impl  Nscript{
             }
             "X"=>{
                 //exit
+process::exit(1);
             }
             _ =>{}
         }

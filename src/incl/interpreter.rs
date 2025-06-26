@@ -1533,6 +1533,7 @@ impl NscriptFunc{
     }
 }
 
+
 #[derive(Clone)]
 pub struct NscriptClass{
     pub name: Box<str>,
@@ -1561,16 +1562,9 @@ impl NscriptClass{
             functionindex:self.functionindex.clone(),
             functions:HashMap::new(),// required for the self var to be good
         };
-        //
-        // for xprop in self.index.clone(){
-        //     this.setprop(&xprop, self.getprop(&xprop));
-        // };
         for xprop in self.functionindex.clone(){
             this.setfunc(&xprop, self.getfunc(&xprop)); // will set self.
         };
-        //this.parents.push(self.name.to_string());
-        //self.children.push(this.name.to_string());
-
         this
     }
     /// expands a class with some other class.
@@ -1581,8 +1575,6 @@ impl NscriptClass{
         for xprop in fromclass.functionindex.clone(){
             self.setfunc(&xprop, fromclass.getfunc(&xprop));
         };
-        //self.parents.push(fromclass.name.to_string());
-        //fromclass.children.push(self.name.to_string());
     }
     pub fn setprop(&mut self, name:&str,prop:NscriptVar){
         if name != ""{

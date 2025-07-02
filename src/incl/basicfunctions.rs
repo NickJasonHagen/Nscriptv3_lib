@@ -400,7 +400,11 @@ impl Ntimer {
         return duration.as_millis() as i64 - timerhandle;
     }
 }
-
+pub fn nscriptfn_isalpthabetic(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let string = storage.getargstring(var[0],block);
+    return NscriptVar::newstring("isalpthabeth", string.chars().all(char::is_alphabetic).to_string());
+    //return NscriptVar::newstring("timer", Ntimer::init().to_string());
+}
 pub fn nscriptfn_hextostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("var");
     match Vec::from_hex(storage.getargstring(&args[0], block)) {
@@ -1107,6 +1111,49 @@ pub fn nscriptfn_tcpsend(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
     var.stringdata = storage.tcp.send(&socket,&msg);
     return var;
 }
-
+pub fn nscriptfn_add(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut var = NscriptVar::new("tcpsend");
+    if args.len() < 2 {
+        print!("wrong arguments for add(number , toadd)");
+        return var;
+    }
+    let var1 = storage.getargstring(&args[0], block);
+    let var2 = storage.getargstring(&args[1], block);
+    var.stringdata = (Nstring::f64(&var1) + Nstring::f64(&var2)).to_string();
+    return var;
+}
+pub fn nscriptfn_subtract(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut var = NscriptVar::new("subtract");
+    if args.len() < 2 {
+        print!("wrong arguments for subtract (number , tosubtract)");
+        return var;
+    }
+    let var1 = storage.getargstring(&args[0], block);
+    let var2 = storage.getargstring(&args[1], block);
+    var.stringdata = (Nstring::f64(&var1) - Nstring::f64(&var2)).to_string();
+    return var;
+}
+pub fn nscriptfn_multiply(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut var = NscriptVar::new("multiply");
+    if args.len() < 2 {
+        print!("wrong arguments for multiply (number , multiplyby)");
+        return var;
+    }
+    let var1 = storage.getargstring(&args[0], block);
+    let var2 = storage.getargstring(&args[1], block);
+    var.stringdata = (Nstring::f64(&var1) * Nstring::f64(&var2)).to_string();
+    return var;
+}
+pub fn nscriptfn_devide(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut var = NscriptVar::new("devide");
+    if args.len() < 2 {
+        print!("wrong arguments for devide (number , devideby)");
+        return var;
+    }
+    let var1 = storage.getargstring(&args[0], block);
+    let var2 = storage.getargstring(&args[1], block);
+    var.stringdata = (Nstring::f64(&var1) / Nstring::f64(&var2)).to_string();
+    return var;
+}
 
 

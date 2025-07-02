@@ -1618,7 +1618,7 @@ process::exit(1);
             // insert all rustfunctions to the threadstruct
             let mut i = 0;
             for x in builtins{
-                threadstruct.insertfn(&x, builtinsvec[i]);
+                threadstruct.insertfn(&x, builtinsvec[i],"");
                 i +=1;
             }
             for xfunc in funcvec{
@@ -2118,6 +2118,29 @@ process::exit(1);
             "http" =>{
                 return self.httpexec(splitstruct[1], &argvarvec);
             }
+            "nscript" =>{
+                match splitstruct[1]{
+                    "getruststructs" =>{
+                        let var = NscriptVar::newvar("res", "".to_string(),self.ruststructsindex.clone());
+                        return var;
+                    }
+                    "getrustfunctions" =>{
+                        let var = NscriptVar::newvar("res", "".to_string(),self.rustfunctionsindex.clone());
+                        return var;
+                    }
+                    "getrustfunctionshelp" =>{
+                        let var = NscriptVar::newvar("res", "".to_string(),self.rustfunctionshelpindex.clone());
+                        return var;
+                    }
+                    "getcoroutines" =>{
+                        let var = NscriptVar::newvar("res", "".to_string(),self.coroutines.clone());
+                        return var;
+                    }
+                    _ =>{
+                        return NscriptVar::new("");
+                    }
+                }
+            }
             "object" =>{
                 let mut retvar = NscriptVar::new("object");
                 match splitstruct[1]{
@@ -2379,7 +2402,7 @@ process::exit(1);
                     let subblockraw = self.extract_scope(&eachclass); // extract the class scope between { }
                     let mut subblock = subblockraw.clone();
                     subblock = Nstring::replace(&subblock, "self.", "*self.");
-                    subblock = self.func_scopeextract(&subblock, &thisclassname);
+                    subblock = self.func_scopeextract (&subblock, &thisclassname);
                     let mut selfvar = NscriptVar::new("self");
                     selfvar.stringdata = thisclassname.to_string();
                     let mut codeblock = NscriptCodeBlock::new(&thisclassname);
@@ -2390,13 +2413,16 @@ process::exit(1);
                     self.preproccessblock(&mut formattedcodeblock);
                     let xblock = self.getexecutableblock(&codeblock.name);
                     self.executeblock(&mut codeblock,&xblock);
-
+                    if classname.len() > 1 {
+                        self.execute_classfunction(&format!("2{}.construct()",&classname[0]),&mut codeblock);
+                    }
                     self.storage.codeblocks.insert("class_".to_string() + &thisclassname, codeblock);
                     self.formattedblocks.insert("class_".to_string() + &thisclassname, formattedcodeblock);
                     let toreplace = "class".to_owned() + &classnamepart + &subblockraw;
                     if Nstring::instring(&toreplace, "{") && Nstring::instring(&toreplace, "}") {
                         parsecode = Nstring::replace(&parsecode,&toreplace, "");
                     }
+
                 }
             }
             i += 1;

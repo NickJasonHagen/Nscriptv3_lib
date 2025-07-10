@@ -1121,19 +1121,20 @@ impl  Nscript{
                 let mut executablecode = self.getexecutableblock(&block.name);
                 executablecode.boxedcode[0] = executablecode.boxedcode[Nstring::usize(&line[4])-1].clone();
                 let classref = self.storage.getargstring(&line[1], block);
+                let funcref = self.storage.getargstring(&line[2], block);
                 if let Some(class) = self.storage.getclassref(&classref){
                     let mut argbox :Vec<Box<str>> = Vec::new();
                     for xarg in split(&line[3],","){
                         argbox.push(xarg.into());
                     }
-                    let mut func = NscriptFunc::new(line[2].to_string(), argbox);
+                    let mut func = NscriptFunc::new(funcref.to_string(), argbox);
                     func.executablecodeblock = executablecode;
-                    let mut thisblock = NscriptCodeBlock::new(&(classref.trim().to_string()+"."+&line[2].trim()));
+                    let mut thisblock = NscriptCodeBlock::new(&(classref.trim().to_string()+"."+&funcref.trim()));
                     let  varself = NscriptVar::newstring("self",classref.to_string());
                     func.codeblock = block.clone();
                     thisblock.setvar("self",varself);
-                    //print(&format!("OCF:{} {} {}",&line[1],&line[2],&line[3]),"g");
-                    class.setfunc(&line[2], func);
+                    //print(&format!("OCF:{} {} {}",&classref,&funcref,&line[3]),"g");
+                    class.setfunc(&funcref, func);
                 }
                 return NscriptVar::new("line");
             }

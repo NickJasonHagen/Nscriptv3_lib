@@ -138,6 +138,7 @@ impl  Nscript{
             self.insertfn("cat", nscriptfn_cat,"(a,b,c,..) concatinates all arguments to eachother returns that as a new string. \n theres no limit on the ammount of arguments");
             self.insertfn("random", nscriptfn_random,"(int:min, int:max, int:decimals default= maximum) generates a random number by a minimum and maximum. \nset decimal to 0 to get flat numbers");
             self.insertfn("arraycontains", nscriptfn_arraycontains,"(vector,string) returns a bool if a vector contains the given string.");
+            self.insertfn("arrayroll", nscriptfn_arrayroll,"(vector,string) returns a new vec, FiFo , if the vector has a size of 6 is will remain the size the new entree will be inserted as 0 and the last one will be left out, each one will shift one spot.");
             self.insertfn("arraypush", nscriptfn_arraypush,"(vector,string) pushes the string at the end of a vector returns a new vector");
             self.insertfn("arrayinsert", nscriptfn_arrayinsert,"(vector, string) insers the string to the vector and returns that as a new vector");
             self.insertfn("arraysort", nscriptfn_arraysort,"(vector) sorts the vector by a alphabetic order and returns that as a new vector");
@@ -338,7 +339,7 @@ impl  Nscript{
         var
     }
     pub fn object_from_json(&mut self,objectname:&str,json:&str){
-        let json = Nstring::trimright(&Nstring::trimleft(&json, 1), 1); // strip {}
+        let json = Nstring::trimright(&Nstring::trimleft(&Nstring::replace(&json,":\"",": \""), 1), 1); // strip {}
         // if it exists, extent it
         if let Some(class) = self.storage.getclassref(&objectname){
             for each in split(&json, "\",") {

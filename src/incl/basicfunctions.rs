@@ -860,7 +860,7 @@ pub fn nscriptfn_arrayreverse(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     var.stringvec = storage.getargstringvec(&args[0], block);
     let mut newvec:Vec<String> = Vec::new();
     for x in var.stringvec.clone(){
-        newvec.push("".to_string());
+        //newvec.push("".to_string());
         newvec.insert(0,x);
     }
     var.stringvec = newvec;
@@ -910,6 +910,20 @@ pub fn nscriptfn_arrayfilter(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
     }
     var.stringvec =newvec;
     return var;
+}
+pub fn nscriptfn_arrayroll(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
+    var.stringdata = storage.getargstring(&args[0], block);
+    var.stringvec = storage.getargstringvec(&args[0], block);
+    let mut newvar = NscriptVar::newvar(&var.name, var.stringdata.to_string(),Vec::new());
+    newvar.stringvec.push(storage.getargstring(&args[1], block));
+    if args.len() > 1 {
+        for xitem in 0..var.stringvec.len() -1{
+            newvar.stringvec.push(var.stringvec[xitem].to_string());
+
+        }
+    }
+    return newvar
 }
 pub fn create_directory(dir_path: &str) -> String {
     match fs::create_dir(dir_path) {

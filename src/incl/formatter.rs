@@ -74,9 +74,9 @@ impl  Nscript{
         filedata = "\n".to_string() + &filedata;
         filedata = self.thread_scopeextract(&filedata,&mut thiscodescope);
         filedata = self.class_scopeextract(&filedata,&mut thiscodescope);
-        filedata = self.func_scopeextract(&filedata,"");
+        self.func_scopeextract(&filedata,"")
 
-        filedata
+        //filedata
     }
     fn convertmultilinefunctionstosinge(filedataarg:String) ->String{
         let mut filedata = filedataarg.clone();//::replace(&filedataarg,"(\n", "(");// multilines: gott be after array!!
@@ -299,7 +299,7 @@ impl  Nscript{
             // for x in &proccessedvec{
             //    teststring = teststring + &x.join(" ") + "\n";
             // }
-            // print(&teststring,"bb");
+            //  print(&teststring,"bb");
             let wlen = xline.len();
             if wlen > 1 {
                 if xline[wlen-2] == "SCOPE" {
@@ -2150,6 +2150,11 @@ process::exit(1);
                             retvar.stringvec = class.index.to_owned().into_iter().map(|s| s.into()).collect();
                         }
                     }
+                    "functions" =>{
+                        if let Some(class) = self.getclassref(&argvarvec[0].stringdata){
+                            retvar.stringvec = class.functionindex.to_owned().into_iter().map(|s| s.into()).collect();
+                        }
+                    }
                     "delete" =>{
                         self.execute_classfunction(&format!("2{}.destruct()",&argvarvec[0].stringdata), block);
                         self.storage.classes.remove(&argvarvec[0].stringdata);
@@ -2685,8 +2690,9 @@ fn f64(string:&str) ->f64{
 
 pub fn split<'a>(s: &'a str, p: &str) -> Vec<&'a str> {
     // returns a str array vector
-    let r: Vec<&str> = s.split(p).collect();
-    return r;
+    //let r: Vec<&str> = s.split(p).collect();
+     s.split(p).collect()
+    //return r;
 }
 
 fn read_file_utf8(filename: &str) -> String {

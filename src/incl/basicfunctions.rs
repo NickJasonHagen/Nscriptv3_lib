@@ -32,6 +32,7 @@ pub fn nscriptfn_replace(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
 }
 pub fn nscriptfn_replacebyref(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     if args.len() > 2{
+        //println!("raw ref = {}",&args[0]);
         let mut refvar = storage.getvar(args[0], block);
         let value = Nstring::replace(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block));
         refvar.stringdata = value.to_string();
@@ -882,10 +883,11 @@ pub fn nscriptfn_arraysearch(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
 
     var.stringdata = storage.getargstring(&args[0], block);
+    let tosearch = storage.getargstring(&args[1], block);
 
     let mut newvec = Vec::new();
     for xitem in storage.getargstringvec(&args[0], block){
-        if Nstring::instring(&xitem,&storage.getargstring(&xitem, block)) {
+        if Nstring::instring(&xitem,&tosearch) {
             newvec.push(xitem);
         }
     }
@@ -902,9 +904,10 @@ pub fn nscriptfn_arrayfilter(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
     var.stringdata = storage.getargstring(&args[0], block);
     var.stringvec = storage.getargstringvec(&args[0], block);
+    let tosearch = storage.getargstring(&args[1], block);
     let mut newvec = Vec::new();
     for xitem in var.stringvec{
-        if Nstring::instring(&xitem,&storage.getargstring(&args[1], block)) == false{
+        if Nstring::instring(&xitem,&tosearch) == false{
             newvec.push(xitem);
         }
     }

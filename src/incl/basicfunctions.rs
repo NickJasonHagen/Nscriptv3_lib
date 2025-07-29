@@ -695,7 +695,16 @@ impl Nfile {
         contents
     }
 }
-
+pub fn nscriptfn_round(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let mut var = storage.getvar(&args[0],block);
+    let decimals = Nstring::usize(&storage.getvar(&args[1],block).stringdata);
+    let mut increment = 1.0 as f64;
+    for _ in  0..decimals{
+        increment *= 10.0;
+    }
+    var.stringdata = ((Nstring::f64(&var.stringdata) *increment).round() / increment).to_string();
+    var
+}
 pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let var = NscriptVar::new("var");
     let mut non_empty_args :Vec<String>= Vec::new();

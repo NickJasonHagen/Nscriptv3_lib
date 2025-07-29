@@ -134,6 +134,7 @@ impl  Nscript{
             self.insertfn("filesizebytes", nscriptfn_filesizebytes,"(filepath) returns the filesize in bytes");
             self.insertfn("runwait", nscriptfn_call_programwait,"(shellcommandstring) executes a shell command, returns the result \n this is a blocking function if the called program doesnt exit , relevant see run()");
             self.insertfn("run", nscriptfn_call_program,"(shellcommandstring) executes a shell command, returns the status as a string. (none blocking) relevant : runwait()");
+            self.insertfn("round", nscriptfn_round,"(numbervar,decimals) returns a rounded number by the given decimals.");
             self.insertfn("sleep", nscriptfn_sleep,"(int:timeinms) will pause the thread for x ms seconds.\n can be usefull for lowering powerconsumption");
             self.insertfn("cat", nscriptfn_cat,"(a,b,c,..) concatinates all arguments to eachother returns that as a new string. \n theres no limit on the ammount of arguments");
             self.insertfn("random", nscriptfn_random,"(int:min, int:max, int:decimals default= maximum) generates a random number by a minimum and maximum. \nset decimal to 0 to get flat numbers");
@@ -498,6 +499,7 @@ pub struct NscriptData{
     pub static_vec_string:Vec<String>,
     pub static_vec_vec_string:Vec<Vec<String>>,
     pub static_vec_vec_string_vector3:Vec<Vec<(String,f64,f64,f64)>>,
+    pub static_vec_vec_string_vector3_32:Vec<Vec<(String,f32,f32,f32)>>,
 
 }
 impl NscriptData{
@@ -511,6 +513,7 @@ impl NscriptData{
             static_vec_string:Vec::new(),
             static_vec_vec_string:Vec::new(),
             static_vec_vec_string_vector3:Vec::new(),
+            static_vec_vec_string_vector3_32:Vec::new(),
         }
     }
 }

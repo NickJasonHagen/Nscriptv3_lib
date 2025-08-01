@@ -12,7 +12,8 @@ pub struct Nscript{
     pub rustfunctions: HashMap<String, NscriptSimpleFunctions>, // map for all the rust fn bindings.
     pub rustfunctionsindex: Vec<String>, // map for all the rust fn bindings.
     pub rustfunctionshelpindex: Vec<String>, // map for all the rust fn bindings.
-    pub coroutines: Vec<String>,// all nonclass functions
+    pub coroutinesindex: Vec<String>,// all nonclass functions
+    pub coroutines: HashMap<Box<str>,NscriptCoroutine>,// all nonclass functions
     pub emptyblock: NscriptCodeBlock,// all nonclass functions
     pub threadsreceiver: HashMap<String, mpsc::Receiver<NscriptVar>>,
     pub threadssenders: HashMap<String, mpsc::Sender<NscriptVar>>,
@@ -35,7 +36,8 @@ impl  Nscript{
             rustfunctions: HashMap::new(),
             rustfunctionsindex: Vec::new(),
             rustfunctionshelpindex: Vec::new(),
-            coroutines: Vec::new(),
+            coroutinesindex: Vec::new(),
+            coroutines: HashMap::new(),
             emptyblock: NscriptCodeBlock::new("emptyblock"),
             threadsreceiver:HashMap::new(),
             threadssenders:HashMap::new(),
@@ -95,8 +97,8 @@ impl  Nscript{
         if self.rustfunctionsindex.len() < 2 {
             self.insertfn("add", nscriptfn_add,"(number,toadd) adds the number given by the numberto add");
             self.insertfn("subtract", nscriptfn_subtract,"(number,tosubtract) subtracts the number given by the numbertosubtract");
-            self.insertfn("multiply", nscriptfn_multiply, "number,tomultiply) subtracts the number given by the numbertomultiply");
-            self.insertfn("devide", nscriptfn_devide, "number,todevide) subtracts the number given by the numbertodevide");
+            self.insertfn("multiply", nscriptfn_multiply, "(number,tomultiply) subtracts the number given by the numbertomultiply");
+            self.insertfn("devide", nscriptfn_devide, "(number,todevide) subtracts the number given by the numbertodevide");
             self.insertfn("add", nscriptfn_isalpthabetic,"(number,toadd) adds the number given by the numberto add");
             self.insertfn("is_alphabetic", nscriptfn_isalpthabetic,"(string) Checks if a string is alphabetic, returns a bool");
             self.insertfn("timerdiff", nscriptfn_timerdiff,"(timerinit) takes a timervar created by timerinit() returns the difference in ms ");
@@ -226,12 +228,14 @@ impl  Nscript{
             };
     }
     pub fn removecoroutine(&mut self,routine:&str){
-        self.coroutines.retain(|x| x != routine);
+        self.coroutinesindex.retain(|x| x != routine);
+        self.coroutines.remove(routine.into());
     }
-    pub fn addcoroutine(&mut self,routine:&str){
-        let string = routine.to_string();
-        if self.coroutines.contains(&string) != true {
-            self.coroutines.push(string);
+    pub fn addcoroutine(&mut self,name:&str,routine:NscriptCoroutine){
+        let string = name.to_string();
+        if self.coroutinesindex.contains(&string) != true {
+            self.coroutinesindex.push(string);
+            self.coroutines.insert(name.into(),routine);
         }
     }
     pub fn insertclass(&mut self,name:&str,class:NscriptClass){
@@ -442,6 +446,28 @@ pub enum NscriptWordTypes {
     Nestedfunc,
     Arraydeclaration,
 }
+
+#[derive(Clone)]
+pub struct NscriptCoroutine{
+    pub name:Box<str>,
+    pub storageblock:NscriptCodeBlock,
+    pub executableblock:NscriptExecutableCodeBlock,
+    pub timedroutine:bool,
+    pub timed:i64,
+    pub timer:i64,
+}
+impl NscriptCoroutine{
+    pub fn new(name:&str,block:NscriptCodeBlock,executableblock:NscriptExecutableCodeBlock,timedroutine:bool,timed:i64)->NscriptCoroutine{
+        NscriptCoroutine{
+            name:name.into(),
+            storageblock:block,
+            executableblock:executableblock,
+            timedroutine:timedroutine,
+            timed:timed,
+            timer:Ntimer::init(),
+        }
+    }
+}
 // pub struct CodeStorage{
 //     string: HashMap<String,String >, // stores the raw code as a string
 //     raw: HashMap<String,Vec<Vec<Vec<String>>> >,// arawvector
@@ -498,6 +524,7 @@ pub struct NscriptData{
     pub map_vec_vec3f64:HashMap<String,Vec<[f64;3]>>,
     pub static_vec_string:Vec<String>,
     pub static_vec_vec_string:Vec<Vec<String>>,
+    pub static_vec_vec_vec_string:Vec<Vec<Vec<String>>>,
     pub static_vec_vec_string_vector3:Vec<Vec<(String,f64,f64,f64)>>,
     pub static_vec_vec_string_vector3_32:Vec<Vec<(String,f32,f32,f32)>>,
 
@@ -512,6 +539,7 @@ impl NscriptData{
             map_vec_vec3f64:HashMap::new(),
             static_vec_string:Vec::new(),
             static_vec_vec_string:Vec::new(),
+            static_vec_vec_vec_string:Vec::new(),
             static_vec_vec_string_vector3:Vec::new(),
             static_vec_vec_string_vector3_32:Vec::new(),
         }

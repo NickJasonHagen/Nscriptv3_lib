@@ -346,13 +346,41 @@ impl  Nscript{
 
     /// this keeps the coroutines running , after all routines are ran the code returns!
     pub fn executecoroutines(&mut self){
-        for xroutine in self.coroutines.clone(){
-            let mut thisblock = self.getblock(&xroutine);
-            let thisformattedblock = self.getexecutableblock(&thisblock.name);
-            self.executeblock(&mut thisblock,&thisformattedblock);
-            self.storage.codeblocks.insert(xroutine,thisblock);
+        //let mut xid = 0;
+        for xid in self.coroutinesindex.clone(){
+
+            //println!("{}",&xid);
+            if let Some(thisroutine) = self.coroutines.get_mut(xid.as_str().into()){
+                if thisroutine.timedroutine == false{
+                    let mut thisroutine = thisroutine.clone();
+                    self.executeblock(&mut thisroutine.storageblock,&thisroutine.executableblock);
+                    self.coroutines.insert(thisroutine.name.clone(),thisroutine);
+                }
+                else if Ntimer::diff(thisroutine.timer) > thisroutine.timed {
+                    let mut thisroutine = thisroutine.clone();
+                    thisroutine.timer = Ntimer::init();
+                    self.executeblock(&mut thisroutine.storageblock,&thisroutine.executableblock);
+                    self.coroutines.insert(thisroutine.name.clone(),thisroutine);
+                }
+
+            };
+            //let mut thisblock = self.coroutines[xid].storageblock;
+            //let thisformattedblock = self.getexecutableblock(&thisblock.name);
+            //self.storage.codeblocks.insert(xroutine,thisblock);
+            //
+            //xid +=1;
         }
     }
+
+
+    // pub fn executecoroutines(&mut self){
+    //     for xroutine in self.coroutinesindex.clone(){
+    //         let mut thisblock = self.getblock(&xroutine);
+    //         let thisformattedblock = self.getexecutableblock(&thisblock.name);
+    //         self.executeblock(&mut thisblock,&thisformattedblock);
+    //         self.storage.codeblocks.insert(xroutine,thisblock);
+    //     }
+    // }
 
     /// entree point for executing a new block
     pub fn executeblock(&mut self,block:&mut NscriptCodeBlock,formattedblock: &NscriptExecutableCodeBlock) -> NscriptVar{
@@ -570,19 +598,19 @@ impl  Nscript{
                                         preprocessedvec.push(xline.to_owned());
                                     }
                                 }
-                        }
-                        "break" => {
-                            xline.insert(0,"BC".to_string());
-                            preprocessedvec.push(xline.to_owned());
-                        }
-                        "init" => {
+                            }
+                            "break" => {
+                                xline.insert(0,"BC".to_string());
+                                preprocessedvec.push(xline.to_owned());
+                            }
+                            "init" => {
                                 xline[0] = "i".to_string();
-                            preprocessedvec.push(xline.to_owned());
+                                preprocessedvec.push(xline.to_owned());
 
-                        }
-                        "SCOPE" =>{
+                            }
+                            "SCOPE" =>{
                                 xline[0] = "S".to_string();
-                            preprocessedvec.push(xline.to_owned());
+                                preprocessedvec.push(xline.to_owned());
                             }
                             _ =>{
                                 match xline[1].as_str(){
@@ -688,9 +716,17 @@ impl  Nscript{
                                 preprocessedvec.push(xline.to_owned());
                             }
                             "coroutine" =>{
+                                if xline.len() > 4 {
+                                    if xline[2] == "each" {
+                                        xline[0] = "TCO".to_string();
+                                        preprocessedvec.push(xline.to_owned());
+                                    }
+                                }
+                                else{
+                                    xline[0] = "CO".to_string();
+                                    preprocessedvec.push(xline.to_owned());
 
-                                xline[0] = "CO".to_string();
-                                preprocessedvec.push(xline.to_owned());
+                                }
                             }
                             "loop" =>{
                                 xline[0] = "L".to_string();
@@ -725,6 +761,19 @@ impl  Nscript{
                                             preprocessedvec.push(newwordvec.to_owned());
                                         }
 
+                                    }
+                                    "&=" =>{
+                                        xline.insert(0,"CC".to_string());
+                                        preprocessedvec.push(xline.to_owned());
+                                    }
+                                    "-=" =>{
+                                        xline.insert(0,"SS".to_string());
+                                        preprocessedvec.push(xline.to_owned());
+                                    }
+
+                                    "+=" =>{
+                                        xline.insert(0,"AA".to_string());
+                                        preprocessedvec.push(xline.to_owned());
                                     }
                                     "=" => {
                                         match xline[2].as_str(){
@@ -938,32 +987,17 @@ impl  Nscript{
                                             }
                                         }
                                     }
-                                    "&=" =>{
-                                        xline.insert(0,"CC".to_string());
+
+                                    _ =>{// adds match subscopes
                                         preprocessedvec.push(xline.to_owned());
                                     }
-                                    "-=" =>{
-                                    xline.insert(0,"SS".to_string());
-                                    preprocessedvec.push(xline.to_owned());
-                                }
-
-                                "+=" =>{
-                                    xline.insert(0,"AA".to_string());
-                                    preprocessedvec.push(xline.to_owned());
-                                }
-                                _ =>{// adds match subscopes
-                                 //print(&format!("unknown line? [{}]",xline.join(" ")),"r");
-                                    //xline.insert(0,"??".to_string());
-                                    preprocessedvec.push(xline.to_owned());
-
                                 }
                             }
                         }
-                    }
 
+                    }
                 }
             }
-        }
         }
         preprocessedvec
     }
@@ -1303,7 +1337,17 @@ impl  Nscript{
                 return self.setdefiningword(&line[1], retvar, &formattedblock,block);
             }
             "CO"=>{
-                self.execute_spawncoroutine(&line,&formattedblock,block);
+                self.execute_spawncoroutine(&line,false,0,&formattedblock,block);
+            }
+            "TCO"=>{
+                let time = self.executeword(&line[3], formattedblock, block).stringdata;
+                //println!("timedr {}",&time);
+                self.execute_spawncoroutine(
+                    &line,true,
+                    Nstring::i64(&time),
+                    &formattedblock,
+                    block
+                );
             }
             "X"=>{
                 //exit
@@ -1338,7 +1382,7 @@ process::exit(1);
         }
         return NscriptVar::new("loop");
     }
-    fn execute_spawncoroutine(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock){
+    fn execute_spawncoroutine(&mut self,line:&Vec<Box<str>>,timed:bool,time:i64,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock){
         let coname = "coroutine_".to_string() + &self.getwordstring(&line[1],&formattedblock, block);
         let mut coroutineblock = NscriptCodeBlock::new(&coname);//NscriptCodeBlock::new(&coname);
         coroutineblock.name = coname.to_string();
@@ -1355,7 +1399,13 @@ process::exit(1);
         let scopeid = Nstring::usize(&line[line.len()-1]);
         executablecode.boxedcode[0] = formattedblock.boxedcode[scopeid-1].clone();
         //executablecode.boxedcode = formattedcode.boxedcode.clone();
-        self.executableblocks.insert(coname.to_string(),executablecode.clone());
+        //
+        let mut thisco = NscriptCoroutine::new(&coname, coroutineblock.clone(), executablecode.clone(), timed, time);
+        if timed {
+            thisco.timer = Ntimer::init();
+        }
+
+        //self.executableblocks.insert(coname.to_string(),executablecode.clone());
 // print(&coname,"bp");
 //         for xl in &executablecode.boxedcode[0]{
 //             for xa in xl {
@@ -1363,10 +1413,9 @@ process::exit(1);
 //                 print(&xa,"r");
 //             }
 //         }
-        self.addcoroutine(&coname);
+        self.addcoroutine(&coname,thisco);
         //self.formattedblocks.insert(coname.to_string(), executablecode);
         self.storage.codeblocks.insert(coname,coroutineblock );
-
     }
      fn execute_ifline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->NscriptVar{
         let statementresult = self.parse_and_check_statements(&line, &formattedblock,block);
@@ -2134,7 +2183,7 @@ process::exit(1);
                         return var;
                     }
                     "getcoroutines" =>{
-                        let var = NscriptVar::newvar("res", "".to_string(),self.coroutines.clone());
+                        let var = NscriptVar::newvar("res", "".to_string(),self.coroutinesindex.clone());
                         return var;
                     }
                     _ =>{

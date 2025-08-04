@@ -72,10 +72,13 @@ impl  Nscript{
         filedata = Nstring::replace(&filedata,",\n", ",");// multiline functions to singleline
         filedata = Nstring::replace(&filedata,"\n)", ")");// multiline functions to singleline
         filedata = "\n".to_string() + &filedata;
+
+        filedata = Nstring::replace(&filedata,"\n\n", "\n");// multiline functions to singleline
         filedata = self.thread_scopeextract(&filedata,&mut thiscodescope);
         filedata = self.class_scopeextract(&filedata,&mut thiscodescope);
-        self.func_scopeextract(&filedata,"")
+        self.func_scopeextract(&filedata,"");
 
+        Nstring::replace(&filedata,"\n\n", "\n")// multiline functions to singleline
         //filedata
     }
     fn convertmultilinefunctionstosinge(filedataarg:String) ->String{
@@ -101,7 +104,7 @@ impl  Nscript{
             if split(xline," ").len() == 1 {
                 let spl = split(xline,"(");
                 if spl.len() == 2 {
-                    match self.rustfunctions.get(&spl[0].to_string()){
+                    match self.rustfunctions.get(spl[0]){
                         Some(_) =>{
 
                             thisline = thisline + " " + &xline; // buffer the line into 1 line
@@ -254,7 +257,7 @@ impl  Nscript{
                                 //wordvec.push(arg);
                             }
                             else if Nstring::instring(&arg, ".") == false && Nstring::postfix(&arg) == "(" {
-                                match self.rustfunctions.get(&Nstring::trimright(&arg,1)){
+                                match self.rustfunctions.get(Nstring::trimright(&arg,1).as_str().into()){
                                     Some(_) =>{
                                         arg = "1".to_string() + &arg;
                                     }
@@ -458,7 +461,7 @@ impl  Nscript{
                                         preprocessedvec.push(xline.to_owned());
                                     }
                                     NscriptWordTypes::RustFunction |NscriptWordTypes::Function =>{
-                                        if let Some(_) = self.rustfunctions.get_mut(&split(&Nstring::trimleft(&xline[0],1),"(")[0].to_string()){
+                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[0],1),"(")[0].into()){
                                             let mut insertvec:Vec<String> = Vec::new();
                                             insertvec.push("RFN".to_string());
                                             let splitfunc = split(&xline[0],"(")[0];
@@ -533,7 +536,7 @@ impl  Nscript{
                                     NscriptWordTypes::RustFunction |NscriptWordTypes::Function =>{
                                             let getargs = Nstring::stringbetween(&xline[1], "(", ")");
                                             let givenargs = Nstring::split(&getargs,",");
-                                        if let Some(_) = self.rustfunctions.get_mut(&split(&Nstring::trimleft(&xline[1],1),"(")[0].to_string()){
+                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[1],1),"(")[0].into()){
 
                                             let mut newline: Vec<String>  = Vec::new();
                                             let getargs = Nstring::stringbetween(&xline[1], "(", ")");
@@ -856,7 +859,7 @@ impl  Nscript{
                                                             NscriptWordTypes::RustFunction | NscriptWordTypes::Function=>{
                                                                 match self.checkwordtype(&xline[0]){
                                                                     NscriptWordTypes::Variable =>{
-                                                                        if let Some(_) = self.rustfunctions.get_mut(&split(&Nstring::trimleft(&xline[2],1),"(")[0].to_string()){
+                                                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[2],1),"(")[0].into()){
 
                                                                             let mut newline: Vec<String>  = Vec::new();
                                                                             let funcname = split(&xline[2],"(")[0];
@@ -1280,9 +1283,9 @@ impl  Nscript{
             }
             "SS" =>{// subtract self
                 let mut onvar = self.storage.getvar(&line[1], block);
-                let mut total = onvar.getnumber();
+                let mut total = onvar.getfloat32();
                 for x in 3..line.len(){
-                    total -= self.executeword(&line[x],&formattedblock, block).getnumber();
+                    total -= self.executeword(&line[x],&formattedblock, block).getfloat32();
                 }
                 onvar.stringdata = total.to_string();
                 return self.setdefiningword(&line[1], onvar, &formattedblock,block);
@@ -1294,11 +1297,19 @@ impl  Nscript{
             }
             "AA" =>{ // add se;f
                 let mut onvar = self.storage.getvar(&line[1], block);
-                let mut total = onvar.getnumber();
-                for x in 3..line.len(){
-                    total += self.executeword(&line[x], &formattedblock,block).getnumber();
+                let mut total = onvar.getfloat32();
+                let linelen =line.len();
+                if linelen == 3 {
+                    onvar.stringdata = (total +self.executeword(&line[3], &formattedblock,block).getfloat32()).to_string();
+
+                }else{
+                    for x in 3..linelen{
+                        total += self.executeword(&line[x], &formattedblock,block).getfloat32();
+                    }
+                    onvar.stringdata = total.to_string();
                 }
-                onvar.stringdata = total.to_string();
+               // println!("AA:{}",line.join(" "));
+
                 return self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
             "tI" =>{//optimized timerchecks
@@ -1405,7 +1416,7 @@ process::exit(1);
             thisco.timer = Ntimer::init();
         }
 
-        //self.executableblocks.insert(coname.to_string(),executablecode.clone());
+
 // print(&coname,"bp");
 //         for xl in &executablecode.boxedcode[0]{
 //             for xa in xl {
@@ -1658,7 +1669,7 @@ process::exit(1);
         let builtins = self.rustfunctionsindex.clone();
         let mut builtinsvec:Vec<NscriptSimpleFunctions> = Vec::new();
         for x in builtins.clone(){
-            if let Some(f) = self.rustfunctions.get(&x){
+            if let Some(f) = self.rustfunctions.get(x.as_str()){
                 builtinsvec.push(f.to_owned());
             };
         }
@@ -2003,7 +2014,7 @@ process::exit(1);
     /// for preproccesed lines (optimizing)
     pub fn execute_prerustfunction(&mut self,funcname:&str,getargs:&str, block:&mut NscriptCodeBlock) ->NscriptVar{
         let funcname = Nstring::trimprefix(&funcname);
-        if let Some(rustfn) = self.rustfunctions.get(&funcname.to_string()){
+        if let Some(rustfn) = self.rustfunctions.get(funcname.into()){
             return rustfn(&split(&getargs,","),block,&mut self.storage);
         }
         print(&format!("cant find func {}",funcname),"r");
@@ -2185,6 +2196,10 @@ process::exit(1);
                     "getcoroutines" =>{
                         let var = NscriptVar::newvar("res", "".to_string(),self.coroutinesindex.clone());
                         return var;
+                    }
+                    "rawcode" =>{
+                        let get = self.executeword(&givenargs[0],&formattedblock,block);
+                        self.parsecode(&Nstring::replace(&get.stringdata,";","\n"),"__raw")
                     }
                     _ =>{
                         return NscriptVar::new("");

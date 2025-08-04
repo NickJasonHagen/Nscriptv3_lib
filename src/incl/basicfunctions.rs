@@ -529,7 +529,71 @@ pub fn print(m: &str, color: &str) {
         }
     };
 }
+pub fn nscriptfn_printraw(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let mut color = "".to_string();
+    if args.len() > 1 {
+        color = storage.getargstring(&args[1], block);
+    }
+    let string = storage.getargstring(&args[0], block);
+    printraw(&string,&color);
+    return NscriptVar::newstring("var",string);
+    //var.stringdata = string;
+    //return var;
 
+}
+pub fn printraw(m: &str, color: &str) {
+    // this is more a linux then a windows feature.
+    // as for windows powershell is just lame. itl work but dont expect all colors to show!
+    // --------------------------------------------
+    match color {
+        "bright blue" | "bb" => {
+            print!("{}", m.bright_blue());
+        }
+        "bright green" | "bg"=> {
+            print!("{}", m.bright_green());
+        }
+        "bright cyan" | "bc" => {
+            print!("{}", m.bright_cyan());
+        }
+        "bright red" | "br" => {
+            print!("{}", m.bright_red());
+        }
+        "bright magenta" | "bm" => {
+            print!("{}", m.bright_magenta());
+        }
+        "bright yellow" | "by" => {
+            print!("{}", m.bright_yellow());
+        }
+        "bright purple" | "bp" => {
+            print!("{}", m.bright_purple());
+        }
+        "purple" | "p" => {
+            print!("{}", m.purple());
+        }
+        "cyan" | "c" =>{
+            print!("{}", m.cyan());
+        }
+        "yellow" | "y" => {
+            print!("{}", m.yellow());
+        }
+        "red" | "r" => {
+            print!("{}", m.red());
+        }
+        "green" | "g" => {
+            print!("{}", m.green());
+        }
+        "blue" | "b" =>{
+            print!("{}", m.blue());
+        }
+        "magenta" | "m" =>{
+            print!("{}", m.magenta());
+        }
+        _ => {
+            print!("{}", m);
+
+        }
+    };
+}
 pub struct Nfile {
 }
 
@@ -1181,5 +1245,13 @@ pub fn nscriptfn_devide(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :
     var.stringdata = (Nstring::f64(&var1) / Nstring::f64(&var2)).to_string();
     return var;
 }
-
-
+pub fn nscriptfn_cos(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut var1 = storage.getvar(&args[0], block);
+    var1.stringdata = Nstring::f32(&var1.stringdata).cos().to_string();
+    return var1;
+}
+pub fn nscriptfn_sin(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut var1 = storage.getvar(&args[0], block);
+    var1.stringdata = Nstring::f32(&var1.stringdata).sin().to_string();
+    return var1;
+}

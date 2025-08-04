@@ -9,7 +9,7 @@ pub struct Nscript{
     pub ruststructsowned: HashMap<Box<str>,Box<dyn NscriptStructBinding>>, // map for all the rust fn bindings.
     //pub ruststructs: HashMap<&'a str, &'a mut dyn NscriptStructBinding>, // map for all the rust fn bindings.
     pub ruststructsindex: Vec<String>, // map for all the rust fn bindings.
-    pub rustfunctions: HashMap<String, NscriptSimpleFunctions>, // map for all the rust fn bindings.
+    pub rustfunctions: HashMap<Box<str>, NscriptSimpleFunctions>, // map for all the rust fn bindings.
     pub rustfunctionsindex: Vec<String>, // map for all the rust fn bindings.
     pub rustfunctionshelpindex: Vec<String>, // map for all the rust fn bindings.
     pub coroutinesindex: Vec<String>,// all nonclass functions
@@ -64,7 +64,7 @@ impl  Nscript{
     pub fn newthread(&mut self) -> Nscript{
         let mut this = Nscript::setclean();
         for xfn in self.rustfunctionsindex.clone(){
-            if let Some(fnr) = self.rustfunctions.get(&xfn){
+            if let Some(fnr) = self.rustfunctions.get(xfn.as_str().into()){
                 this.insertfn(&xfn, fnr.clone(),"");
             }
         }
@@ -90,88 +90,91 @@ impl  Nscript{
     pub fn insertfn(&mut self,name:&str,func: NscriptSimpleFunctions,explanationstring:&str){
         self.rustfunctionsindex.push(name.to_string());
         self.rustfunctionshelpindex.push(explanationstring.to_string());
-        self.rustfunctions.insert(name.to_string(),func);
+        self.rustfunctions.insert(name.into(),func);
     }
     fn setbasicfunctions(&mut self){
         // only done once , the whole Vec is copied during threading so it wont push twice
         if self.rustfunctionsindex.len() < 2 {
-            self.insertfn("add", nscriptfn_add,"(number,toadd) adds the number given by the numberto add");
-            self.insertfn("subtract", nscriptfn_subtract,"(number,tosubtract) subtracts the number given by the numbertosubtract");
-            self.insertfn("multiply", nscriptfn_multiply, "(number,tomultiply) subtracts the number given by the numbertomultiply");
-            self.insertfn("devide", nscriptfn_devide, "(number,todevide) subtracts the number given by the numbertodevide");
-            self.insertfn("add", nscriptfn_isalpthabetic,"(number,toadd) adds the number given by the numberto add");
-            self.insertfn("is_alphabetic", nscriptfn_isalpthabetic,"(string) Checks if a string is alphabetic, returns a bool");
-            self.insertfn("timerdiff", nscriptfn_timerdiff,"(timerinit) takes a timervar created by timerinit() returns the difference in ms ");
-            self.insertfn("timerinit", nscriptfn_timerinit,"() returns a timervar, can be used with timerdiff(var) to check difference in time ms");
-            self.insertfn("trim", nscriptfn_trim,"(string) returns a trimmed string, this strips spaces in front and at end");
-            self.insertfn("len", nscriptfn_len,"(vec) takes a vector returns the size");
-            self.insertfn("vec", nscriptfn_vec,"(string,a,b,c,..endless) can take any ammount of arguments , creates a vector out of each given argument and returns it.");
-            self.insertfn("uppercase", nscriptfn_toupper,"(string) returns the given string in UPPERcase");
-            self.insertfn("replacebyref", nscriptfn_replacebyref,"(referencevar,find,replace) this doesnt return anything, it will replace found string in the var given as referencevar,\n if using multiple lines with replace() this will optimize it by a lot");
-            self.insertfn("lowercase", nscriptfn_tolower,"(string) returns the given string as lowercase");
-            self.insertfn("stringbetween", nscriptfn_stringbetween,"(string,beginstring,endstring) searches a string by a begin and end, returns the first result as a string.\n if none found returns a empty string");
-            self.insertfn("split", nscriptfn_split,"(string,splitdelimeter) splits a string into a vector by a given delimeter. \n to split a string by each character give a empty string as delimeter");
-            self.insertfn("contains", nscriptfn_contains,"(string,containsstring) returns a bool if a string contains a substring");
-            self.insertfn("stringtoeval", nscriptfn_stringtoeval,"(string) replaces all spaces and special characters of a given string \n usecases: to set properties of them, or create identifiers during runtime");
-            self.insertfn("replace", nscriptfn_replace,"(string,find,replace) returns a new string if the substring is found it will replace it.");
-            self.insertfn("join", nscriptfn_join,"(vector,delimeter) returns a string of a given vector it will join the items by the delimeter");
-            self.insertfn("instring", nscriptfn_instring,"(string,substring) returns a bool if the string contains a substring ( same as contains() ) ");
-            self.insertfn("fromleft", nscriptfn_fromleft,"(string,int:characters) returns the first x characters of a string");
-            self.insertfn("fromright", nscriptfn_fromright,"(string,int:characters) returns the last x characters of a string");
-            self.insertfn("trimright", nscriptfn_trimright,"(string,int:totrim) trims a string at the end by totrim and returns that as a string");
-            self.insertfn("trimleft", nscriptfn_trimleft,"(string,int:totrim) ");
-            self.insertfn("stringtohex", nscriptfn_stringtohex,"(string) returns a hexed string from the givenstring");
-            self.insertfn("hextostring", nscriptfn_hextostring,"(hexstring) returns a string from a given hexstring");
-            self.insertfn("print", nscriptfn_print,"(string,string:color default=white) prints a string to the console,\n the color argument is optional colors can be given as the first character \n every color has a bright version \nred = r \n blue = b \n bright blue = bb \n red = r etc"  );
-            self.insertfn("fileread", nscriptfn_fileread,"(filepath) reads a file and returns the contents as a string");
-            self.insertfn("filewrite", nscriptfn_filewrite,"(filepath,string) writes a string to a file");
-            self.insertfn("fileexists", nscriptfn_fileexists,"(filepath) returns a bool true if the filepath contains a file, and false if theres no file");
-            self.insertfn("filedelete", nscriptfn_filedelete,"(filepath) deletes a file at a given path");
-            self.insertfn("filemove", nscriptfn_filemove,"(filepath,newpath) moves a file from a given path to another");
-            self.insertfn("filecopy", nscriptfn_filecopy,"(filepath,copiedpath) copies a file ");
-            self.insertfn("dirmove", nscriptfn_directory_move,"(directorypath, newpath) moves a directory to a new location");
-            self.insertfn("dirdelete", nscriptfn_directory_delete,"(directorypath) deletes a directory");
-            self.insertfn("listdir", nscriptfn_listdir,"(directorypath,bool:fullpathasresult default=false) returns a vector with all the files \n if the second argument is set to true all the entrees will have a full filepath \n if set false, or not given at all the entrees will only contain the filenames");
-            self.insertfn("filesize", nscriptfn_filesize,"(filepath) returns a kb/mb/gb floored number of the filesize");
-            self.insertfn("filesizebytes", nscriptfn_filesizebytes,"(filepath) returns the filesize in bytes");
-            self.insertfn("runwait", nscriptfn_call_programwait,"(shellcommandstring) executes a shell command, returns the result \n this is a blocking function if the called program doesnt exit , relevant see run()");
-            self.insertfn("run", nscriptfn_call_program,"(shellcommandstring) executes a shell command, returns the status as a string. (none blocking) relevant : runwait()");
-            self.insertfn("round", nscriptfn_round,"(numbervar,decimals) returns a rounded number by the given decimals.");
-            self.insertfn("sleep", nscriptfn_sleep,"(int:timeinms) will pause the thread for x ms seconds.\n can be usefull for lowering powerconsumption");
-            self.insertfn("cat", nscriptfn_cat,"(a,b,c,..) concatinates all arguments to eachother returns that as a new string. \n theres no limit on the ammount of arguments");
-            self.insertfn("random", nscriptfn_random,"(int:min, int:max, int:decimals default= maximum) generates a random number by a minimum and maximum. \nset decimal to 0 to get flat numbers");
-            self.insertfn("arraycontains", nscriptfn_arraycontains,"(vector,string) returns a bool if a vector contains the given string.");
-            self.insertfn("arrayroll", nscriptfn_arrayroll,"(vector,string) returns a new vec, FiFo , if the vector has a size of 6 is will remain the size the new entree will be inserted as 0 and the last one will be left out, each one will shift one spot.");
-            self.insertfn("arraypush", nscriptfn_arraypush,"(vector,string) pushes the string at the end of a vector returns a new vector");
-            self.insertfn("arrayinsert", nscriptfn_arrayinsert,"(vector, string) insers the string to the vector and returns that as a new vector");
-            self.insertfn("arraysort", nscriptfn_arraysort,"(vector) sorts the vector by a alphabetic order and returns that as a new vector");
-            self.insertfn("arrayretain", nscriptfn_arrayretain,"(vector,string) will remove the string from a vector, returns that as a new vector");
-            self.insertfn("arrayshuffle", nscriptfn_arrayshuffle,"(vector) returns a shuffled vector as a new");
-            self.insertfn("arrayreverse", nscriptfn_arrayreverse,"(vector) reverses the vector returns that as a new");
-            self.insertfn("arraysearch", nscriptfn_arraysearch,"(vector,string) will create a new vector with all entrees containing the given string");
-            self.insertfn("arrayfilter", nscriptfn_arrayfilter,"(vector,string) will create a new vector without all entrees containing the given string");
-            self.insertfn("httpgetcontent", nscriptfn_get_http_content,"(ip,port,remotefile) will return the webcontent example : \n httpgetcontent(\"127.0.0.1\",80,\"/index.nc\")");
-            self.insertfn("terminalinput", nscriptfn_terminalinput,"(msgstring,defaultoption) the terminal will listen for given input,\n this function returns when the terminal gives a enter");
-            self.insertfn("splitselect", nscriptfn_splitselect,"(string,splitbydelimeter,int:vectorentree) will split a string with the given delimeter \n instead of returning a vector it will return the string by the given number ");
-            self.insertfn("base64tostring", nscriptfn_base64tostring,"(string) returns a decoded base64string");
-            self.insertfn("stringtobase64", nscriptfn_stringtobase64,"(base64string) decodes the string and returns that");
-            self.insertfn("tcplistener", nscriptfn_tcplistener,"(ip,port) returns a listenersocket, can be used by other tcp***()");
-            self.insertfn("tcpaccept", nscriptfn_tcpaccept,"(listenersocket) returns a clientsocket when a client connects");
-            self.insertfn("tcpconnect", nscriptfn_tcpconnect,"(ip,port) returns a clientsocket \n can be used by tcpreceive");
-            self.insertfn("tcpdisconnect", nscriptfn_tcpdisconnect,"(clientsocket) closes a clientsocket");
-            self.insertfn("tcpreceive", nscriptfn_tcpreceive,"(clientsocket) returns a string if the clientsocket receives data");
-            self.insertfn("tcpsend", nscriptfn_tcpsend,"(clientsocket,string) sends a string to a clientsocket\n returns the status or send bytes");
-            self.insertfn("aabb_newbox", nscriptfn_aabb_newbox,"(uniqueidentifierstring) returns a object reference, usable for 3D collision checks");
-            self.insertfn("aabb_sizedbox", nscriptfn_aabb_sizedbox,"(uniqueidentifierstring,scalex,scaley,scalez)creates a 3d boundingbox by given scalesize \nreturns a object reference usable for 3D collision checks");
-            self.insertfn("aabb_setposition", nscriptfn_aabb_setposition,"(idref,x,y,z) sets a boundingbox to 3d coordinates ( no returns)");
-            self.insertfn("aabb_setrotation", nscriptfn_aabb_setrotation,"(idref,x,y,z) sets a boundingbox to 3d coordinates ( no returns)");
-            self.insertfn("aabb_setscale", nscriptfn_aabb_setscale,"(idref,x,y,z) sets a boundingbox to 3d coordinates ( no returns)");
-            self.insertfn("aabb_addtogroup", nscriptfn_aabb_addtogroup,"(idref,groupidref) add a object to a collisiongroup");
-            self.insertfn("aabb_getgroup", nscriptfn_aabb_getgroup,"(groupidref) returns a vector of all objects ina collisiongroup");
-            self.insertfn("aabb_removefromgroup", nscriptfn_aabb_getgroup,"(groupidref,idtoremove) removes a entree from a group");
-            self.insertfn("aabb_getcollisions", nscriptfn_aabb_getcollisions,"(targetid,groupid) will return a vector of all entrees who are colliding in 3d with the targetid within a collisiongroup");
-            self.insertfn("aabb_removegroup", nscriptfn_aabb_getcollisions,"(groupidref) deletes a whole group.");
-            self.insertfn("decode_html_url", nscriptfn_decode_html_url,"(string) decodes html content like arguments %12 etc");
+            self.insertfn("printraw", nscriptfn_printraw,"(string,color) // returns the given string, colors first char as a string \"r\" for red, blue,purple yellow green,magenta, for brightcolors add \"b\" so for red \"br\" for bright blue \"bb\"");
+            self.insertfn("cos", nscriptfn_cos,"(number) // cos on number");
+            self.insertfn("sin", nscriptfn_sin,"(number) // sin on number");
+            self.insertfn("add", nscriptfn_add,"(number,toadd)  // adds the number given by the numberto add");
+            self.insertfn("subtract", nscriptfn_subtract,"(number,tosubtract)  // subtracts the number given by the numbertosubtract");
+            self.insertfn("multiply", nscriptfn_multiply, "(number,tomultiply)  // subtracts the number given by the numbertomultiply");
+            self.insertfn("devide", nscriptfn_devide, "(number,todevide)  // subtracts the number given by the numbertodevide");
+            self.insertfn("add", nscriptfn_isalpthabetic,"(number,toadd)  // adds the number given by the numberto add");
+            self.insertfn("is_alphabetic", nscriptfn_isalpthabetic,"(string)  // Checks if a string is alphabetic, returns a bool");
+            self.insertfn("timerdiff", nscriptfn_timerdiff,"(timerinit)  // takes a timervar created by timerinit() returns the difference in ms ");
+            self.insertfn("timerinit", nscriptfn_timerinit,"()  // returns a timervar, can be used with timerdiff(var) to check difference in time ms");
+            self.insertfn("trim", nscriptfn_trim,"(string)  // returns a trimmed string, this strips spaces in front and at end");
+            self.insertfn("len", nscriptfn_len,"(vec)  // takes a vector returns the size");
+            self.insertfn("vec", nscriptfn_vec,"(string,a,b,c,..endless)  // can take any ammount of arguments , creates a vector out of each given argument and returns it.");
+            self.insertfn("uppercase", nscriptfn_toupper,"(string)  // returns the given string in UPPERcase");
+            self.insertfn("replacebyref", nscriptfn_replacebyref,"(referencevar,find,replace)  // this doesnt return anything, it will replace found string in the var given as referencevar,\n if using multiple lines with replace() this will optimize it by a lot");
+            self.insertfn("lowercase", nscriptfn_tolower,"(string)  // returns the given string as lowercase");
+            self.insertfn("stringbetween", nscriptfn_stringbetween,"(string,beginstring,endstring)  // searches a string by a begin and end, returns the first result as a string.\n if none found returns a empty string");
+            self.insertfn("split", nscriptfn_split,"(string,splitdelimeter)  // splits a string into a vector by a given delimeter. \n to split a string by each character give a empty string as delimeter");
+            self.insertfn("contains", nscriptfn_contains,"(string,containsstring)  // returns a bool if a string contains a substring");
+            self.insertfn("stringtoeval", nscriptfn_stringtoeval,"(string)  // replaces all spaces and special characters of a given string \n usecases: to set properties of them, or create identifiers during runtime");
+            self.insertfn("replace", nscriptfn_replace,"(string,find,replace)  // returns a new string if the substring is found it will replace it.");
+            self.insertfn("join", nscriptfn_join,"(vector,delimeter)  // returns a string of a given vector it will join the items by the delimeter");
+            self.insertfn("instring", nscriptfn_instring,"(string,substring)  // returns a bool if the string contains a substring ( same as contains() ) ");
+            self.insertfn("fromleft", nscriptfn_fromleft,"(string,int:characters)  // returns the first x characters of a string");
+            self.insertfn("fromright", nscriptfn_fromright,"(string,int:characters)  // returns the last x characters of a string");
+            self.insertfn("trimright", nscriptfn_trimright,"(string,int:totrim)  // trims a string at the end by totrim and returns that as a string");
+            self.insertfn("trimleft", nscriptfn_trimleft,"(string,int:totrim)  //  trims a string at the beginning by a given number returns the result as a new string");
+            self.insertfn("stringtohex", nscriptfn_stringtohex,"(string)  // returns a hexed string from the givenstring");
+            self.insertfn("hextostring", nscriptfn_hextostring,"(hexstring)  // returns a string from a given hexstring");
+            self.insertfn("print", nscriptfn_print,"(string,string:color default=white)  // prints a string to the console,\n the color argument is optional colors can be given as the first character \n every color has a bright version \nred = r \n blue = b \n bright blue = bb \n red = r etc"  );
+            self.insertfn("fileread", nscriptfn_fileread,"(filepath)  // reads a file and returns the contents as a string");
+            self.insertfn("filewrite", nscriptfn_filewrite,"(filepath,string)  // writes a string to a file");
+            self.insertfn("fileexists", nscriptfn_fileexists,"(filepath)  // returns a bool true if the filepath contains a file, and false if theres no file");
+            self.insertfn("filedelete", nscriptfn_filedelete,"(filepath)  // deletes a file at a given path");
+            self.insertfn("filemove", nscriptfn_filemove,"(filepath,newpath)  // moves a file from a given path to another");
+            self.insertfn("filecopy", nscriptfn_filecopy,"(filepath,copiedpath)  // copies a file ");
+            self.insertfn("dirmove", nscriptfn_directory_move,"(directorypath, newpath)  // moves a directory to a new location");
+            self.insertfn("dirdelete", nscriptfn_directory_delete,"(directorypath)  // deletes a directory");
+            self.insertfn("listdir", nscriptfn_listdir,"(directorypath,bool:fullpathasresult default=false)  // returns a vector with all the files \n if the second argument is set to true all the entrees will have a full filepath \n if set false, or not given at all the entrees will only contain the filenames");
+            self.insertfn("filesize", nscriptfn_filesize,"(filepath) // returns a kb/mb/gb floored number of the filesize");
+            self.insertfn("filesizebytes", nscriptfn_filesizebytes,"(filepath)  // returns the filesize in bytes");
+            self.insertfn("runwait", nscriptfn_call_programwait,"(shellcommandstring)  // executes a shell command, returns the result \n this is a blocking function if the called program doesnt exit , relevant see run()");
+            self.insertfn("run", nscriptfn_call_program,"(shellcommandstring) // executes a shell command, returns the status as a string. (none blocking) relevant : runwait()");
+            self.insertfn("round", nscriptfn_round,"(numbervar,decimals) // returns a rounded number by the given decimals.");
+            self.insertfn("sleep", nscriptfn_sleep,"(int:timeinms) //  will pause the thread for x ms seconds.\n can be usefull for lowering powerconsumption");
+            self.insertfn("cat", nscriptfn_cat,"(a,b,c,..) //  concatinates all arguments to eachother returns that as a new string. \n theres no limit on the ammount of arguments");
+            self.insertfn("random", nscriptfn_random,"(int:min, int:max, int:decimals default= maximum) //  generates a random number by a minimum and maximum. \nset decimal to 0 to get flat numbers");
+            self.insertfn("arraycontains", nscriptfn_arraycontains,"(vector,string) //  returns a bool if a vector contains the given string.");
+            self.insertfn("arrayroll", nscriptfn_arrayroll,"(vector,string)  // returns a new vec, LiFo , if the vector has a size of 6 is will remain the size the new entree will be inserted as 0 and the last one will be left out, each one will shift one spot.");
+            self.insertfn("arraypush", nscriptfn_arraypush,"(vector,string)  // pushes the string at the end of a vector returns a new vector");
+            self.insertfn("arrayinsert", nscriptfn_arrayinsert,"(vector, string) // inserts the string to the vector and returns that as a new vector");
+            self.insertfn("arraysort", nscriptfn_arraysort,"(vector)  // sorts the vector by a alphabetic order and returns that as a new vector");
+            self.insertfn("arrayretain", nscriptfn_arrayretain,"(vector,string) //  will remove the string from a vector, returns that as a new vector");
+            self.insertfn("arrayshuffle", nscriptfn_arrayshuffle,"(vector)  // returns a shuffled vector as a new");
+            self.insertfn("arrayreverse", nscriptfn_arrayreverse,"(vector)  // reverses the vector returns that as a new");
+            self.insertfn("arraysearch", nscriptfn_arraysearch,"(vector,string) //  will create a new vector with all entrees containing the given string");
+            self.insertfn("arrayfilter", nscriptfn_arrayfilter,"(vector,string) //  will create a new vector without all entrees containing the given string");
+            self.insertfn("httpgetcontent", nscriptfn_get_http_content,"(ip,port,remotefile) //  will return the webcontent example : \n httpgetcontent(\"127.0.0.1\",80,\"/index.nc\")");
+            self.insertfn("terminalinput", nscriptfn_terminalinput,"(msgstring,defaultoption) //  the terminal will listen for given input,\n this function returns when the terminal gives a enter");
+            self.insertfn("splitselect", nscriptfn_splitselect,"(string,splitbydelimeter,int:vectorentree) //  will split a string with the given delimeter \n instead of returning a vector it will return the string by the given number ");
+            self.insertfn("base64tostring", nscriptfn_base64tostring,"(string) //  returns a decoded base64string");
+            self.insertfn("stringtobase64", nscriptfn_stringtobase64,"(base64string) //  decodes the string and returns that");
+            self.insertfn("tcplistener", nscriptfn_tcplistener,"(ip,port) //  returns a listenersocket, can be used by other tcp***()");
+            self.insertfn("tcpaccept", nscriptfn_tcpaccept,"(listenersocket) //  returns a clientsocket when a client connects");
+            self.insertfn("tcpconnect", nscriptfn_tcpconnect,"(ip,port) //  returns a clientsocket \n can be used by tcpreceive");
+            self.insertfn("tcpdisconnect", nscriptfn_tcpdisconnect,"(clientsocket) // closes a clientsocket");
+            self.insertfn("tcpreceive", nscriptfn_tcpreceive,"(clientsocket) // returns a string if the clientsocket receives data");
+            self.insertfn("tcpsend", nscriptfn_tcpsend,"(clientsocket,string) // sends a string to a clientsocket\n returns the status or send bytes");
+            self.insertfn("aabb_newbox", nscriptfn_aabb_newbox,"(uniqueidentifierstring) // returns a object reference, usable for 3D collision checks");
+            self.insertfn("aabb_sizedbox", nscriptfn_aabb_sizedbox,"(uniqueidentifierstring,scalex,scaley,scalez) // creates a 3d boundingbox by given scalesize \nreturns a object reference usable for 3D collision checks");
+            self.insertfn("aabb_setposition", nscriptfn_aabb_setposition,"(idref,x,y,z) // sets a boundingbox to 3d coordinates ( no returns)");
+            self.insertfn("aabb_setrotation", nscriptfn_aabb_setrotation,"(idref,x,y,z) // sets a boundingbox to 3d coordinates ( no returns)");
+            self.insertfn("aabb_setscale", nscriptfn_aabb_setscale,"(idref,x,y,z) // sets a boundingbox to 3d coordinates ( no returns)");
+            self.insertfn("aabb_addtogroup", nscriptfn_aabb_addtogroup,"(idref,groupidref) // add a object to a collisiongroup");
+            self.insertfn("aabb_getgroup", nscriptfn_aabb_getgroup,"(groupidref) // returns a vector of all objects ina collisiongroup");
+            self.insertfn("aabb_removefromgroup", nscriptfn_aabb_getgroup,"(groupidref,idtoremove) // removes a entree from a group");
+            self.insertfn("aabb_getcollisions", nscriptfn_aabb_getcollisions,"(targetid,groupid) // will return a vector of all entrees who are colliding in 3d with the targetid within a collisiongroup");
+            self.insertfn("aabb_removegroup", nscriptfn_aabb_getcollisions,"(groupidref) // deletes a whole group.");
+            self.insertfn("decode_html_url", nscriptfn_decode_html_url,"(string) // decodes html content like arguments %12 etc");
 
         }
     }
@@ -523,6 +526,7 @@ pub struct NscriptData{
     pub map_vec_vecstring:HashMap<String,Vec<Vec<String>>>,
     pub map_vec_vec3f64:HashMap<String,Vec<[f64;3]>>,
     pub static_vec_string:Vec<String>,
+    pub static_vec_bool:Vec<bool>,
     pub static_vec_vec_string:Vec<Vec<String>>,
     pub static_vec_vec_vec_string:Vec<Vec<Vec<String>>>,
     pub static_vec_vec_string_vector3:Vec<Vec<(String,f64,f64,f64)>>,
@@ -538,6 +542,7 @@ impl NscriptData{
             map_vec_vecstring:HashMap::new(),
             map_vec_vec3f64:HashMap::new(),
             static_vec_string:Vec::new(),
+            static_vec_bool:Vec::new(),
             static_vec_vec_string:Vec::new(),
             static_vec_vec_vec_string:Vec::new(),
             static_vec_vec_string_vector3:Vec::new(),
@@ -644,6 +649,22 @@ impl NscriptStorage{
         }
         else{
             None
+        }
+    }
+    /// used for rust made functions , this is used on storage to fastly get object properties
+    /// (objectname, Propertyname ) -> NscriptVar
+    pub fn objectgetprop(&mut self,name:&str,prop:&str) ->NscriptVar{
+        if let Some(thisclass) = self.classes.get_mut(&name.to_string()){
+           return thisclass.getprop(&prop);
+        }
+        println!("cant find obj {} prop {}",&name,&prop);
+        NscriptVar::new(name)
+    }
+    /// used for rust made functions , this is used on storage to fastly set object properties
+    /// (objectname, Propertyname ) -> NscriptVar
+    pub fn objectsetprop(&mut self,name:&str,prop:&str,var:NscriptVar){
+        if let Some(thisclass) = self.classes.get_mut(&name.to_string()){
+            thisclass.setprop(&prop, var);
         }
     }
     pub fn setprop(&mut self,name:&str,prop:&str,var:NscriptVar,block:&mut NscriptCodeBlock){
@@ -1366,6 +1387,7 @@ impl NscriptFormattedCodeBlock{
 pub struct NscriptCodeBlock{
     pub name: String,
     pub insubblock: usize,// all the subscopes, if else loop coroutines
+    pub variables: HashMap< Box<str>,NscriptVar>,// scope variables
     pub strings: HashMap< String,String>,// scope variables
     pub stringsvec: HashMap<String,Vec<String>>,// scope variables
     pub staticstrings: Vec<Box<str>>,// scope variables
@@ -1380,6 +1402,7 @@ impl NscriptCodeBlock{
         let mut this = NscriptCodeBlock{
             name: nameref.to_string(),
             insubblock: 0,
+            variables: HashMap::new(),
             strings: HashMap::new(),
             stringsvec: HashMap::new(),
             staticstrings: Vec::new(),
@@ -1547,6 +1570,9 @@ impl NscriptVar{
     }
     pub fn getnumber(&mut self) -> u64{
         return self.stringdata.parse::<u64>().unwrap_or(0);
+    }
+    pub fn getfloat32(&mut self) -> f32{
+        return self.stringdata.parse::<f32>().unwrap_or(0.0);
     }
     pub fn setstring(&mut self,newstring:&str){
         self.stringdata = newstring.to_string()

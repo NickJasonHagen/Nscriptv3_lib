@@ -175,6 +175,9 @@ impl  Nscript{
             self.insertfn("aabb_getcollisions", nscriptfn_aabb_getcollisions,"(targetid,groupid) // will return a vector of all entrees who are colliding in 3d with the targetid within a collisiongroup");
             self.insertfn("aabb_removegroup", nscriptfn_aabb_getcollisions,"(groupidref) // deletes a whole group.");
             self.insertfn("decode_html_url", nscriptfn_decode_html_url,"(string) // decodes html content like arguments %12 etc");
+            self.insertfn("mod", nscriptfn_mod,"(number,maxnumber) // will keep the number in range, so lets say mod(10,8) will return 2");
+            self.insertfn("encrypt", nscriptfn_encrypt,"(datastring,passwordstring) // returns a encrypted string, can be used with decrypt(datastring,passwordstring)");
+            self.insertfn("decrypt", nscriptfn_decrypt,"(datastring,passwordstring) // returns a decrypted string, created by encrypt(str,pss)");
 
         }
     }

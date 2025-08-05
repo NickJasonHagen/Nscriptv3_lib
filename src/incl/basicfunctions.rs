@@ -416,8 +416,22 @@ pub fn nscriptfn_hextostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
 }
 pub fn nscriptfn_stringtohex(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("var");
-    let hex_chars: Vec<char> = "0123456789ABCDEF".chars().collect();
+    //let hex_chars: Vec<char> = "0123456789ABCDEF".chars().collect();
     let string = storage.getargstring(&args[0], block);
+    // let bytes = string.as_bytes();
+    // let mut hex_string = String::new();
+    // for byte in bytes {
+    //     let high_nibble = (byte & 0xF0) >> 4;
+    //     let low_nibble = byte & 0x0F;
+    //     hex_string.push(hex_chars[high_nibble as usize]);
+    //     hex_string.push(hex_chars[low_nibble as usize]);
+    // }
+    var.stringdata = stringtohex(&string);// hex_string;
+    var
+}
+fn stringtohex(string:&str)->String{
+    let hex_chars: Vec<char> = "0123456789ABCDEF".chars().collect();
+    //let string = storage.getargstring(&args[0], block);
     let bytes = string.as_bytes();
     let mut hex_string = String::new();
     for byte in bytes {
@@ -426,8 +440,7 @@ pub fn nscriptfn_stringtohex(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
         hex_string.push(hex_chars[high_nibble as usize]);
         hex_string.push(hex_chars[low_nibble as usize]);
     }
-    var.stringdata = hex_string;
-    var
+    hex_string
 }
 pub fn hex_to_string(hex_string: &str) -> String {
     match Vec::from_hex(hex_string) {
@@ -1254,4 +1267,94 @@ pub fn nscriptfn_sin(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mu
     let mut var1 = storage.getvar(&args[0], block);
     var1.stringdata = Nstring::f32(&var1.stringdata).sin().to_string();
     return var1;
+}
+
+pub fn nscriptfn_encrypt(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut data = NscriptVar::newstring("r",storage.getargstring(&args[0], block));
+
+    data.stringdata = string_to_hex(&data.stringdata);
+    let password = storage.getvar(&args[1], block).stringdata;
+    let  passwordvec = split(&password,"");
+    let chrvec:Vec<&str> = [ "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
+        "-", "=", "+", "[", "]", "{", "}", "~", "`",
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+        "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+        "u", "v", "w", "x", "y", "z",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+        "{", "}", "[", "]", "(", ")",
+        "|", ";", ":", ",", ".", "/", "?", "~", "`",
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
+        "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
+        "U", "V", "W", "X", "Y", "Z"," ",""].to_vec();
+    let hexvec:Vec<&str> =["A","B","C","D","E","F","0","1","2","3","4","5","6","7","8","9","A"].to_vec();
+    let passlen = password.len();
+
+    let mut cur_pass = 0;
+    let mut encstringbuff = String::new();
+    for xchr in split(&data.stringdata,""){
+        if xchr != ""{
+            let curchari = 1600 + vecfindstringpos(&hexvec,&xchr) + passlen + vecfindstringpos(&chrvec,passwordvec[cur_pass]);
+            let hexindex = modsize(curchari as f32,16.0);
+            encstringbuff += &hexvec[hexindex as usize].to_string();
+            cur_pass +=1;
+            cur_pass = modsize(cur_pass as f32,passlen as f32) as usize;
+        }
+    }
+    data.stringdata = encstringbuff;
+    return data;
+}
+pub fn nscriptfn_decrypt(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut data = NscriptVar::newstring("r",storage.getargstring(&args[0], block));
+    let password = storage.getvar(&args[1], block).stringdata;
+    let  passwordvec = split(&password,"");
+    let chrvec:Vec<&str> = [ "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
+        "-", "=", "+", "[", "]", "{", "}", "~", "`",
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+        "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+        "u", "v", "w", "x", "y", "z",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+        "{", "}", "[", "]", "(", ")",
+        "|", ";", ":", ",", ".", "/", "?", "~", "`",
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
+        "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
+        "U", "V", "W", "X", "Y", "Z"," ",""].to_vec();
+
+    let hexvec:Vec<&str> =["A","B","C","D","E","F","0","1","2","3","4","5","6","7","8","9","A"].to_vec();
+    let passlen = password.len();
+    let mut cur_pass = 0;
+    let mut encstringbuff = String::new();
+    for xchr in split(&data.stringdata,""){
+
+        if xchr != ""{
+            let curchari = 1600 + vecfindstringpos(&hexvec,xchr) - passlen - vecfindstringpos(&chrvec,passwordvec[cur_pass]);
+            let hexindex = modsize(curchari as f32,16.0);
+            encstringbuff += &hexvec[hexindex as usize].to_string();
+            cur_pass +=1;
+            cur_pass = modsize(cur_pass as f32,passlen as f32) as usize;
+        }
+    }
+    data.stringdata = hex_to_string(&encstringbuff);
+    return data;
+}
+fn vecfindstringpos(invec:&Vec<&str>,chr:&str) -> usize{
+    for x in 0..invec.len()-1{
+        if chr == invec[x] {
+            return x;
+        }
+    }
+    0
+}
+pub fn nscriptfn_mod(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    NscriptVar::newstring("r",
+        modsize(Nstring::f32(&storage.getargstring(args[0], block)), Nstring::f32(&storage.getargstring(args[1], block))).to_string()
+    )
+}
+
+fn modsize(input:f32,max:f32)->f32{
+    if input <= max {
+        input
+    }
+    else{
+       input % max
+    }
 }

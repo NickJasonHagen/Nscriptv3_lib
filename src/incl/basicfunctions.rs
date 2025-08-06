@@ -1140,7 +1140,65 @@ pub fn nscriptfn_splitselect(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
     }
     var
 }
+pub fn nscriptfn_base64tofile(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let mut var = NscriptVar::new("base64tostring");
+    if let Ok(basethis) = BASE64_STANDARD.decode(&storage.getargstring(&args[0], block)){
 
+        //Nfile::write(&storage.getargstring(&args[1],block),&String::from_utf8(basethis).unwrap());
+        let path = storage.getargstring(&args[1],block);
+        if std::path::Path::new(&path).exists(){
+            let  _error = match fs::remove_file(&path) {
+                Ok(_) => format!("File deleted successfully"),
+                Err(err) =>{
+                    var.stringdata = err.to_string();
+                    return var;//format!("Error writing a file ( cant delete,before write): {}", err);
+                } ,
+            };
+        }
+        let mut f = match File::create(&path) {
+            Ok(file) => file,
+            Err(err) =>{
+                var.stringdata = err.to_string();
+                return var;
+            }
+        };
+
+        if let Err(err) = f.write_all(&basethis) {
+                var.stringdata = err.to_string();
+                return var;
+        }
+
+        if let Err(err) = f.sync_all() {
+                var.stringdata = err.to_string();
+                return var;
+        }
+        var.stringdata = "succes".to_string();
+        return var;
+    }
+    var.stringdata = "error".to_string();
+    return var;
+}
+pub fn nscriptfn_filetobase64(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let mut var = NscriptVar::new("base64tostring");
+    let floc = storage.getargstring(&args[0], block);
+
+        let mut file = match File::open(floc) {
+            Ok(file) => file,
+            Err(_) => {
+print("cant find file","r");
+              return var // Return empty string on error
+            }
+        };
+        let mut contents: Vec<u8> = Vec::new();
+        if let Err(_) = file.read_to_end(&mut contents) {
+
+        print("cant read file","r");
+            return var; // Return empty string on error
+        }
+        var.stringdata = BASE64_STANDARD.encode(contents);
+        return var;
+
+}
 pub fn nscriptfn_base64tostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut var = NscriptVar::new("base64tostring");
     if let Ok(basethis) = BASE64_STANDARD.decode(&storage.getargstring(&args[0], block)){
@@ -1285,7 +1343,7 @@ pub fn nscriptfn_encrypt(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
         "|", ";", ":", ",", ".", "/", "?", "~", "`",
         "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
         "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
-        "U", "V", "W", "X", "Y", "Z"," ",""].to_vec();
+        "U", "V", "W", "X", "Y", "Z"," ","","\"","\n","\r"].to_vec();
     let hexvec:Vec<&str> =["A","B","C","D","E","F","0","1","2","3","4","5","6","7","8","9","A"].to_vec();
     let passlen = password.len();
 
@@ -1317,7 +1375,7 @@ pub fn nscriptfn_decrypt(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
         "|", ";", ":", ",", ".", "/", "?", "~", "`",
         "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
         "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
-        "U", "V", "W", "X", "Y", "Z"," ",""].to_vec();
+        "U", "V", "W", "X", "Y", "Z"," ","","\"","\n","\r"].to_vec();
 
     let hexvec:Vec<&str> =["A","B","C","D","E","F","0","1","2","3","4","5","6","7","8","9","A"].to_vec();
     let passlen = password.len();
@@ -1342,6 +1400,7 @@ fn vecfindstringpos(invec:&Vec<&str>,chr:&str) -> usize{
             return x;
         }
     }
+    println!("cant find chr-asci [{}]",chr);
     0
 }
 pub fn nscriptfn_mod(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

@@ -156,6 +156,8 @@ impl  Nscript{
             self.insertfn("httpgetcontent", nscriptfn_get_http_content,"(ip,port,remotefile) //  will return the webcontent example : \n httpgetcontent(\"127.0.0.1\",80,\"/index.nc\")");
             self.insertfn("terminalinput", nscriptfn_terminalinput,"(msgstring,defaultoption) //  the terminal will listen for given input,\n this function returns when the terminal gives a enter");
             self.insertfn("splitselect", nscriptfn_splitselect,"(string,splitbydelimeter,int:vectorentree) //  will split a string with the given delimeter \n instead of returning a vector it will return the string by the given number ");
+            self.insertfn("base64tofile", nscriptfn_base64tofile,"(base64string,filepath) //  decodes base64 string and writes it as a file");
+            self.insertfn("filetobase64", nscriptfn_filetobase64,"(filepath) //  reads a file and encodes it to base64");
             self.insertfn("base64tostring", nscriptfn_base64tostring,"(string) //  returns a decoded base64string");
             self.insertfn("stringtobase64", nscriptfn_stringtobase64,"(base64string) //  decodes the string and returns that");
             self.insertfn("tcplistener", nscriptfn_tcplistener,"(ip,port) //  returns a listenersocket, can be used by other tcp***()");

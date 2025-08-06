@@ -1417,3 +1417,17 @@ fn modsize(input:f32,max:f32)->f32{
        input % max
     }
 }
+pub fn nscriptfn_arraynew(_args:&Vec<&str>,_block :&mut NscriptCodeBlock , _storage :&mut NscriptStorage) -> NscriptVar  {
+    NscriptVar::newvec("r",
+        Vec::new()
+    )
+}
+pub fn nscriptfn_arraynewsized(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut vect = Vec::new();
+    for _ in 0..storage.getvar(args[0], block).getnumber() as usize{
+        vect.push("".to_string());
+    }
+    NscriptVar::newvec("r",
+        vect
+    )
+}

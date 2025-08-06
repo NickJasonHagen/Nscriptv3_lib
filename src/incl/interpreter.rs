@@ -180,6 +180,8 @@ impl  Nscript{
             self.insertfn("mod", nscriptfn_mod,"(number,maxnumber) // will keep the number in range, so lets say mod(10,8) will return 2");
             self.insertfn("encrypt", nscriptfn_encrypt,"(datastring,passwordstring) // returns a encrypted string, can be used with decrypt(datastring,passwordstring)");
             self.insertfn("decrypt", nscriptfn_decrypt,"(datastring,passwordstring) // returns a decrypted string, created by encrypt(str,pss)");
+            self.insertfn("arraynew", nscriptfn_arraynew,"() // returns a new array");
+            self.insertfn("arraynewsized", nscriptfn_arraynewsized,"(size) // returns a new array with empty strings by the given size");
 
         }
     }

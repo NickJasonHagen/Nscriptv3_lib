@@ -1,4 +1,4 @@
-use colored::ColoredString;
+use colored::{ColoredString, CustomColor};
 
 use crate::*;
 use std::{char, time::{SystemTime, UNIX_EPOCH}};
@@ -373,6 +373,18 @@ impl Nstring {
     pub fn i64(string: &str) ->i64{
         string.parse::<i64>().unwrap_or(0)
     }
+    pub fn u8(string: &str) ->u8{
+        string.parse::<u8>().unwrap_or(0)
+    }
+    pub fn u16(string: &str) ->u16{
+        string.parse::<u16>().unwrap_or(0)
+    }
+    pub fn u32(string: &str) ->u32{
+        string.parse::<u32>().unwrap_or(0)
+    }
+    pub fn u64(string: &str) ->u64{
+        string.parse::<u64>().unwrap_or(0)
+    }
     pub fn usize(string: &str) ->usize{
         string.parse::<usize>().unwrap_or(0)
     }
@@ -561,7 +573,18 @@ fn getprintingcolor(m:&str,color: &str)->ColoredString{
         "brown" | "brn" =>{
             m.custom_color((126, 81, 76))
         }
+        "" =>{
+            m.custom_color((255,255,255))
+        }
         _ => {
+            if Nstring::instring(&color, "rgb("){
+                let rgb = Nstring::stringbetween(&color,"rgb(", ")");
+                let rgb = split(&rgb,",");
+                if rgb.len() > 2{
+                    return m.custom_color(CustomColor::new(Nstring::u8(&rgb[0].trim()),Nstring::u8(&rgb[1].trim()),Nstring::u8(&rgb[2].trim())));
+
+                }
+            }
             m.custom_color((255,255,255))
         }
     };

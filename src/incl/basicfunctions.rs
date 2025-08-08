@@ -316,51 +316,6 @@ impl Nstring {
     }
     "<nonefound!>".to_owned()
     }
-    pub fn tohexplus(s:&str)->String{//,["er","₹"]
-        let mut hexplus = string_to_hex(s);
-        let torep = [
-            [",","G"],[".","H"],["=","I"],["/","J"],["-","K"],["_","L"],["*","M"],["(","N"],[")","O"],["{","P"],["[","Q"],["]","R"],["<","S"],[">","T"],["!","U"],["@","V"],["#","W"],["$","X"],["%","Y"],["^","Z"],
-
-            ["ing","!"],
-            ["\nt",""],["\ni","Ι"],["\na","Λ"],["\no","Μ"],
-            ["the","∑"],["and","∫"],["for","∆"],["liv","È"],["spe","É"],
-            [" th","™"],[" he","©"],[" in","●"],[" an","■"],["es ","★"],[" re","Â"],[" cl","¶"],[" te","·"],[" sp","µ"],[" fi","³"],[" di","²"],[" wh","Ώ"],
-            ["er ","♦"],["th ","€"],["e ","~"],["t ","+"],["g ","|"],["s ","\\"],
-            [" t",";"],[" a",":"],[" s","["],[" c","]"],[" o","_"],[" b","<"],[" y",">"],[" r","Ÿ"],[" w","¡"],[" h","¦"],[" l","§"],[" m","À"],
-            ["ch","¥"],["ll","£"],["ea","¢"],["ou","."],["ma",","],["th","@"],["he","#"],["in","%"],["an","&"],["es","*"],["on","("],["re","$"],["wh","Œ"],["cc","Ž"],["mb","š"],["ss","ƒ"],
-            ["rt","…"],["pp","†"],["gr","‡"],["pr","‰"],["pa","¹"],["ho","º"],["iv","»"],["sp","¼"],["xt","½"],["mp","¾"],["se","¿"],["ay","Á"],["qu","Ͷ"],["ri","ͷ"],["gh","ͻ"],["by","ͼ"],["nt","ͽ"],["nc","Ϳ"],["ca","Ͱ"],["op","ͱ"],["cl","ͳ"],
-            ["he","Ͳ"],["nv","Ή"],["rs","Ί"],["ti","Ό"],["ex","Ύ"],["nf","ΐ"],["hi","Α"],["nd","Ζ"],["mm","Η"], ["rm","Θ"],["to","Β"],["ta","Γ"],["yo","Ν"],["ry","Ξ"],["oo","Ο"],["nn","Π"],["gg","Ρ"],["sh","Σ"],
-
-            ["a","z"],["b","y"],["c","x"],["d","w"],["e","v"],["f","h"],["i","k"],["k","l"],["p","o"],["\n","`"]
-        ];
-        for rep in torep{
-            hexplus = Nstring::replace(&hexplus, &string_to_hex(rep[0]), rep[1]);
-        }
-        return hexplus;
-    }
-    pub fn fromhexplus(s:&str)->String{
-        let mut hexplus = s.to_string();
-        let torep = [
-            [",","G"],[".","H"],["=","I"],["/","J"],["-","K"],["_","L"],["*","M"],["(","N"],[")","O"],["{","P"],["[","Q"],["]","R"],["<","S"],[">","T"],["!","U"],["@","V"],["#","W"],["$","X"],["%","Y"],["^","Z"],
-
-            ["ing","!"],
-            ["\nt",""],["\ni","Ι"],["\na","Λ"],["\no","Μ"],
-            ["the","∑"],["and","∫"],["for","∆"],["liv","È"],["spe","É"],
-            [" th","™"],[" he","©"],[" in","●"],[" an","■"],["es ","★"],[" re","Â"],[" cl","¶"],[" te","·"],[" sp","µ"],[" fi","³"],[" di","²"],[" wh","Ώ"],
-            ["er ","♦"],["th ","€"],["e ","~"],["t ","+"],["g ","|"],["s ","\\"],
-            [" t",";"],[" a",":"],[" s","["],[" c","]"],[" o","_"],[" b","<"],[" y",">"],[" r","Ÿ"],[" w","¡"],[" h","¦"],[" l","§"],[" m","À"],
-            ["ch","¥"],["ll","£"],["ea","¢"],["ou","."],["ma",","],["th","@"],["he","#"],["in","%"],["an","&"],["es","*"],["on","("],["re","$"],["wh","Œ"],["cc","Ž"],["mb","š"],["ss","ƒ"],
-            ["rt","…"],["pp","†"],["gr","‡"],["pr","‰"],["pa","¹"],["ho","º"],["iv","»"],["sp","¼"],["xt","½"],["mp","¾"],["se","¿"],["ay","Á"],["qu","Ͷ"],["ri","ͷ"],["gh","ͻ"],["by","ͼ"],["nt","ͽ"],["nc","Ϳ"],["ca","Ͱ"],["op","ͱ"],["cl","ͳ"],
-            ["he","Ͳ"],["nv","Ή"],["rs","Ί"],["ti","Ό"],["ex","Ύ"],["nf","ΐ"],["hi","Α"],["nd","Ζ"],["mm","Η"], ["rm","Θ"],["to","Β"],["ta","Γ"],["yo","Ν"],["ry","Ξ"],["oo","Ο"],["nn","Π"],["gg","Ρ"],["sh","Σ"],
-
-            ["a","z"],["b","y"],["c","x"],["d","w"],["e","v"],["f","h"],["i","k"],["k","l"],["p","o"],["\n","`"]
-        ];
-        for rep in torep{
-            hexplus = Nstring::replace(&hexplus, rep[1],&string_to_hex(rep[0]));
-        }
-        return hex_to_string(&hexplus);
-
-    }
     pub fn f32(string: &str) ->f32{
         string.parse::<f32>().unwrap_or(0.0)
     }
@@ -418,7 +373,6 @@ impl Ntimer {
 pub fn nscriptfn_isalpthabetic(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let string = storage.getargstring(var[0],block);
     return NscriptVar::newstring("isalpthabeth", string.chars().all(char::is_alphabetic).to_string());
-    //return NscriptVar::newstring("timer", Ntimer::init().to_string());
 }
 pub fn nscriptfn_hextostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("var");
@@ -430,22 +384,12 @@ pub fn nscriptfn_hextostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
 }
 pub fn nscriptfn_stringtohex(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("var");
-    //let hex_chars: Vec<char> = "0123456789ABCDEF".chars().collect();
     let string = storage.getargstring(&args[0], block);
-    // let bytes = string.as_bytes();
-    // let mut hex_string = String::new();
-    // for byte in bytes {
-    //     let high_nibble = (byte & 0xF0) >> 4;
-    //     let low_nibble = byte & 0x0F;
-    //     hex_string.push(hex_chars[high_nibble as usize]);
-    //     hex_string.push(hex_chars[low_nibble as usize]);
-    // }
     var.stringdata = stringtohex(&string);// hex_string;
     var
 }
 fn stringtohex(string:&str)->String{
     let hex_chars: Vec<char> = "0123456789ABCDEF".chars().collect();
-    //let string = storage.getargstring(&args[0], block);
     let bytes = string.as_bytes();
     let mut hex_string = String::new();
     for byte in bytes {
@@ -492,6 +436,17 @@ pub fn string_to_eval(string_: &str) -> String {
     return return_val;
 }
 pub fn nscriptfn_print(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let (contents,color) = createprintingstr(args, block, storage);
+    print(&contents,&color);
+    return NscriptVar::newstring("var",contents);
+}
+pub fn nscriptfn_printraw(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let (contents,color) = createprintingstr(args, block, storage);
+    printraw(&contents,&color);
+    return NscriptVar::newstring("var",contents);
+}
+//helperfn for nscriptfn print /printraw
+fn createprintingstr(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage)-> (String,String){
     let mut color = "".to_string();
     let mut contents = String::new();
     let len = args.len();
@@ -505,8 +460,12 @@ pub fn nscriptfn_print(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
     else{
         contents = storage.getargstring(&args[0], block);
     }
-    print(&contents,&color);
-    return NscriptVar::newstring("var",contents);
+    (contents,color)
+}
+pub fn printraw(m: &str, color: &str) {
+    print!("{}", getprintingcolor(m,color));
+}
+pub struct Nfile {
 }
 pub fn print(m: &str, color: &str) {
     // this is more a linux then a windows feature.
@@ -590,28 +549,7 @@ fn getprintingcolor(m:&str,color: &str)->ColoredString{
     };
     retcolor
 }
-pub fn nscriptfn_printraw(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut color = "".to_string();
-    let mut contents = String::new();
-    let len = args.len();
-    if len > 1 {
-        color = storage.getargstring(&args[len-1], block);
-        for x in 0..args.len()-1{
-            let res = storage.getargstring(&args[x], block);
-            contents = contents + &res;
-        }
-    }
-    else{
-        contents = storage.getargstring(&args[0], block);
-    }
-    printraw(&contents,&color);
-    return NscriptVar::newstring("var",contents);
-}
-pub fn printraw(m: &str, color: &str) {
-    print!("{}", getprintingcolor(m,color));
-}
-pub struct Nfile {
-}
+
 
 impl NscriptStructBinding for Nfile{
     fn nscript_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>,_storage:&mut NscriptStorage) -> NscriptVar {

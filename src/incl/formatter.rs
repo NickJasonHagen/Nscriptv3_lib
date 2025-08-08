@@ -1652,7 +1652,8 @@ process::exit(1);
                 let splitword = split(&line[xmove],":");
                 match splitword[0]{
                     "c" =>{
-                        classvec.push(self.getclass(&splitword[1]));
+                        let asref = self.storage.getargstring(&splitword[1], block);
+                        classvec.push(self.getclass(&asref));
                     }
                     "f"=>{
                         funcvec.push(self.getfunc(&splitword[1]));
@@ -1691,7 +1692,7 @@ process::exit(1);
             threadstruct.parsecodewithvars(&rawcode,&threadname,varsvec);
             loop {
                 threadstruct.executecoroutines();
-                if threadstruct.coroutines.len() < 1 {
+                if threadstruct.coroutinesindex.len() < 1 {
                     break;
                 }
                 let sender = worker_to_main_tx.lock().unwrap();

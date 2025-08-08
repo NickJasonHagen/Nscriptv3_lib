@@ -479,15 +479,22 @@ pub fn string_to_eval(string_: &str) -> String {
 }
 pub fn nscriptfn_print(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut color = "".to_string();
+    let mut contents = String::new();
+    let len = args.len();
     if args.len() > 1 {
-        color = storage.getargstring(&args[1], block);
+        color = storage.getargstring(&args[len-1], block);
     }
-    let string = storage.getargstring(&args[0], block);
-    print(&string,&color);
-    return NscriptVar::newstring("var",string);
-    //var.stringdata = string;
-    //return var;
-
+    if len > 1{
+        for x in 0..args.len()-1{
+            let res = storage.getargstring(&args[x], block);
+            contents = contents + &res;
+        }
+    }
+    else{
+        contents = storage.getargstring(&args[0], block);
+    }
+    print(&contents,&color);
+    return NscriptVar::newstring("var",contents);
 }
 pub fn print(m: &str, color: &str) {
     // this is more a linux then a windows feature.
@@ -544,15 +551,20 @@ pub fn print(m: &str, color: &str) {
 }
 pub fn nscriptfn_printraw(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut color = "".to_string();
-    if args.len() > 1 {
-        color = storage.getargstring(&args[1], block);
+    let mut contents = String::new();
+    let len = args.len();
+    if len > 1 {
+        color = storage.getargstring(&args[len-1], block);
+        for x in 0..args.len()-1{
+            let res = storage.getargstring(&args[x], block);
+            contents = contents + &res;
+        }
     }
-    let string = storage.getargstring(&args[0], block);
-    printraw(&string,&color);
-    return NscriptVar::newstring("var",string);
-    //var.stringdata = string;
-    //return var;
-
+    else{
+        contents = storage.getargstring(&args[0], block);
+    }
+    printraw(&contents,&color);
+    return NscriptVar::newstring("var",contents);
 }
 pub fn printraw(m: &str, color: &str) {
     // this is more a linux then a windows feature.
@@ -1400,7 +1412,7 @@ fn vecfindstringpos(invec:&Vec<&str>,chr:&str) -> usize{
             return x;
         }
     }
-    println!("cant find chr-asci [{}]",chr);
+    println!("cant find chr-asci [{}] in vec [{}]",chr,invec.join(","));
     0
 }
 pub fn nscriptfn_mod(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

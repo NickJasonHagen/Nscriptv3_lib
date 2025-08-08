@@ -231,8 +231,8 @@ impl  Nscript{
                     return NscriptVar::new("ok");
                 }
                 None => {
-                    println!("no threads found");
-                    return NscriptVar::new("ok");
+                    //println!("no threads found");
+                    return NscriptVar::newstring("error","thread not found".to_string());
 
                 }
             };

@@ -1,3 +1,5 @@
+use colored::ColoredString;
+
 use crate::*;
 use std::{char, time::{SystemTime, UNIX_EPOCH}};
 pub struct Nstring {
@@ -481,10 +483,8 @@ pub fn nscriptfn_print(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
     let mut color = "".to_string();
     let mut contents = String::new();
     let len = args.len();
-    if args.len() > 1 {
+    if len > 1 {
         color = storage.getargstring(&args[len-1], block);
-    }
-    if len > 1{
         for x in 0..args.len()-1{
             let res = storage.getargstring(&args[x], block);
             contents = contents + &res;
@@ -500,54 +500,72 @@ pub fn print(m: &str, color: &str) {
     // this is more a linux then a windows feature.
     // as for windows powershell is just lame. itl work but dont expect all colors to show!
     // --------------------------------------------
-    match color {
+     println!("{}", getprintingcolor(m,color));
+}
+fn getprintingcolor(m:&str,color: &str)->ColoredString{
+    let retcolor = match color {
         "bright blue" | "bb" => {
-            println!("{}", m.bright_blue());
+            m.bright_blue()
         }
         "bright green" | "bg"=> {
-            println!("{}", m.bright_green());
+            m.bright_green()
         }
         "bright cyan" | "bc" => {
-            println!("{}", m.bright_cyan());
+            m.bright_cyan()
         }
         "bright red" | "br" => {
-            println!("{}", m.bright_red());
+            m.bright_red()
         }
         "bright magenta" | "bm" => {
-            println!("{}", m.bright_magenta());
+            m.bright_magenta()
         }
         "bright yellow" | "by" => {
-            println!("{}", m.bright_yellow());
+            m.bright_yellow()
         }
         "bright purple" | "bp" => {
-            println!("{}", m.bright_purple());
+            m.bright_purple()
         }
         "purple" | "p" => {
-            println!("{}", m.purple());
+            m.custom_color((73, 4, 58))
         }
         "cyan" | "c" =>{
-            println!("{}", m.cyan());
+            m.cyan()
         }
         "yellow" | "y" => {
-            println!("{}", m.yellow());
+            m.yellow()
         }
         "red" | "r" => {
-            println!("{}", m.red());
+            m.red()
         }
         "green" | "g" => {
-            println!("{}", m.green());
+            m.green()
         }
         "blue" | "b" =>{
-            println!("{}", m.blue());
+            m.blue()
         }
         "magenta" | "m" =>{
-            println!("{}", m.magenta());
+            m.magenta()
+        }
+        "orange" | "o" =>{
+            m.custom_color((237,100,8))
+        }
+        "bright orange" | "bo" =>{
+            m.custom_color((255,152,80))
+        }
+        "grey" | "gr" =>{
+            m.custom_color((113,113,113))
+        }
+        "pink" | "pi" =>{
+            m.custom_color((250, 108, 219))
+        }
+        "brown" | "brn" =>{
+            m.custom_color((126, 81, 76))
         }
         _ => {
-            println!("{}", m);
-
+            m.custom_color((255,255,255))
         }
     };
+    retcolor
 }
 pub fn nscriptfn_printraw(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut color = "".to_string();
@@ -567,57 +585,7 @@ pub fn nscriptfn_printraw(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
     return NscriptVar::newstring("var",contents);
 }
 pub fn printraw(m: &str, color: &str) {
-    // this is more a linux then a windows feature.
-    // as for windows powershell is just lame. itl work but dont expect all colors to show!
-    // --------------------------------------------
-    match color {
-        "bright blue" | "bb" => {
-            print!("{}", m.bright_blue());
-        }
-        "bright green" | "bg"=> {
-            print!("{}", m.bright_green());
-        }
-        "bright cyan" | "bc" => {
-            print!("{}", m.bright_cyan());
-        }
-        "bright red" | "br" => {
-            print!("{}", m.bright_red());
-        }
-        "bright magenta" | "bm" => {
-            print!("{}", m.bright_magenta());
-        }
-        "bright yellow" | "by" => {
-            print!("{}", m.bright_yellow());
-        }
-        "bright purple" | "bp" => {
-            print!("{}", m.bright_purple());
-        }
-        "purple" | "p" => {
-            print!("{}", m.purple());
-        }
-        "cyan" | "c" =>{
-            print!("{}", m.cyan());
-        }
-        "yellow" | "y" => {
-            print!("{}", m.yellow());
-        }
-        "red" | "r" => {
-            print!("{}", m.red());
-        }
-        "green" | "g" => {
-            print!("{}", m.green());
-        }
-        "blue" | "b" =>{
-            print!("{}", m.blue());
-        }
-        "magenta" | "m" =>{
-            print!("{}", m.magenta());
-        }
-        _ => {
-            print!("{}", m);
-
-        }
-    };
+    print!("{}", getprintingcolor(m,color));
 }
 pub struct Nfile {
 }

@@ -1267,74 +1267,62 @@ pub fn nscriptfn_sin(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mu
     var1.stringdata = Nstring::f32(&var1.stringdata).sin().to_string();
     return var1;
 }
+fn nscript_encryption(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage,encrypting:bool) -> NscriptVar {
+    let mut data = NscriptVar::newstring("r",storage.getargstring(&args[0], block));
+    let password = storage.getvar(&args[1], block).stringdata;
+    let  passwordvec = split(&password,"");
+    let chrvec:Vec<&str> = [ "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
+        "-", "=", "+", "[", "]", "{", "}", "~", "`",
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+        "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+        "u", "v", "w", "x", "y", "z",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+        "{", "}", "[", "]", "(", ")",
+        "|", ";", ":", ",", ".", "/", "?", "~", "`",
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
+        "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
+        "U", "V", "W", "X", "Y", "Z"," ","","\"","\n","\r"].to_vec();
+    let hexvec:Vec<&str> =["A","B","C","D","E","F","0","1","2","3","4","5","6","7","8","9","A"].to_vec();
+    let passlen = password.len();
+    let mut cur_pass = 0;
+    let mut encstringbuff = String::new();
+    if encrypting {
+        data.stringdata = string_to_hex(&data.stringdata);
+        for xchr in split(&data.stringdata,""){
+            if xchr != ""{
+                let curchari = 1600 + vecfindstringpos(&hexvec,&xchr) + passlen + vecfindstringpos(&chrvec,passwordvec[cur_pass]);
+                let hexindex = modsize(curchari as f32,16.0);
+                encstringbuff += &hexvec[hexindex as usize].to_string();
+                cur_pass +=1;
+                cur_pass = modsize(cur_pass as f32,passlen as f32) as usize;
+            }
+        }
+
+        data.stringdata = encstringbuff;
+    }else{
+        for xchr in split(&data.stringdata,""){
+            if xchr != ""{
+                let curchari = 1600 + vecfindstringpos(&hexvec,xchr) - passlen - vecfindstringpos(&chrvec,passwordvec[cur_pass]);
+                let hexindex = modsize(curchari as f32,16.0);
+                encstringbuff += &hexvec[hexindex as usize].to_string();
+                cur_pass +=1;
+                cur_pass = modsize(cur_pass as f32,passlen as f32) as usize;
+            }
+        }
+        data.stringdata = hex_to_string(&encstringbuff);
+    }
+
+    data
+}
 
 pub fn nscriptfn_encrypt(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut data = NscriptVar::newstring("r",storage.getargstring(&args[0], block));
-
-    data.stringdata = string_to_hex(&data.stringdata);
-    let password = storage.getvar(&args[1], block).stringdata;
-    let  passwordvec = split(&password,"");
-    let chrvec:Vec<&str> = [ "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
-        "-", "=", "+", "[", "]", "{", "}", "~", "`",
-        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
-        "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
-        "u", "v", "w", "x", "y", "z",
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-        "{", "}", "[", "]", "(", ")",
-        "|", ";", ":", ",", ".", "/", "?", "~", "`",
-        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
-        "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
-        "U", "V", "W", "X", "Y", "Z"," ","","\"","\n","\r"].to_vec();
-    let hexvec:Vec<&str> =["A","B","C","D","E","F","0","1","2","3","4","5","6","7","8","9","A"].to_vec();
-    let passlen = password.len();
-
-    let mut cur_pass = 0;
-    let mut encstringbuff = String::new();
-    for xchr in split(&data.stringdata,""){
-        if xchr != ""{
-            let curchari = 1600 + vecfindstringpos(&hexvec,&xchr) + passlen + vecfindstringpos(&chrvec,passwordvec[cur_pass]);
-            let hexindex = modsize(curchari as f32,16.0);
-            encstringbuff += &hexvec[hexindex as usize].to_string();
-            cur_pass +=1;
-            cur_pass = modsize(cur_pass as f32,passlen as f32) as usize;
-        }
-    }
-    data.stringdata = encstringbuff;
-    return data;
+    return nscript_encryption(args, block, storage, true);
 }
+
 pub fn nscriptfn_decrypt(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut data = NscriptVar::newstring("r",storage.getargstring(&args[0], block));
-    let password = storage.getvar(&args[1], block).stringdata;
-    let  passwordvec = split(&password,"");
-    let chrvec:Vec<&str> = [ "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
-        "-", "=", "+", "[", "]", "{", "}", "~", "`",
-        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
-        "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
-        "u", "v", "w", "x", "y", "z",
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-        "{", "}", "[", "]", "(", ")",
-        "|", ";", ":", ",", ".", "/", "?", "~", "`",
-        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
-        "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
-        "U", "V", "W", "X", "Y", "Z"," ","","\"","\n","\r"].to_vec();
-
-    let hexvec:Vec<&str> =["A","B","C","D","E","F","0","1","2","3","4","5","6","7","8","9","A"].to_vec();
-    let passlen = password.len();
-    let mut cur_pass = 0;
-    let mut encstringbuff = String::new();
-    for xchr in split(&data.stringdata,""){
-
-        if xchr != ""{
-            let curchari = 1600 + vecfindstringpos(&hexvec,xchr) - passlen - vecfindstringpos(&chrvec,passwordvec[cur_pass]);
-            let hexindex = modsize(curchari as f32,16.0);
-            encstringbuff += &hexvec[hexindex as usize].to_string();
-            cur_pass +=1;
-            cur_pass = modsize(cur_pass as f32,passlen as f32) as usize;
-        }
-    }
-    data.stringdata = hex_to_string(&encstringbuff);
-    return data;
+    return nscript_encryption(args, block, storage, false);
 }
+
 fn vecfindstringpos(invec:&Vec<&str>,chr:&str) -> usize{
     for x in 0..invec.len()-1{
         if chr == invec[x] {

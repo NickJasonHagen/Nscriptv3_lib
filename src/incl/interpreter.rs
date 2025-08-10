@@ -182,6 +182,14 @@ impl  Nscript{
             self.insertfn("decrypt", nscriptfn_decrypt,"(datastring,passwordstring) // returns a decrypted string, created by encrypt(str,pss)");
             self.insertfn("arraynew", nscriptfn_arraynew,"() // returns a new array");
             self.insertfn("arraynewsized", nscriptfn_arraynewsized,"(size) // returns a new array with empty strings by the given size");
+            self.insertfn("terminalkey", nscriptfn_terminalkey,"() // returns the pressed key as a string");
+            self.insertfn("terminalkey", nscriptfn_terminalkey,"() // returns the pressed key as a string");
+            self.insertfn("terminalenableraw", nscriptfn_terminalenableraw,"() // enables raw mode terminal printing");
+            self.insertfn("terminaldisableraw", nscriptfn_terminaldisableraw,"() // disables raw mode terminal printing");
+            self.insertfn("terminalupdate", nscriptfn_updateterminal,"(string) // prints a frame");
+            self.insertfn("printpos", nscriptfn_printpos,"(string,color) // todo..");
+            self.insertfn("terminalflush", nscriptfn_terminalflush,"() // flushes the terminal : rawmode");
+            self.insertfn("terminalreset", nscriptfn_terminalreset,"() // resets the terminal : rawmode");
 
         }
     }
@@ -964,7 +972,7 @@ impl NscriptStorage{
                 let thisword = Nstring::trimprefix(&word);
                 let arrays = split(&thisword,"[");
                 let thisvar = self.getvar(arrays[0],block);
-                let index = self.getargstring(&Nstring::trimprefix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
+                let index = self.getargstring(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
                 if thisvar.stringvec.len() > index{
                     return NscriptVar::newstring("e",thisvar.stringvec[index].to_string());
                 }else{

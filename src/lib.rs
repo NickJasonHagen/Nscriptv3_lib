@@ -11,6 +11,7 @@ mod incl {
     pub mod httpnc;
     pub mod tcp;
     pub mod nscript3d;
+    pub mod termion;
 }
 pub use incl::interpreter::*;
 pub use incl::formatter::*;
@@ -18,6 +19,7 @@ pub use incl::basicfunctions::*;
 pub use incl::httpnc::*;
 pub use incl::tcp::*;
 pub use incl::nscript3d::*;
+pub use incl::termion::*;
 pub use std::sync::{mpsc, Arc, Mutex};
 pub use std::thread;
 pub use std::env;

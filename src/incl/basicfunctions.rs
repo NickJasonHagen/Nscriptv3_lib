@@ -463,7 +463,7 @@ fn createprintingstr(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mu
     (contents,color)
 }
 pub fn printraw(m: &str, color: &str) {
-    print!("{}", getprintingcolor(m,color));
+    print!("{}", nscriptgetprintingcolor(m,color));
 }
 pub struct Nfile {
 }
@@ -471,9 +471,9 @@ pub fn print(m: &str, color: &str) {
     // this is more a linux then a windows feature.
     // as for windows powershell is just lame. itl work but dont expect all colors to show!
     // --------------------------------------------
-     println!("{}", getprintingcolor(m,color));
+     println!("{}", nscriptgetprintingcolor(m,color));
 }
-fn getprintingcolor(m:&str,color: &str)->ColoredString{
+pub fn nscriptgetprintingcolor(m:&str,color: &str)->ColoredString{
     let retcolor = match color {
         "bright blue" | "bb" => {
             m.bright_blue()

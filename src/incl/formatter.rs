@@ -975,10 +975,14 @@ impl  Nscript{
                                                             }
                                                             NscriptWordTypes::Variable | NscriptWordTypes::Global | NscriptWordTypes::Property |
                                                             NscriptWordTypes::Bool   |
-                                                            NscriptWordTypes::Macro | NscriptWordTypes::Array =>{
+                                                            NscriptWordTypes::Macro |NscriptWordTypes::Array=>{
                                                                 xline.insert(0,"SETV".to_string());
                                                                 preprocessedvec.push(xline.to_owned());
                                                             }
+                                                            // NscriptWordTypes::Array =>{
+                                                            //     xline.insert(0,"SETVa".to_string());
+                                                            //     preprocessedvec.push(xline.to_owned());
+                                                            // }
                                                             NscriptWordTypes::Arraydeclaration =>{
                                                                 xline.insert(0,"SETVEC".to_string());
                                                                 preprocessedvec.push(xline.to_owned());
@@ -1067,6 +1071,12 @@ impl  Nscript{
                 let  onvar = self.storage.getvar(&line[3],block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
+            // "SETVa" =>{
+            //     let  onvar = self.storage.getvar(&line[3],block);
+            //
+            //     println!("settingv:{} w:{}",&line[1],&onvar.stringdata);
+            //     self.setdefiningword(&line[1], onvar, &formattedblock,block);
+            // }
             "SETVEC" =>{
                 let  onvar = self.executeword(&line[3],&formattedblock,block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);

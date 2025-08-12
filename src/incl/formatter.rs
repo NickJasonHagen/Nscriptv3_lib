@@ -254,7 +254,6 @@ impl  Nscript{
                                     arg = "\\".to_string() + &arg;
                                 }
                                 wordvec.push(Nstring::replace(&arg,"\\)",")"));
-                                //wordvec.push(arg);
                             }
                             else if Nstring::instring(&arg, ".") == false && Nstring::postfix(&arg) == "(" {
                                 match self.rustfunctions.get(Nstring::trimright(&arg,1).as_str().into()){
@@ -269,17 +268,11 @@ impl  Nscript{
                             }
                             //if it is a property we add .
                             else if Nstring::instring(&arg, ".") && Nstring::postfix(&arg) != "(" {
-
                                 arg = "&".to_string() + &arg;
-                                wordvec.push(arg);
-                            }
-                            // // if its a array we add #
-                            else if Nstring::prefix(&arg) != "[" && Nstring::postfix(&arg) == "[" {
-                                arg = "#".to_string() + &arg;
-                                wordvec.push(arg);
+                                wordvec.push(Nscript::preparser_checkvector(arg));
                             }
                             else{
-                                wordvec.push(arg);
+                                wordvec.push(Nscript::preparser_checkvector(arg));
                             }
                         }
                         else{
@@ -313,6 +306,12 @@ impl  Nscript{
 
         }
         return proccessedvec;
+    }
+    fn preparser_checkvector(mut arg:String) ->String{
+        if Nstring::prefix(&arg) != "[" && Nstring::postfix(&arg) == "[" {
+            arg = "#".to_string() + &arg;
+        }
+        arg
     }
     /// this formats a multiline array to a single line
     pub fn array_scopeextract(&mut self,code: &str) -> String {

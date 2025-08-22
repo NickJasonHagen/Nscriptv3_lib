@@ -1371,7 +1371,7 @@ impl  Nscript{
             }
             "X"=>{
                 //exit
-process::exit(1);
+                process::exit(1);
             }
             _ =>{}
         }
@@ -1410,8 +1410,9 @@ process::exit(1);
         //let mut formattedcode = formattedblock.clone();//self.getformattedblock(&block.name);
         let mut executablecode = formattedblock.clone();//self.getexecutableblock(&block.name);
         //formattedcode.name = coname.to_string().into();
-         coroutineblock.strings = block.strings.clone();
-         coroutineblock.stringsvec = block.stringsvec.clone();
+         //coroutineblock.strings = block.strings.clone();
+         //coroutineblock.stringsvec = block.stringsvec.clone();
+        coroutineblock.variables = block.variables.clone();
         let mut selfvar = NscriptVar::new("self");
         selfvar.stringdata = coname.to_string();
         coroutineblock.setvar("self", selfvar);
@@ -2219,6 +2220,14 @@ process::exit(1);
             "object" =>{
                 let mut retvar = NscriptVar::new("object");
                 match splitstruct[1]{
+                    "toobject" =>{
+                        let mut extentfromclass = self.getclass(&argvarvec[0].stringdata);
+
+                        if let Some(class) = self.getclassref(&argvarvec[1].stringdata){
+                           class.inherent(&mut extentfromclass);
+                        }
+                        return self.execute_function(&format!("2{}.construct()",&argvarvec[1].stringdata), block);
+                    }
                     "index" =>{
                         if let Some(class) = self.getclassref(&argvarvec[0].stringdata){
                             retvar.stringvec = class.index.to_owned().into_iter().map(|s| s.into()).collect();

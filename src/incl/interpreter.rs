@@ -1403,8 +1403,8 @@ pub struct NscriptCodeBlock{
     pub name: String,
     pub insubblock: usize,// all the subscopes, if else loop coroutines
     pub variables: HashMap< Box<str>,NscriptVar>,// scope variables
-    pub strings: HashMap< String,String>,// scope variables
-    pub stringsvec: HashMap<String,Vec<String>>,// scope variables
+    //pub strings: HashMap< String,String>,// scope variables
+    //pub stringsvec: HashMap<String,Vec<String>>,// scope variables
     pub staticstrings: Vec<Box<str>>,// scope variables
     pub ifscopedepth: usize,//used for parsing nested ifscopes
     pub ifscopes: Vec<bool>,// used for nested elseif else scopes
@@ -1418,8 +1418,8 @@ impl NscriptCodeBlock{
             name: nameref.to_string(),
             insubblock: 0,
             variables: HashMap::new(),
-            strings: HashMap::new(),
-            stringsvec: HashMap::new(),
+            //strings: HashMap::new(),
+            //stringsvec: HashMap::new(),
             staticstrings: Vec::new(),
             ifscopedepth: 0,
             ifscopes: Vec::new(),
@@ -1430,34 +1430,34 @@ impl NscriptCodeBlock{
         this.breakloop.push(false);
         this
     }
-    pub fn setstring(&mut self,namref:&str,string:String){
-        self.strings.insert(namref.to_string(),string);
+    pub fn setstring(&mut self,nameref:&str,string:String){
+        self.variables.insert(nameref.into(),NscriptVar::newstring(&nameref,string));
     }
     pub fn getstring(&mut self,namref:&str) ->String{
-        if let Some(data) = self.strings.get(&namref.to_string()){
-            return data.to_string();
+        if let Some(data) = self.variables.get(namref.into()){
+            return data.stringdata.to_string();
         }
         else{
             return "".to_string();
         }
     }
     pub fn getstr(&mut self,namref:&str) ->&str{
-        if let Some(data) = self.strings.get(&namref.to_string()){
-            return &data;
+        if let Some(data) = self.variables.get(namref.into()){
+            return &data.stringdata;
         }
         else{
             return &EMPTYSTR;
         }
     }
     /// stored Vec<String> for NscriptVar types.
-    pub fn setstringvec(&mut self,namref:&str,stringvec:Vec<String>){
-        self.stringsvec.insert(namref.to_string(),stringvec);
+    pub fn setstringvec(&mut self,nameref:&str,stringvec:Vec<String>){
+        self.variables.insert(nameref.into(),NscriptVar::newvec(nameref.into(), stringvec));
     }
 
     /// stored Vec<String> for NscriptVar types.
-    pub fn getstringvec(&mut self,namref:&str) ->Vec<String>{
-        if let Some(data) = self.stringsvec.get(&namref.to_string()){
-            return data.to_owned();
+    pub fn getstringvec(&mut self,nameref:&str) ->Vec<String>{
+        if let Some(data) = self.variables.get(nameref.into()){
+            return data.stringvec.to_owned();
         }
         else{
             return Vec::new();
@@ -1492,30 +1492,44 @@ impl NscriptCodeBlock{
     // }
     ///copies a variable from the block for mutable purposes
     pub fn getvar(&mut self,name:&str)->NscriptVar{
-        let mut var = NscriptVar::new(&name);
-        if let Some(string) = self.strings.get(name){
-             var.stringdata = string.to_owned();
+        if let Some(var) = self.variables.get(name){
+             return var.clone();
         }
-        else{
-             var.stringdata = "".to_owned();
-        };
-        if let Some(stringvec) = self.stringsvec.get(name){
-             var.stringvec = stringvec.to_owned();
-        }
-        else{
-             var.stringvec = Vec::new();
-        };
-        var
+        // else{
+        //      var.stringdata = "".to_owned();
+        // };
+        // if let Some(stringvec) = self.stringsvec.get(name){
+        //      var.stringvec = stringvec.to_owned();
+        // }
+        // else{
+        //      var.stringvec = Vec::new();
+        // };
+
+        NscriptVar::new(&name)
+
     }
     pub fn setvar(&mut self,name:&str,var:NscriptVar){
-        self.strings.insert(name.to_string(),var.stringdata );
-        self.stringsvec.insert(name.to_string(),var.stringvec);
+        self.variables.insert(name.into(),var);
+        // self.strings.insert(name.to_string(),var.stringdata );
+        // self.stringsvec.insert(name.to_string(),var.stringvec);
     }
     pub fn setvarstring(&mut self,name:&str,var:NscriptVar){
-        self.strings.insert(name.to_string(),var.stringdata );
+        if let Some(onvar) = self.variables.get_mut(name){
+             onvar.stringdata = var.stringdata;
+        }
+        else{
+            self.variables.insert(name.into(), var);
+        }
+        //self.strings.insert(name.to_string(),var.stringdata );
     }
     pub fn setvarvec(&mut self,name:&str,var:NscriptVar){
-        self.stringsvec.insert(name.to_string(),var.stringvec);
+        if let Some(onvar) = self.variables.get_mut(name){
+             onvar.stringvec = var.stringvec;
+        }
+        else{
+            self.variables.insert(name.into(), var);
+        }
+        //self.stringsvec.insert(name.to_string(),var.stringvec);
     }
 }
 /// implement this to add new Nscript rust functions and bind them

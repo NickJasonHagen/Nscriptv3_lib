@@ -859,7 +859,7 @@ pub fn nscriptfn_arraymerge(args:&Vec<&str>,block :&mut NscriptCodeBlock , stora
     var.stringdata = storage.getargstring(&args[0], block);
     for x in args{
         for xvec in storage.getargstringvec(&x, block){
-            var.stringvec.push(storage.getargstring(&xvec, block));
+            var.stringvec.push(xvec);
         }
     }
     return var;

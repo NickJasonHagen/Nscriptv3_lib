@@ -854,7 +854,16 @@ pub fn nscriptfn_arraypush(args:&Vec<&str>,block :&mut NscriptCodeBlock , storag
     }
     return var;
 }
-
+pub fn nscriptfn_arraymerge(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
+    var.stringdata = storage.getargstring(&args[0], block);
+    for x in args{
+        for xvec in storage.getargstringvec(&x, block){
+            var.stringvec.push(storage.getargstring(&xvec, block));
+        }
+    }
+    return var;
+}
 pub fn nscriptfn_arraycontains(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
     var.stringdata = storage.getargstring(&args[0], block);

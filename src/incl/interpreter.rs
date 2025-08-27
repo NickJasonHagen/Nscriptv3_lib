@@ -146,6 +146,7 @@ impl  Nscript{
             self.insertfn("arraycontains", nscriptfn_arraycontains,"(vector,string) //  returns a bool if a vector contains the given string.");
             self.insertfn("arrayroll", nscriptfn_arrayroll,"(vector,string)  // returns a new vec, LiFo , if the vector has a size of 6 is will remain the size the new entree will be inserted as 0 and the last one will be left out, each one will shift one spot.");
             self.insertfn("arraypush", nscriptfn_arraypush,"(vector,string)  // pushes the string at the end of a vector returns a new vector");
+            self.insertfn("arraymerge", nscriptfn_arraymerge,"(vector,vec,vec..)  // combines all entrees of all given vectors returns a new vector");
             self.insertfn("arrayinsert", nscriptfn_arrayinsert,"(vector, string) // inserts the string to the vector and returns that as a new vector");
             self.insertfn("arraysort", nscriptfn_arraysort,"(vector)  // sorts the vector by a alphabetic order and returns that as a new vector");
             self.insertfn("arrayretain", nscriptfn_arrayretain,"(vector,string) //  will remove the string from a vector, returns that as a new vector");

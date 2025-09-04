@@ -574,6 +574,7 @@ pub struct NscriptStorage{
     pub tcp: NscriptTcp,
     pub nscript3d: Nscript3d,
     pub emptyfunc: NscriptFunc,
+    pub emptyblock: NscriptCodeBlock,
     pub customdata: NscriptData,
 }
 
@@ -587,6 +588,7 @@ impl NscriptStorage{
             tcp:NscriptTcp::new(),
             nscript3d:Nscript3d::new(),
             emptyfunc:NscriptFunc::new("".to_string(),Vec::new()),
+            emptyblock:NscriptCodeBlock::new(""),
             customdata: NscriptData::new(),
         }
     }
@@ -1561,7 +1563,7 @@ pub struct NscriptVar{
     pub stringdata: String,
     pub stringvec: Vec<String>,
 }
-/// Variable struct holds the neocat datatypes and data
+/// Variable struct holds the nscript datatypes and data
 impl NscriptVar{
     pub fn new(name:&str) -> NscriptVar{
         NscriptVar{

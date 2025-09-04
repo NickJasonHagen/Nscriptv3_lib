@@ -57,6 +57,7 @@ impl  Nscript{
         let mut filedata = self.raw_scopeextract(&code);
         filedata = "\n".to_string() + &Nstring::replace(&filedata,"\"{","\" {");
 
+
         filedata = self.stringextract(&filedata);// pre work creates it to hex! ^hexed,
         filedata = self.stripcomments(&filedata);
         filedata = Nstring::replace(&filedata,"\n{","{");
@@ -2418,20 +2419,22 @@ impl  Nscript{
     fn stringextract(&mut self,filedata : &str) -> String {
         let mut parsingtext = Nstring::replace(&filedata.to_string(), "\\\"", "#!@NSCRIPTQUOTE#@!");
         parsingtext = Nstring::replace(&parsingtext, "\"\"", "@emptystring");
-        //print(&parsingtext,"bp");
-        loop {
-            let splitstr = Nstring::stringbetween(&parsingtext, "\"", "\"");
-            if splitstr != "" {
-                let packed = "^".to_owned()
-                + &string_to_hex(&Nstring::replace(&splitstr, "#!@NSCRIPTQUOTE#@!", "\""));
-                let toreplace = "\"".to_owned() + &splitstr + "\"";
-                parsingtext = Nstring::replace(&parsingtext, &toreplace, &packed);
-            } else {
-                break;
+        let parsingvec = split(&parsingtext, "\"");
+        let mut newcode = "".to_string();
+        let mut isstring = false;
+        for x in parsingvec{
+            if isstring == false{
+                newcode += &x;
+                isstring = true;
+            }else{
+                newcode = newcode + "^" + &string_to_hex(&Nstring::replace(&x, "#!@NSCRIPTQUOTE#@!", "\""));
+                isstring = false;
             }
         }
-        parsingtext
+        newcode
+
     }
+
     /// sets the blocks only with the raw code, will be parsed by the thread on spawn.
     fn thread_scopeextract(&mut self,codefiledata:&str,_scriptscope: &mut NscriptScriptScope) -> String{
 

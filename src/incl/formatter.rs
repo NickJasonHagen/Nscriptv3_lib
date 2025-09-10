@@ -748,21 +748,21 @@ impl  Nscript{
                             _ =>{
                                 match xline[1].as_str(){
                                     ":" =>{
-                                        if xline.len() == 3{
+                                       // if xline.len() == 3{
                                             xline.insert(0,"SC".to_string());
                                             preprocessedvec.push(xline.to_owned());
-                                        }else{
-
-                                            let mut newwordvec:Vec<String> = Vec::new();
-                                            newwordvec.push("OCF".to_string());
-                                            newwordvec.push(xline[0].to_string());
-                                            let splitfunc = split(&xline[2],"(");
-                                            let funcname = split(splitfunc[0],".")[1];
-                                            newwordvec.push(funcname.to_string());
-                                            newwordvec.push(Nstring::trimsuffix(&splitfunc[1]).to_string());// push args
-                                            newwordvec.push(xline[xline.len()-1].clone());// push args
-                                            preprocessedvec.push(newwordvec.to_owned());
-                                        }
+                                        // }else{
+                                        //
+                                        //     let mut newwordvec:Vec<String> = Vec::new();
+                                        //     newwordvec.push("OCF".to_string());
+                                        //     newwordvec.push(xline[0].to_string());
+                                        //     let splitfunc = split(&xline[2],"(");
+                                        //     let funcname = split(splitfunc[0],".")[1];
+                                        //     newwordvec.push(funcname.to_string());
+                                        //     newwordvec.push(Nstring::trimsuffix(&splitfunc[1]).to_string());// push args
+                                        //     newwordvec.push(xline[xline.len()-1].clone());// push args
+                                        //     preprocessedvec.push(newwordvec.to_owned());
+                                        // }
 
                                     }
                                     "&=" =>{
@@ -1163,28 +1163,27 @@ impl  Nscript{
 
                 return NscriptVar::new("line");
             }
-            "OCF" =>{ // Set classfunction without using the function scope
-
-                let mut executablecode = self.getexecutableblock(&block.name);
-                executablecode.boxedcode[0] = executablecode.boxedcode[Nstring::usize(&line[4])-1].clone();
-                let classref = self.storage.getargstring(&line[1], block);
-                let funcref = self.storage.getargstring(&line[2], block);
-                if let Some(class) = self.storage.getclassref(&classref){
-                    let mut argbox :Vec<Box<str>> = Vec::new();
-                    for xarg in split(&line[3],","){
-                        argbox.push(xarg.into());
-                    }
-                    let mut func = NscriptFunc::new(funcref.to_string(), argbox);
-                    func.executablecodeblock = executablecode;
-                    let mut thisblock = NscriptCodeBlock::new(&(classref.trim().to_string()+"."+&funcref.trim()));
-                    let  varself = NscriptVar::newstring("self",classref.to_string());
-                    func.codeblock = block.clone();
-                    thisblock.setvar("self",varself);
-                    //print(&format!("OCF:{} {} {}",&classref,&funcref,&line[3]),"g");
-                    class.setfunc(&funcref, func);
-                }
-                return NscriptVar::new("line");
-            }
+            // "OCF" =>{ // Set classfunction without using the function scope
+            //     let mut executablecode = self.getexecutableblock(&block.name);
+            //     executablecode.boxedcode[0] = executablecode.boxedcode[Nstring::usize(&line[4])-1].clone();
+            //     let classref = self.storage.getargstring(&line[1], block);
+            //     let funcref = self.storage.getargstring(&line[2], block);
+            //     if let Some(class) = self.storage.getclassref(&classref){
+            //         let mut argbox :Vec<Box<str>> = Vec::new();
+            //         for xarg in split(&line[3],","){
+            //             argbox.push(xarg.into());
+            //         }
+            //         let mut func = NscriptFunc::new(funcref.to_string(), argbox);
+            //         func.executablecodeblock = executablecode;
+            //         let mut thisblock = NscriptCodeBlock::new(&(classref.trim().to_string()+"."+&funcref.trim()));
+            //         let  varself = NscriptVar::newstring("self",classref.to_string());
+            //         func.codeblock = block.clone();
+            //         thisblock.setvar("self",varself);
+            //         //print(&format!("OCF:{} {} {}",&classref,&funcref,&line[3]),"g");
+            //         class.setfunc(&funcref, func);
+            //     }
+            //     return NscriptVar::new("line");
+            // }
             "L" =>{
                 self.execute_spawnloop(&line,&formattedblock,block);
             }

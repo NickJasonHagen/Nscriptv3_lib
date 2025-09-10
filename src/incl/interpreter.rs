@@ -191,6 +191,7 @@ impl  Nscript{
             self.insertfn("printpos", nscriptfn_printpos,"(string,color) // todo..");
             self.insertfn("terminalflush", nscriptfn_terminalflush,"() // flushes the terminal : rawmode");
             self.insertfn("terminalreset", nscriptfn_terminalreset,"() // resets the terminal : rawmode");
+            self.insertfn("createqrcode", nscriptfn_createqrcode,"(url,filepathimage) // creates a qrcode link imagefile  ");
 
         }
     }

@@ -209,7 +209,9 @@ impl Nscript3d {
         for xunit in self.collisionbox_getgroup(group){
             let x_aabb = self.collisionbox_get_aabb(&xunit);
             if object_aabb.intersects(&x_aabb){
-                collisionsvec.push(xunit)
+                if objectname!=xunit{
+                    collisionsvec.push(xunit)
+                }
             }
         }
         collisionsvec

@@ -106,7 +106,7 @@ pub fn nscriptfn_stringbetweennested(args:&Vec<&str>,block :&mut NscriptCodeBloc
 }
 pub fn nscriptfn_trim(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
-    neovar.stringdata = storage.getargstring(&args[0],block);
+    neovar.stringdata = storage.getargstring(&args[0],block).trim().to_string();
     neovar
 }
 pub fn nscriptfn_contains(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{

@@ -431,6 +431,7 @@ pub fn decode_html_url(url: &str) -> String {
     let mut decoded = String::new();
     let mut xurl = Nstring::replace(&url, "+", " ");
     xurl = Nstring::replace(&xurl, "%0D", "\n");
+    xurl = Nstring::replace(&xurl, "%40", "@");
 
     let mut iter = xurl.chars().peekable();
 

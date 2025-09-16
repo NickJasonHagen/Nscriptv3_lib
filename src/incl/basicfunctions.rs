@@ -1375,7 +1375,16 @@ pub fn nscriptfn_createqrcode(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     let code = QrCode::new(storage.getargstring(args[0], block).as_bytes()).unwrap();
     let image = code.render::<Luma<u8>>().build();
 
-// Save the image.
-image.save(storage.getargstring(args[1], block)).unwrap();
-NscriptVar::new("qr")
+    // Save the image.
+    image.save(storage.getargstring(args[1], block)).unwrap();
+    NscriptVar::new("qr")
+}
+
+pub fn nscriptfn_prefix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let  var = storage.getargstring(args[0], block);
+    NscriptVar::newstring("str",Nstring::prefix(&var).to_string())
+}
+pub fn nscriptfn_suffix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let  var = storage.getargstring(args[0], block);
+    NscriptVar::newstring("str",Nstring::postfix(&var).to_string())
 }

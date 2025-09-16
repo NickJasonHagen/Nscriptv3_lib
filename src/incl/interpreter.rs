@@ -192,6 +192,8 @@ impl  Nscript{
             self.insertfn("terminalflush", nscriptfn_terminalflush,"() // flushes the terminal : rawmode");
             self.insertfn("terminalreset", nscriptfn_terminalreset,"() // resets the terminal : rawmode");
             self.insertfn("createqrcode", nscriptfn_createqrcode,"(url,filepathimage) // creates a qrcode link imagefile  ");
+            self.insertfn("prefix", nscriptfn_prefix,"(string) // returns the first character");
+            self.insertfn("suffix", nscriptfn_suffix,"(string) // returns the last character");
 
         }
     }

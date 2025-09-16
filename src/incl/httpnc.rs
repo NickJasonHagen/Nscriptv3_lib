@@ -32,9 +32,9 @@ impl  Nscript{
             // when the server.nc is run class server.ip and server.port be checked!
             listener = TcpListener::bind(format!("{}:{}", &server_addres_nc, &server_port_nc)).unwrap();
             println!(
-            "Server started at http://{}:{}",
-            &server_addres_nc, &server_port_nc
-        );
+                "Server started at http://{}:{}",
+                &server_addres_nc, &server_port_nc
+            );
         } else {
             // if missing serverclass or something, use the constants
             listener = TcpListener::bind(format!("{}:{}", "0.0.0.0", 8080)).unwrap();
@@ -180,12 +180,12 @@ impl  Nscript{
         }
         if request_parts[0] == "POST" {
             let mut postdata:String;// String::new();
-                let mut postvar = NscriptVar::new("$POSTPACKET");
-                    postvar.stringdata = Nstring::replace(&request.to_string(), "\0", "");
-                self.storage.setglobal(
-                    "$POSTPACKET",
-                    postvar,
-                );
+            let mut postvar = NscriptVar::new("$POSTPACKET");
+            postvar.stringdata = Nstring::replace(&request.to_string(), "\0", "");
+            self.storage.setglobal(
+                "$POSTPACKET",
+                postvar,
+            );
             let strippostdata = split(&request, "\r\n\r\n");
             if strippostdata.len() > 1 {
                 postdata = "".to_owned() + strippostdata[1]; // used for post buffer data
@@ -201,216 +201,298 @@ impl  Nscript{
                 if ["nc"].contains(&extension.as_str()) {
 
                     //println!("Its a Post to Nc");
-                let bsize = nscript_usize(
-                    &Nstring::stringbetween(&request, "Content-Length: ", "Cache").trim(),
-                );
-                let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+                    let bsize = nscript_usize(
+                        &Nstring::stringbetween(&request, "Content-Length: ", "Cache").trim(),
+                    );
+                    let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
 
-                match stream.write(response.as_bytes()) {
-                    Ok(bytes_written) => {
-                        // Check if all bytes were successfully written.
-                        if bytes_written < response.len() {
-                            // Handle the situation where not all data was written if needed.
+                    match stream.write(response.as_bytes()) {
+                        Ok(bytes_written) => {
+                            // Check if all bytes were successfully written.
+                            if bytes_written < response.len() {
+                                // Handle the situation where not all data was written if needed.
+                            }
+                        }
+                        Err(_) => {
+                            //return;
                         }
                     }
-                    Err(_) => {
-                        //return;
+                    if bsize > nscript_usize(&self.executeword("&server.POSTbytesmax",&formattedblock, &mut connectionblock).stringdata) {
+                        let response = "SERVERERROR:PostSizeExceedsLimit";
+                        match stream.write(response.as_bytes()) {
+                            Ok(_) => {
+                                return;
+                            }
+                            Err(_) => {
+                                return;
+                            }
+                        }
+                    }
+                    if bsize > recveivedcontentlenght {
+                        let mut start_time = Instant::now();
+                        loop {
+                            let end = Instant::now();
+                            if (start_time - end).as_millis() >= 1000 {
+                                // dc timer for inactivity should break the loop.
+                                //
+                                print("closed by timeout", "r");
+                                break;
+                            }
+
+                            match stream.read(&mut buffer) {
+                                Ok(bytes_read) => {
+                                    postdata = postdata + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+                                    if bytes_read <= 1023 {
+                                        break;
+                                    }
+                                    start_time = Instant::now();
+                                    // procceed the connection.
+                                }
+                                Err(e) => {
+                                    print!("error nchttp {}", e); // handle OS error on connection-reset)
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    //let strippostdata = split(&postdata, "\r\n\r\n");
+
+                    let mut postvar = NscriptVar::new("$POSTDATA");
+                    postvar.stringdata = Nstring::replace(&postdata.trim(), "\0", "");
+                    self.storage.setglobal(
+                        "$POSTDATA",
+                        postvar,
+                    );
+
+                    let scriptcode = Nfile::read(&file_path);
+
+                    let response = self.parsecode(&scriptcode, &file_path).stringdata.to_string();
+
+                    match stream.write(response.as_bytes()) {
+                        Ok(bytes_written) => {
+                            // Check if all bytes were successfully written.
+                            if bytes_written < response.len() {
+                                print!("post stream broken bytes written {} of {}",bytes_written,response.len());
+                            }
+                        }
+                        Err(_) => {
+                            //return;
+                        }
                     }
                 }
-                if bsize > nscript_usize(&self.executeword("&server.POSTbytesmax",&formattedblock, &mut connectionblock).stringdata) {
-                    let response = "SERVERERROR:PostSizeExceedsLimit";
+            }
+            return;
+        }
+        if request_parts[0] == "GET" {
+            if let Some(extension) = Path::new(&file_path)
+                .extension()
+                .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
+            {
+
+                if ["nc"].contains(&extension.as_str()) {
+                    let _ = match File::open(&file_path) {
+                        Ok(_) => {}
+                        Err(_) => {
+                            let mut response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
+                            let nc404file =
+                            webroot.clone() + "/404.nc";
+                            println!("404={},", nc404file);
+                            if Nfile::checkexists(&nc404file) {
+                                //let compcode = nscript_formatsheet(&read_file_utf8(&nc404file),vmap);
+                                let compcode = Nfile::read(&nc404file);
+                                let ret = self.parsecode(&compcode,"404").stringdata.to_string();
+
+                                response = format!(
+                                    "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                                    "text/html",
+                                    &ret.len()
+                                );
+                                stream.write(response.as_bytes()).unwrap();
+                                match stream.write(ret.as_bytes()) {
+                                    Ok(bytes_written) => {
+                                        // Check if all bytes were successfully written.
+                                        if bytes_written < response.len() {
+                                            // Handle the situation where not all data was written if needed.
+                                        }
+                                    }
+                                    Err(_) => {
+                                        return;
+                                    }
+                                }
+                                return;
+                            } else {
+                                stream.write(response.as_bytes()).unwrap();
+                                return;
+                            }
+                        }
+                    };
+                    //let scriptcode = Nfile::read(&file_path);
+                    let ret = self.parsefile(&file_path).stringdata.to_string();
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                        "text/html",
+                        &ret.len()
+                    );
                     match stream.write(response.as_bytes()) {
-                        Ok(_) => {
-                            return;
+                        Ok(bytes_written) => {
+                            // Check if all bytes were successfully written.
+                            if bytes_written < response.len() {
+                                // Handle the situation where not all data was written if needed.
+                            }
                         }
                         Err(_) => {
                             return;
                         }
                     }
-                }
-                if bsize > recveivedcontentlenght {
-                    let mut start_time = Instant::now();
-                    loop {
-                        let end = Instant::now();
-                        if (start_time - end).as_millis() >= 1000 {
-                            // dc timer for inactivity should break the loop.
-                            //
-                            print("closed by timeout", "r");
-                            break;
-                        }
-
-                        match stream.read(&mut buffer) {
-                            Ok(bytes_read) => {
-                                postdata = postdata + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-                                if bytes_read <= 1023 {
-                                    break;
-                                }
-                                start_time = Instant::now();
-                                // procceed the connection.
-                            }
-                            Err(e) => {
-                                print!("error nchttp {}", e); // handle OS error on connection-reset)
-                                break;
+                    match stream.write(ret.as_bytes()) {
+                        Ok(bytes_written) => {
+                            // Check if all bytes were successfully written.
+                            if bytes_written < response.len() {
+                                // Handle the situation where not all data was written if needed.
                             }
                         }
-                    }
-                }
-                //let strippostdata = split(&postdata, "\r\n\r\n");
-
-                let mut postvar = NscriptVar::new("$POSTDATA");
-                    postvar.stringdata = Nstring::replace(&postdata.trim(), "\0", "");
-                self.storage.setglobal(
-                    "$POSTDATA",
-                    postvar,
-                );
-
-                let scriptcode = Nfile::read(&file_path);
-
-                let response = self.parsecode(&scriptcode, &file_path).stringdata.to_string();
-
-                match stream.write(response.as_bytes()) {
-                    Ok(bytes_written) => {
-                        // Check if all bytes were successfully written.
-                        if bytes_written < response.len() {
-                            print!("post stream broken bytes written {} of {}",bytes_written,response.len());
+                        Err(_) => {
+                            return;
                         }
                     }
-                    Err(_) => {
-                        //return;
-                    }
+                    return;
                 }
-            }
-        }
-        return;
-    }
-    if request_parts[0] == "GET" {
-        if let Some(extension) = Path::new(&file_path)
-            .extension()
-            .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
-        {
-            if ["nc"].contains(&extension.as_str()) {
-                let _ = match File::open(&file_path) {
-                    Ok(_) => {}
-                    Err(_) => {
-                        let mut response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
-                        let nc404file =
-                            webroot.clone() + "/public/404.nc";
-                        println!("404={},", nc404file);
-                        if Nfile::checkexists(&nc404file) {
-                            //let compcode = nscript_formatsheet(&read_file_utf8(&nc404file),vmap);
-                            let compcode = Nfile::read(&nc404file);
+                if ["html"].contains(&extension.as_str()) {
+                    let _ = match File::open(&file_path) {
+                        Ok(_) => {}
+                        Err(_) => {
+                            let mut response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
+                            let nc404file =
+                            webroot.clone() + "/404.nc";
+                            println!("404={},", nc404file);
+                            if Nfile::checkexists(&nc404file) {
+                                //let compcode = nscript_formatsheet(&read_file_utf8(&nc404file),vmap);
+                                let compcode = Nfile::read(&nc404file);
                                 let ret = self.parsecode(&compcode,"404").stringdata.to_string();
 
-                            response = format!(
-                                "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
-                                "text/html",
-                                &ret.len()
-                            );
-                            stream.write(response.as_bytes()).unwrap();
-                            match stream.write(ret.as_bytes()) {
-                                Ok(bytes_written) => {
-                                    // Check if all bytes were successfully written.
-                                    if bytes_written < response.len() {
-                                        // Handle the situation where not all data was written if needed.
+                                response = format!(
+                                    "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                                    "text/html",
+                                    &ret.len()
+                                );
+                                stream.write(response.as_bytes()).unwrap();
+                                match stream.write(ret.as_bytes()) {
+                                    Ok(bytes_written) => {
+                                        // Check if all bytes were successfully written.
+                                        if bytes_written < response.len() {
+                                            // Handle the situation where not all data was written if needed.
+                                        }
+                                    }
+                                    Err(_) => {
+                                        return;
                                     }
                                 }
-                                Err(_) => {
-                                    return;
-                                }
+                                return;
+                            } else {
+                                stream.write(response.as_bytes()).unwrap();
+                                return;
                             }
+                        }
+                    };
+                    let mut scriptcode = Nfile::read(&file_path);
+                    loop {
+                        let subscope = Nstring::stringbetween(&scriptcode, "<nscript>", "</nscript>");
+                        if subscope != ""{
+                            let nvar = self.parsecode(&subscope, &file_path);
+                            if nvar.name == "return"{
+                                let toremove = "<nscript>".to_string() + &subscope + "</nscript>";
+                                scriptcode = Nstring::replace(&scriptcode, &toremove, &nvar.stringdata);
+                            }
+                        }
+                        else{
+                            break
+                        }
+                    }
+                    let ret = scriptcode;//.parsefile(&file_path).stringdata.to_string();
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                        "text/html",
+                        &ret.len()
+                    );
+                    match stream.write(response.as_bytes()) {
+                        Ok(bytes_written) => {
+                            // Check if all bytes were successfully written.
+                            if bytes_written < response.len() {
+                                // Handle the situation where not all data was written if needed.
+                            }
+                        }
+                        Err(_) => {
                             return;
-                        } else {
+                        }
+                    }
+                    match stream.write(ret.as_bytes()) {
+                        Ok(bytes_written) => {
+                            // Check if all bytes were successfully written.
+                            if bytes_written < response.len() {
+                                // Handle the situation where not all data was written if needed.
+                            }
+                        }
+                        Err(_) => {
+                            return;
+                        }
+                    }
+                    return;
+                }
+                let file_path_clone = file_path.clone(); // clone file_path
+                thread::spawn(move || {
+                    let mut file = match File::open(&file_path_clone) {
+                        Ok(file) => file,
+                        Err(_) => {
+                            let response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\nPageNotFound");
                             stream.write(response.as_bytes()).unwrap();
                             return;
                         }
-                    }
-                };
-               //let scriptcode = Nfile::read(&file_path);
-                    let ret = self.parsefile(&file_path).stringdata.to_string();
-                let response = format!(
-                    "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
-                    "text/html",
-                    &ret.len()
-                );
-                match stream.write(response.as_bytes()) {
-                    Ok(bytes_written) => {
-                        // Check if all bytes were successfully written.
-                        if bytes_written < response.len() {
-                            // Handle the situation where not all data was written if needed.
+                    };
+                    let mut contents = Vec::new();
+                    file.read_to_end(&mut contents).unwrap();
+                    let content_type = match extension.as_str() {
+                        "jpg" | "jpeg" => "image/jpeg",
+                        "png" => "image/png",
+                        "gif" => "image/gif",
+                        "js" => "application/javascript",
+                        "txt" => "text/plain",
+                        "html" => "text/html",
+                        "css" => "text/css",
+                        _ => "application/octet-stream",
+                    };
+                    let response = format!(
+                        "HTTP/2.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                        content_type,
+                        contents.len()
+                    );
+                    match stream.write(response.as_bytes()) {
+                        Ok(bytes_written) => {
+                            // Check if all bytes were successfully written.
+                            if bytes_written < response.len() {
+                                eprintln!("Not all data was written to the stream.");
+                                // Handle the situation where not all data was written if needed.
+                            }
+                        }
+                        Err(_error) => {
+                            return;
                         }
                     }
-                    Err(_) => {
-                        return;
-                    }
-                }
-                match stream.write(ret.as_bytes()) {
-                    Ok(bytes_written) => {
-                        // Check if all bytes were successfully written.
-                        if bytes_written < response.len() {
-                            // Handle the situation where not all data was written if needed.
+                    match stream.write(&contents) {
+                        Ok(bytes_written) => {
+                            // Check if all bytes were successfully written.
+                            if bytes_written < contents.len() {
+                                // Handle the situation where not all data was written if needed.
+                            }
+                        }
+                        Err(_) => {
+                            return;
                         }
                     }
-                    Err(_) => {
-                        return;
-                    }
-                }
+                });
                 return;
             }
-            let file_path_clone = file_path.clone(); // clone file_path
-            thread::spawn(move || {
-                let mut file = match File::open(&file_path_clone) {
-                    Ok(file) => file,
-                    Err(_) => {
-                        let response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
-                        stream.write(response.as_bytes()).unwrap();
-                        return;
-                    }
-                };
-                let mut contents = Vec::new();
-                file.read_to_end(&mut contents).unwrap();
-                let content_type = match extension.as_str() {
-                    "jpg" | "jpeg" => "image/jpeg",
-                    "png" => "image/png",
-                    "gif" => "image/gif",
-                    "js" => "application/javascript",
-                    "txt" => "text/plain",
-                    "html" => "text/html",
-                    "css" => "text/css",
-                    _ => "application/octet-stream",
-                };
-                let response = format!(
-                    "HTTP/2.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
-                    content_type,
-                    contents.len()
-                );
-                match stream.write(response.as_bytes()) {
-                    Ok(bytes_written) => {
-                        // Check if all bytes were successfully written.
-                        if bytes_written < response.len() {
-                            eprintln!("Not all data was written to the stream.");
-                            // Handle the situation where not all data was written if needed.
-                        }
-                    }
-                    Err(_error) => {
-                        return;
-                    }
-                }
-                match stream.write(&contents) {
-                    Ok(bytes_written) => {
-                        // Check if all bytes were successfully written.
-                        if bytes_written < contents.len() {
-                            // Handle the situation where not all data was written if needed.
-                        }
-                    }
-                    Err(_) => {
-                        return;
-                    }
-                }
-            });
-            return;
         }
     }
-}
 
 }
 

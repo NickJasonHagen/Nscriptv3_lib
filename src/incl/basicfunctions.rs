@@ -788,7 +788,10 @@ pub fn nscriptfn_call_programwait(args:&Vec<&str>,block :&mut NscriptCodeBlock ,
       let result = match output {
         Ok(output) => {
             let stdout = String::from_utf8(output.stdout);
+            var.stringvec.push(stdout.clone().unwrap_or("".to_string()).to_string());
             let stderr = String::from_utf8(output.stderr);
+
+            var.stringvec.push(stderr.clone().unwrap_or("".to_string()));
             format!(
                 "Program executed successfully.\nStdout: {}\nStderr: {}",
                 stdout.unwrap(),

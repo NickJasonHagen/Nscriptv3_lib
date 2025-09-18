@@ -399,9 +399,13 @@ impl  Nscript{
                         let subscope = Nstring::stringbetween(&scriptcode, "<nscript>", "</nscript>");
                         if subscope != ""{
                             let nvar = self.parsecode(&subscope, &file_path);
+
+                            let toremove = "<nscript>".to_string() + &subscope + "</nscript>";
                             if nvar.name == "return"{
-                                let toremove = "<nscript>".to_string() + &subscope + "</nscript>";
                                 scriptcode = Nstring::replace(&scriptcode, &toremove, &nvar.stringdata);
+                            }
+                            else{
+                                scriptcode = Nstring::replace(&scriptcode, &toremove,"");
                             }
                         }
                         else{

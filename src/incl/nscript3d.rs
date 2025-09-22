@@ -153,6 +153,7 @@ pub struct Nscript3d {
     vertex : HashMap<String,Vec<Vertex>>,
     aabb : HashMap<String,AABB>,
     colliongroups : HashMap<String,Vec<String>>,
+    rays: HashMap<String,Vec<(f32,f32,f32)>>
 }
 impl Nscript3d {
     pub fn new() -> Nscript3d{
@@ -163,6 +164,7 @@ impl Nscript3d {
             vertex : HashMap::new(),
             aabb : HashMap::new(),
             colliongroups : HashMap::new(),
+            rays : HashMap::new(),
         };
         this
     }
@@ -342,7 +344,42 @@ impl Nscript3d {
         // Return the transformed vertices and the same indices
         transformed_vertices
     }
+    pub fn castray(&mut self,rayid:&str,start: (f32, f32, f32), target: (f32, f32, f32), step: f32)-> usize{
+        let (x0, y0, z0) = start;
+        let (x1, y1, z1) = target;
 
+        let dx = x1 - x0;
+        let dy = y1 - y0;
+        let dz = z1 - z0;
+
+        let distance = ((dx * dx) + (dy * dy) + (dz * dz)).sqrt();
+        let steps = (distance / step).ceil() as usize;
+        let mut points = Vec::with_capacity(steps + 1);
+
+        for i in 0..=steps {
+            let t = i as f32 / steps as f32;
+            let x = x0 + t * dx;
+            let y = y0 + t * dy;
+            let z = z0 + t * dz;
+            points.push((x, y, z).into());
+        }
+        let lenght = points.len();
+        self.rays.insert(rayid.to_string(),points);
+        lenght
+    }
+    pub fn getraypoint(&mut self,rayid:&str,entree:usize)-> (f32,f32,f32){
+        if let Some(ray) = self.rays.get(rayid.into()){
+            if ray.len() > entree{
+                return ray[entree].clone();
+            }
+        }
+
+        (0.0,0.0,0.0)
+    }
+
+    pub fn removeray(&mut self,rayid:&str){
+       self.rays.remove(rayid.into());
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -380,9 +417,30 @@ impl AABB {
         }
         true
     }
-  }
+}
 
 
+
+pub fn nscriptfn_castray(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut var = NscriptVar::new("ray");
+    let rayid = storage.getargstring(args[0], block);
+    let pos_a = storage.getargstringvec(&args[1],block);
+    let pos1 = (Nstring::f32(&pos_a[0]),Nstring::f32(&pos_a[1]),Nstring::f32(&pos_a[2]));
+
+    let pos_b = storage.getargstringvec(&args[2],block);
+    let pos2 = (Nstring::f32(&pos_b[0]),Nstring::f32(&pos_b[1]),Nstring::f32(&pos_b[2]));
+    let step = Nstring::f32(&storage.getargstring(args[3], block));
+    var.stringdata = storage.nscript3d.castray(&rayid,pos1,pos2,step).to_string();
+    return var;
+}
+pub fn nscriptfn_getraypoint(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let mut var = NscriptVar::new("ray");
+    let rayid = storage.getargstring(args[0], block);
+    let entree = Nstring::usize(&storage.getargstring(args[1], block));
+    let point = storage.nscript3d.getraypoint(&rayid,entree);
+    var.stringvec = vec!(point.0.to_string(),point.1.to_string(),point.2.to_string());
+    return var;
+}
 pub fn nscriptfn_aabb_newbox(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("addbox");
     let objname = storage.getargstring(&args[0],block);

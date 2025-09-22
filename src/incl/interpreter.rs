@@ -174,16 +174,15 @@ impl  Nscript{
             self.insertfn("aabb_setscale", nscriptfn_aabb_setscale,"(idref,x,y,z) // sets a boundingbox to 3d coordinates ( no returns)");
             self.insertfn("aabb_addtogroup", nscriptfn_aabb_addtogroup,"(idref,groupidref) // add a object to a collisiongroup");
             self.insertfn("aabb_getgroup", nscriptfn_aabb_getgroup,"(groupidref) // returns a vector of all objects ina collisiongroup");
-            self.insertfn("aabb_removefromgroup", nscriptfn_aabb_getgroup,"(groupidref,idtoremove) // removes a entree from a group");
+            self.insertfn("aabb_removefromgroup", nscriptfn_aabb_removefromgroup,"(groupidref,idtoremove) // removes a entree from a group");
             self.insertfn("aabb_getcollisions", nscriptfn_aabb_getcollisions,"(targetid,groupid) // will return a vector of all entrees who are colliding in 3d with the targetid within a collisiongroup");
-            self.insertfn("aabb_removegroup", nscriptfn_aabb_getcollisions,"(groupidref) // deletes a whole group.");
+            self.insertfn("aabb_removegroup", nscriptfn_aabb_removegroup,"(groupidref) // deletes a whole group.");
             self.insertfn("decode_html_url", nscriptfn_decode_html_url,"(string) // decodes html content like arguments %12 etc");
             self.insertfn("mod", nscriptfn_mod,"(number,maxnumber) // will keep the number in range, so lets say mod(10,8) will return 2");
             self.insertfn("encrypt", nscriptfn_encrypt,"(datastring,passwordstring) // returns a encrypted string, can be used with decrypt(datastring,passwordstring)");
             self.insertfn("decrypt", nscriptfn_decrypt,"(datastring,passwordstring) // returns a decrypted string, created by encrypt(str,pss)");
             self.insertfn("arraynew", nscriptfn_arraynew,"() // returns a new array");
             self.insertfn("arraynewsized", nscriptfn_arraynewsized,"(size) // returns a new array with empty strings by the given size");
-            self.insertfn("terminalkey", nscriptfn_terminalkey,"() // returns the pressed key as a string");
             self.insertfn("terminalkey", nscriptfn_terminalkey,"() // returns the pressed key as a string");
             self.insertfn("terminalenableraw", nscriptfn_terminalenableraw,"() // enables raw mode terminal printing");
             self.insertfn("terminaldisableraw", nscriptfn_terminaldisableraw,"() // disables raw mode terminal printing");
@@ -194,6 +193,8 @@ impl  Nscript{
             self.insertfn("createqrcode", nscriptfn_createqrcode,"(url,filepathimage) // creates a qrcode link imagefile  ");
             self.insertfn("prefix", nscriptfn_prefix,"(string) // returns the first character");
             self.insertfn("suffix", nscriptfn_suffix,"(string) // returns the last character");
+            self.insertfn("castray", nscriptfn_castray,"(rayid,vec:pos_a,vec:pos_b,f32:steps) // returns vec lenght creates a buffer vector , use with getraypoint(rayid,vecid)");
+            self.insertfn("getraypoint", nscriptfn_getraypoint,"(rayid,step) // returns a vector with the position , by the given step of the ray");
 
         }
     }

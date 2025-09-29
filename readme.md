@@ -21,7 +21,7 @@ Nscript offers a cross platform scripting syntax ( like python )
 - very easy to use class/object system with managed function registers and propery indexes.
     pre-evaluation/ reflection on setting and calling class related syntaxes
     json to object conversions !
-    inherented function register and methods to obtain as them vectors
+    inherented function register and methods to obtain them as vectors
     property index , objects keep track of the set props, can be obtained as a vector.
     custom (.njh) object to file outputs and inputs.
 - very light runtime envoirement! absolutely barerust

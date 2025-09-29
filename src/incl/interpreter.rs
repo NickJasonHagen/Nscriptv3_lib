@@ -72,10 +72,6 @@ impl  Nscript{
         this
     }
 
-    // pub fn insertstruct(&mut self, key: &'a str, value: &'a mut dyn  NscriptStructBinding)   {
-    //     self.ruststructsindex.push(key.to_string());
-    //     self.ruststructs.insert(key, value);
-    // }
 
     /// inserts a Rust function into the fnmap users can create their own function bindings using
     /// this. functions are required to have the NscriptFunc Trait implemented.
@@ -100,7 +96,7 @@ impl  Nscript{
             self.insertfn("sin", nscriptfn_sin,"(number) // sin on number");
             self.insertfn("add", nscriptfn_add,"(number,toadd)  // adds the number given by the numberto add");
             self.insertfn("subtract", nscriptfn_subtract,"(number,tosubtract)  // subtracts the number given by the numbertosubtract");
-            self.insertfn("multiply", nscriptfn_multiply, "(number,tomultiply)  // subtracts the number given by the numbertomultiply");
+            self.insertfn("multiply", nscriptfn_multiply, "(number,tomultiply)  // multiplies the number given by the numbertomultiply");
             self.insertfn("devide", nscriptfn_devide, "(number,todevide)  // subtracts the number given by the numbertodevide");
             self.insertfn("add", nscriptfn_isalpthabetic,"(number,toadd)  // adds the number given by the numberto add");
             self.insertfn("is_alphabetic", nscriptfn_isalpthabetic,"(string)  // Checks if a string is alphabetic, returns a bool");

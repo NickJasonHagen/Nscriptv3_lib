@@ -15,6 +15,11 @@ Nscript offers a cross platform scripting syntax ( like python )
 - nameid managed coroutines and name reference constructors in runtime
 - thread abilities with buildin channels
 - offers a simple multithreaded http server with .nc extention execution on request, server rendered code with html string returns as a site, no need for php!
+    and
+    ```html
+    <nscript>return @version </nscript>
+    ```
+    blocks on html which will be replaced by the nscripts return string value
 - able to call system programs and work with other binaries
     this could call bash, to execute a print job, or even to run other code like go, python etc.
     able to wait for the calls output and retrieve it as a variable.
@@ -25,10 +30,10 @@ Nscript offers a cross platform scripting syntax ( like python )
     property index , objects keep track of the set props, can be obtained as a vector.
     custom (.njh) object to file outputs and inputs.
 - very light runtime envoirement! absolutely barerust
-- custom written cypher encrytion systems.
+- custom written cypher encrytion system.
 - .njh (ini like) filesystem which has a high coassistance with the class system.
 - TCP / UDP networking functionality.
-
+- automaticly declaring of CLI arguments $cmdarg1 $cmdarg2 etc
 
 ## standalone binary
 https://github.com/NickJasonHagen/nscriptv3_bin

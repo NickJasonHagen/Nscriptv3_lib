@@ -1525,9 +1525,12 @@ impl NscriptVar{
         NscriptVar{
             name: name.to_string(),
             stringdata: "".to_string(),
+            //number: None,
+            //float: None,
             stringvec:vecset,
         }
     }
+
     pub fn setreturn(&mut self){
         self.name = "return".to_string();
     }
@@ -1536,10 +1539,16 @@ impl NscriptVar{
         return &self.stringdata;
     }
     pub fn getnumber(&mut self) -> u64{
-        return self.stringdata.parse::<u64>().unwrap_or(0);
+        let i = self.stringdata.parse::<u64>().unwrap_or(0);
+        return i;
     }
     pub fn getfloat32(&mut self) -> f32{
-        return self.stringdata.parse::<f32>().unwrap_or(0.0);
+        let i = self.stringdata.parse::<f32>().unwrap_or(0.0);
+        return i;
+    }
+    pub fn getfloat64(&mut self) -> f64{
+        let i = self.stringdata.parse::<f64>().unwrap_or(0.0);
+        return i;
     }
     pub fn setstring(&mut self,newstring:&str){
         self.stringdata = newstring.to_string()
@@ -1551,7 +1560,6 @@ pub struct NscriptFunc{
     pub name: Box<str>,
     pub args:Vec<Box<str>>,
     pub codeblock:NscriptCodeBlock,
-    //pub formattedcodeblock:NscriptFormattedCodeBlock,
     pub executablecodeblock:NscriptExecutableCodeBlock,
 }
 
@@ -1561,7 +1569,6 @@ impl NscriptFunc{
             name: name.to_string().into_boxed_str(),
             args: args,
             codeblock: NscriptCodeBlock::new(&name),
-            //formattedcodeblock: NscriptFormattedCodeBlock::new(&name),
             executablecodeblock: NscriptExecutableCodeBlock::new(),
         }
     }

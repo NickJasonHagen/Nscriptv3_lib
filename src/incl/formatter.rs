@@ -748,7 +748,7 @@ impl  Nscript{
                             _ =>{
                                 match xline[1].as_str(){
                                     ":" =>{
-                                       // if xline.len() == 3{
+                                        //if xline.len() == 3{
                                             xline.insert(0,"SC".to_string());
                                             preprocessedvec.push(xline.to_owned());
                                         // }else{
@@ -2722,7 +2722,8 @@ impl  Nscript{
                 }
             }
             ">=" => {
-                if f64(&self.getwordstring(&a,&formattedblock,block)) >= f64(&self.getwordstring(&b,&formattedblock,block)) {
+                if f64(&self.getwordstring(&a,&formattedblock,block)) >= f64(&self.getwordstring(&c,&formattedblock,block)) {
+
                     return true;
                 }
             }

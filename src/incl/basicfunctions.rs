@@ -725,7 +725,7 @@ pub fn nscriptfn_round(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
     var
 }
 pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let var = NscriptVar::new("var");
+    let mut var = NscriptVar::new("var");
     let mut non_empty_args :Vec<String>= Vec::new();
     for xarg in args{
         non_empty_args.push(storage.getargstring(&xarg, block));
@@ -744,7 +744,9 @@ pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     for arg in non_empty_args {
         output.arg(arg);
     }
-    if let Ok(_) = output.spawn(){};
+    if let Ok(handle) = output.spawn(){
+        var.stringdata = format!("{:?}",handle);
+    };
     var
 }
 pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{

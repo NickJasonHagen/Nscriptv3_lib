@@ -60,16 +60,16 @@ impl  Nscript{
                             let mut socketvar = NscriptVar::new("$socketip");
                             socketvar.stringdata = remote_ip.to_string();
                             self.storage.setglobal("$socketip",socketvar);
-                            let mut block = NscriptCodeBlock::new("httplisten");
-                            let formattedblock = NscriptExecutableCodeBlock::new();//.formattedcode.clone();
-                            let onconnectvar = self.executeword("\\server.onconnect($socketip)",&formattedblock, &mut block);
-                            if onconnectvar.stringdata == "false" {
-                                var.stringdata = format!("connection server.onconnect($socketip) returned false -> closed");
-                            }
-                            else{
+                            //let mut block = NscriptCodeBlock::new("httplisten");
+                            //let formattedblock = NscriptExecutableCodeBlock::new();//.formattedcode.clone();
+                            //let onconnectvar = self.executeword("\\server.onconnect($socketip)",&formattedblock, &mut block);
+                            // if onconnectvar.stringdata == "false" {
+                            //     var.stringdata = format!("connection server.onconnect($socketip) returned false -> closed");
+                            // }
+                            // else{
                                 self.handle_connection( stream);
                                 var.stringdata = format!("connection ok and closed");
-                            }
+                            //}
                             return var;
                         }
                         Err(err) => {
@@ -101,7 +101,7 @@ impl  Nscript{
         let mut buffer = [0; 1024];
         //stream.read(&mut buffer).unwrap();
         let mut connectionblock = NscriptCodeBlock::new("connection");
-        let  formattedblock = NscriptExecutableCodeBlock::new();
+        //let  formattedblock = NscriptExecutableCodeBlock::new();
         match stream.read(&mut buffer) {
             Ok(_) => {
                 // procceed the connection.
@@ -136,6 +136,14 @@ impl  Nscript{
         let mut var = NscriptVar::new("$domainname");
         var.stringdata = domainname.to_string();
         self.storage.setglobal("$domainname",var);
+        let mut block = NscriptCodeBlock::new("httplisten");
+        let formattedblock = NscriptExecutableCodeBlock::new();//.formattedcode.clone();
+        let onconnectvar = self.executeword("\\server.onconnect($socketip)",&formattedblock, &mut block);
+        if onconnectvar.stringdata == "false" {
+            //var.stringdata = format!("connection server.onconnect($socketip) returned false -> closed");
+            return;
+        }
+    //}
         let request_parts: Vec<&str> = request.split(" ").collect();
         let mut pathparts = Vec::new();
         let trimmedreq: String;

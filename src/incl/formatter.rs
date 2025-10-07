@@ -186,7 +186,7 @@ impl  Nscript{
         formattedcode.boxedcode = boxedvec.to_owned();
         let mut xblock = NscriptExecutableCodeBlock::new();
         xblock.boxedcode = formattedcode.boxedcode.clone();
-        self.executableblocks.insert(formattedcode.name.to_string(), xblock);
+        self.executableblocks.insert(formattedcode.name.to_string().into(), xblock);
     }
     /// checks all the words in a codesheet and adds prefixes to make RT parsing go faster
     pub fn wordtypeprefixing(&mut self,codevec:&Vec<Vec<String>>) -> Vec<Vec<String>>{
@@ -1656,6 +1656,7 @@ impl  Nscript{
         let max = line.len();
         let mut classvec:Vec<NscriptClass> = Vec::new();
         let mut funcvec:Vec<NscriptFunc> = Vec::new();
+        let mut funcvecexblocks:Vec<NscriptExecutableCodeBlock> = Vec::new();
         let mut varsvec:Vec<NscriptVar> = Vec::new();
         if max > 2 {
             for xmove in 1 .. max-1{
@@ -1666,7 +1667,14 @@ impl  Nscript{
                         classvec.push(self.getclass(&asref));
                     }
                     "f"=>{
-                        funcvec.push(self.getfunc(&splitword[1]));
+                        if Nstring::prefix(&splitword[1]) == "*"{
+                            let asref = self.storage.getargstring(&Nstring::trimleft(splitword[1], 1), block);
+                            funcvec.push(self.getfunc(&asref));
+                            funcvecexblocks.push(self.getexecutableblock(&asref));
+                        }else{
+                            funcvecexblocks.push(self.getexecutableblock(&splitword[1]));
+                            funcvec.push(self.getfunc(&splitword[1]));
+                        }
                     }
                     "v"=>{
                         varsvec.push(self.getvar(&splitword[1],block));
@@ -1693,9 +1701,12 @@ impl  Nscript{
                 threadstruct.insertfn(&x, builtinsvec[i],"");
                 i +=1;
             }
-            for xfunc in funcvec{
-                threadstruct.storage.functions.insert(xfunc.name.to_string(), xfunc.clone());
+            for xfunc in 0..funcvec.len(){
+                threadstruct.executableblocks.insert(funcvec[xfunc].name.to_string().into(), funcvecexblocks[xfunc].clone());
+                threadstruct.userfunctions.insert(funcvec[xfunc].name.to_string(), funcvec[xfunc].clone());
+                threadstruct.storage.functions.insert(funcvec[xfunc].name.to_string(), funcvec[xfunc].clone());
             }
+
             for xclass in classvec{
                 threadstruct.storage.classes.insert(xclass.name.to_string(), xclass.clone());
             }
@@ -1728,6 +1739,7 @@ impl  Nscript{
         });
         return NscriptVar::new("THREAD")
     }
+
     /// this function is used to check a defining variable type and set it with a Nvar
     fn setdefiningword(&mut self,word:&str,equalsfrom: NscriptVar,_formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock)->NscriptVar{
        return self.storage.setdefiningword(word, equalsfrom, block);
@@ -2040,11 +2052,12 @@ impl  Nscript{
         if let Some(func) = self.userfunctions.get(&splitfunc[0].to_string()){
             let mut getblock = func.codeblock.clone();
             let formattedblockfunc = self.getexecutableblock(&getblock.name);//func.formattedcodeblock.clone();
-            let len = givenargs.len();
+            let len = func.args.len();
+            let len2 = givenargs.len();
             for xarg in 0..len{
-                //if len > xarg{
+                if len2 > xarg{
                     getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
-                //}else{break;}
+                }else{break;}
             }
             if let Some(resultvar) = self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock){
                 if resultvar.name == "return"{
@@ -2211,6 +2224,10 @@ impl  Nscript{
                     "rawcode" =>{
                         let get = self.executeword(&givenargs[0],&formattedblock,block);
                         self.parsecode(&Nstring::replace(&get.stringdata,";","\n"),"__raw")
+                    }
+                    "runfunction" =>{
+                        let isf = self.getwordstring(&givenargs[0], formattedblock, block);
+                        return self.execute_function(&isf,block);
                     }
                     _ =>{
                         return NscriptVar::new("");

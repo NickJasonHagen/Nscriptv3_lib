@@ -20,7 +20,7 @@ pub struct Nscript{
     pub tcplisteners: HashMap<String,TcpListener>,
     pub storage: NscriptStorage,
     pub formattedblocks: HashMap<String,NscriptFormattedCodeBlock>,
-    pub executableblocks: HashMap<String,NscriptExecutableCodeBlock>,
+    pub executableblocks: HashMap<Box<str>,NscriptExecutableCodeBlock>,
     //pub codestorage: CodeStorage,
     pub userfunctions: HashMap<String,NscriptFunc>,
     pub emptyexecutableblock: NscriptExecutableCodeBlock,// <- so we can send back a ref
@@ -45,6 +45,7 @@ impl  Nscript{
             storage:NscriptStorage::new(),
             formattedblocks:HashMap::new(),
             executableblocks:HashMap::new(),
+            //asyncs:Vec::new(),
             //codestorage: CodeStorage::new(),
             userfunctions:HashMap::new(),
             emptyexecutableblock:NscriptExecutableCodeBlock::new(),
@@ -130,6 +131,7 @@ impl  Nscript{
             self.insertfn("filecopy", nscriptfn_filecopy,"(filepath,copiedpath)  // copies a file ");
             self.insertfn("dirmove", nscriptfn_directory_move,"(directorypath, newpath)  // moves a directory to a new location");
             self.insertfn("dirdelete", nscriptfn_directory_delete,"(directorypath)  // deletes a directory");
+            self.insertfn("dircreate", nscriptfn_dircreate,"(directorypath)  // creates a directory");
             self.insertfn("listdir", nscriptfn_listdir,"(directorypath,bool:fullpathasresult default=false)  // returns a vector with all the files \n if the second argument is set to true all the entrees will have a full filepath \n if set false, or not given at all the entrees will only contain the filenames");
             self.insertfn("filesize", nscriptfn_filesize,"(filepath) // returns a kb/mb/gb floored number of the filesize");
             self.insertfn("filesizebytes", nscriptfn_filesizebytes,"(filepath)  // returns the filesize in bytes");
@@ -269,7 +271,7 @@ impl  Nscript{
         }
     }
     pub fn getfunc(&mut self,name:&str)->NscriptFunc{
-        if let Some(thisclass) = self.storage.functions.get_mut(name){
+        if let Some(thisclass) = self.userfunctions.get_mut(name){
             thisclass.clone()
         }
         else{
@@ -277,7 +279,7 @@ impl  Nscript{
         }
     }
     pub fn getfuncref(&mut self,name:&str)->&NscriptFunc{
-        if let Some(thisclass) = self.storage.functions.get(name){
+        if let Some(thisclass) = self.userfunctions.get(name){
             thisclass
         }
         else{
@@ -1470,6 +1472,9 @@ impl NscriptCodeBlock{
         //self.stringsvec.insert(name.to_string(),var.stringvec);
     }
 }
+
+
+
 /// implement this to add new Nscript rust functions and bind them
 pub trait NscriptStructBinding {
     fn nscript_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>,storage: &mut NscriptStorage) -> NscriptVar;
@@ -1497,7 +1502,10 @@ pub struct NscriptVar{
     pub name: String,// in string
     pub stringdata: String,
     pub stringvec: Vec<String>,
+    //pub nscriptstruct: Option<NscriptStruct>,
 }
+
+
 /// Variable struct holds the nscript datatypes and data
 impl NscriptVar{
     pub fn new(name:&str) -> NscriptVar{
@@ -1505,6 +1513,7 @@ impl NscriptVar{
             name: name.to_string(),
             stringdata: "".to_string(),
             stringvec:Vec::new(),
+          //  nscriptstruct:None,
         }
     }
     pub fn newstring(name:&str,stringset:String) -> NscriptVar{
@@ -1512,6 +1521,7 @@ impl NscriptVar{
             name: name.to_string(),
             stringdata: stringset,
             stringvec:Vec::new(),
+           // nscriptstruct:None,
         }
     }
     pub fn newvar(name:&str,stringset:String,vecset:Vec<String>) -> NscriptVar{
@@ -1519,6 +1529,7 @@ impl NscriptVar{
             name: name.to_string(),
             stringdata: stringset,
             stringvec:vecset,
+          //  nscriptstruct:None,
         }
     }
     pub fn newvec(name:&str,vecset:Vec<String>) -> NscriptVar{
@@ -1528,6 +1539,8 @@ impl NscriptVar{
             //number: None,
             //float: None,
             stringvec:vecset,
+         //   nscriptstruct:None,
+
         }
     }
 
@@ -1539,17 +1552,14 @@ impl NscriptVar{
         return &self.stringdata;
     }
     pub fn getnumber(&mut self) -> u64{
-        let i = self.stringdata.parse::<u64>().unwrap_or(0);
-        return i;
+        return self.stringdata.parse::<u64>().unwrap_or(0);
     }
     pub fn getfloat32(&mut self) -> f32{
-        let i = self.stringdata.parse::<f32>().unwrap_or(0.0);
-        return i;
+         return self.stringdata.parse::<f32>().unwrap_or(0.0);
     }
-    pub fn getfloat64(&mut self) -> f64{
-        let i = self.stringdata.parse::<f64>().unwrap_or(0.0);
-        return i;
-    }
+    // pub fn getfloat64(&mut self) -> f64{
+    //     return self.stringdata.parse::<f64>().unwrap_or(0.0);
+    // }
     pub fn setstring(&mut self,newstring:&str){
         self.stringdata = newstring.to_string()
     }

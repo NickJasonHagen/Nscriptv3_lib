@@ -114,7 +114,9 @@ impl  Nscript{
         }
 
         let request = String::from_utf8_lossy(&buffer[..]);
-
+        let mut var = NscriptVar::new("$request");
+        var.stringdata = request.to_string();
+        self.storage.setglobal("$request",var);
         //vmap.setvar("server.request".to_owned(), &request);
         if Nstring::instring(&request, "B blob data") {
             println!("(debug->returning) Blob data entering: {}", &request);

@@ -2048,13 +2048,13 @@ impl  Nscript{
     pub fn execute_ncfunction(&mut self,word:&str,block:&mut NscriptCodeBlock) ->NscriptVar{
         let word = Nstring::trimprefix(&word);
         let splitfunc = split(&word,"(");
-        let givenargs = split(&Nstring::trimsuffix(&splitfunc[1]),",");
         if let Some(func) = self.userfunctions.get(&splitfunc[0].to_string()){
+            let givenargs = split(&Nstring::trimsuffix(&splitfunc[1]),",");
             let mut getblock = func.codeblock.clone();
             let formattedblockfunc = self.getexecutableblock(&getblock.name);//func.formattedcodeblock.clone();
-            let len = func.args.len();
+            //let len = func.args.len();
             let len2 = givenargs.len();
-            for xarg in 0..len{
+            for xarg in 0..len2{
                 if len2 > xarg{
                     getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
                 }else{break;}

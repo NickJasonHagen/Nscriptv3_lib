@@ -30,7 +30,6 @@ impl Nterminal{
     }
 
     #[cfg(not(windows))]
-
     pub fn updateterminal(printframe:&str){
         // Set up the terminal
         let stdout = io::stdout().into_raw_mode().unwrap();

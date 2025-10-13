@@ -438,6 +438,7 @@ pub fn string_to_eval(string_: &str) -> String {
 }
 pub fn nscriptfn_print(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let (contents,color) = createprintingstr(args, block, storage);
+
     print(&contents,&color);
     return NscriptVar::newstring("var",contents);
 }
@@ -468,11 +469,20 @@ pub fn printraw(m: &str, color: &str) {
 }
 pub struct Nfile {
 }
+
+#[cfg(not(windows))]
 pub fn print(m: &str, color: &str) {
     // this is more a linux then a windows feature.
     // as for windows powershell is just lame. itl work but dont expect all colors to show!
     // --------------------------------------------
      println!("{}", nscriptgetprintingcolor(m,color));
+}
+#[cfg(windows)]
+pub fn print(m: &str, _color: &str) {
+    // this is more a linux then a windows feature.
+    // as for windows powershell is just lame. itl work but dont expect all colors to show!
+    // --------------------------------------------
+     println!("{}", m);
 }
 pub fn nscriptgetprintingcolor(m:&str,color: &str)->ColoredString{
     let retcolor = match color {

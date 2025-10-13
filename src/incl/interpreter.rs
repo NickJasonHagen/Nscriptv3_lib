@@ -181,18 +181,23 @@ impl  Nscript{
             self.insertfn("decrypt", nscriptfn_decrypt,"(datastring,passwordstring) // returns a decrypted string, created by encrypt(str,pss)");
             self.insertfn("arraynew", nscriptfn_arraynew,"() // returns a new array");
             self.insertfn("arraynewsized", nscriptfn_arraynewsized,"(size) // returns a new array with empty strings by the given size");
-            self.insertfn("terminalkey", nscriptfn_terminalkey,"() // returns the pressed key as a string");
-            self.insertfn("terminalenableraw", nscriptfn_terminalenableraw,"() // enables raw mode terminal printing");
-            self.insertfn("terminaldisableraw", nscriptfn_terminaldisableraw,"() // disables raw mode terminal printing");
-            self.insertfn("terminalupdate", nscriptfn_updateterminal,"(string) // prints a frame");
-            self.insertfn("printpos", nscriptfn_printpos,"(string,color) // todo..");
-            self.insertfn("terminalflush", nscriptfn_terminalflush,"() // flushes the terminal : rawmode");
-            self.insertfn("terminalreset", nscriptfn_terminalreset,"() // resets the terminal : rawmode");
             self.insertfn("createqrcode", nscriptfn_createqrcode,"(url,filepathimage) // creates a qrcode link imagefile  ");
             self.insertfn("prefix", nscriptfn_prefix,"(string) // returns the first character");
             self.insertfn("suffix", nscriptfn_suffix,"(string) // returns the last character");
             self.insertfn("castray", nscriptfn_castray,"(rayid,vec:pos_a,vec:pos_b,f32:steps) // returns vec lenght creates a buffer vector , use with getraypoint(rayid,vecid)");
             self.insertfn("getraypoint", nscriptfn_getraypoint,"(rayid,step) // returns a vector with the position , by the given step of the ray");
+            #[cfg(not(windows))]
+            if 1 == 1{
+                // termion terminal functions. Unix only
+                self.insertfn("terminaldisableraw", nscriptfn_terminaldisableraw,"() // disables raw mode terminal printing");
+                self.insertfn("terminalupdate", nscriptfn_updateterminal,"(string) // prints a frame");
+                self.insertfn("printpos", nscriptfn_printpos,"(string,color) // todo..");
+                self.insertfn("terminalflush", nscriptfn_terminalflush,"() // flushes the terminal : rawmode");
+                self.insertfn("terminalreset", nscriptfn_terminalreset,"() // resets the terminal : rawmode");
+                self.insertfn("terminalenableraw", nscriptfn_terminalenableraw,"() // enables raw mode terminal printing");
+                self.insertfn("terminalkey", nscriptfn_terminalkey,"() // returns the pressed key as a string");
+            }
+
 
         }
     }

@@ -40,7 +40,7 @@ pub use chrono::{Datelike, Timelike};
 pub use base64::prelude::*;
 pub const NC_PROGRAM_DIR: &str = env!("CARGO_MANIFEST_DIR");
 pub const EMPTYSTR: &'static str  = "";
-pub const NSCRIPT_VERSION: &'static str = "3.3.053";
+pub const NSCRIPT_VERSION: &'static str = "3.3.054";
 #[cfg(windows)]
 const MACRO_OS: &'static str = "Windows";
 #[cfg(not(windows))]

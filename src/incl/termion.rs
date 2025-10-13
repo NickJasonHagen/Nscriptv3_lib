@@ -7,6 +7,8 @@ use termion::{
     cursor,
     clear,
 };
+
+#[cfg(not(windows))]
 use crossterm::{
     terminal
 };

@@ -1725,7 +1725,9 @@ impl  Nscript{
                 if let Some(thisclass) = self.getclassref(&cname){
                     return thisclass.getprop(&pname).stringdata;
                 }else{
-                    print(&format!("nscript::getwordstring() block[{}] word [{}]is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                    if self.debugging {
+                        print(&format!("nscript::getwordstring() block[{}] word [{}]is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                    }
                     return "".to_owned();
                 }
             }
@@ -1770,7 +1772,10 @@ impl  Nscript{
                     if thisvar.stringvec.len() > index{
                         return thisvar.stringvec[index].to_string();
                     }else{
-                    print(&format!("nscript::getwordstring() block[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+
+                    if self.debugging {
+                        print(&format!("nscript::getwordstring() block[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+                    }
                 }
                 return "".to_owned();
             }
@@ -1821,7 +1826,10 @@ impl  Nscript{
                 if let Some(thisclass) = self.getclassref(&cname){
                     return thisclass.getprop(&pname);
                 }else{
-                    print(&format!("block[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&cname,&pname),"r");
+
+                    if self.debugging {
+                        print(&format!("block[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&cname,&pname),"r");
+                    }
                 }
             }
             NscriptWordTypes::Number  =>{
@@ -1844,7 +1852,10 @@ impl  Nscript{
                 if thisvar.stringvec.len() > index{
                     returnvar.stringdata = thisvar.stringvec[index].to_string();
                 }else{
-                    print(&format!("block:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+
+                    if self.debugging {
+                        print(&format!("block:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+                    }
                 }
                 return returnvar;
             }
@@ -1866,7 +1877,10 @@ impl  Nscript{
         }
 
         let mut retvar = NscriptVar::new("error");
-        print(&format!("error from word {}",&word),"br");
+
+        if self.debugging {
+            print(&format!("error from word {}",&word),"br");
+        }
         retvar.setstring("error");
         return retvar;
 
@@ -2078,6 +2092,19 @@ impl  Nscript{
                     "runfunction" =>{
                         let isf = self.getwordstring(&givenargs[0], formattedblock, block);
                         return self.execute_function(&isf,block);
+                    }
+                    "debugger" =>{
+
+                        let set = self.getvar(&givenargs[0], block);
+                        if set.stringdata == "true" || set.stringdata == "!true"{
+                            self.debugging = true;
+                            self.storage.debugging = true;
+                        }
+                        else{
+                            self.debugging = false;
+                            self.storage.debugging = false;
+                        }
+                        return set;
                     }
                     _ =>{
                         return NscriptVar::new("");

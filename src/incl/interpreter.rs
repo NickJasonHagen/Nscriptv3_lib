@@ -24,6 +24,7 @@ pub struct Nscript{
     //pub codestorage: CodeStorage,
     pub userfunctions: HashMap<String,NscriptFunc>,
     pub emptyexecutableblock: NscriptExecutableCodeBlock,// <- so we can send back a ref
+    pub debugging: bool,// <- so we can send back a ref
 }
 //ok
 
@@ -49,6 +50,8 @@ impl  Nscript{
             //codestorage: CodeStorage::new(),
             userfunctions:HashMap::new(),
             emptyexecutableblock:NscriptExecutableCodeBlock::new(),
+            debugging:false,
+
         }
     }
     pub fn new() -> Nscript {
@@ -236,7 +239,10 @@ impl  Nscript{
                                 }
                             },
                             None => {
-                                println!("no thread [{}] receiver channel found!",&tothread);
+
+                                if self.debugging {
+                                    println!("no thread [{}] receiver channel found!",&tothread);
+                                }
                             }
                         }
                     },
@@ -314,7 +320,10 @@ impl  Nscript{
             return this.clone();
         }
         else{
-            print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
+
+            if self.debugging {
+                print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
+            }
             return NscriptFormattedCodeBlock::new("NULLBLOCK");
         }
     }
@@ -323,7 +332,10 @@ impl  Nscript{
             return this.clone();
         }
         else{
-            print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
+
+            if self.debugging {
+                print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
+            }
             return NscriptExecutableCodeBlock::new();
         }
     }
@@ -332,7 +344,10 @@ impl  Nscript{
             return this;
         }
         else{
-            print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
+
+            if self.debugging {
+                print(&format!("returning a empty formattedblock for [{}]",&blockref),"r");
+            }
             return &self.emptyexecutableblock;
         }
     }
@@ -537,6 +552,7 @@ pub struct NscriptStorage{
     pub emptyfunc: NscriptFunc,
     pub emptyblock: NscriptCodeBlock,
     pub customdata: NscriptData,
+    pub debugging: bool,
 }
 
 impl NscriptStorage{
@@ -551,6 +567,7 @@ impl NscriptStorage{
             emptyfunc:NscriptFunc::new("".to_string(),Vec::new()),
             emptyblock:NscriptCodeBlock::new(""),
             customdata: NscriptData::new(),
+            debugging: true,
         }
     }
     pub fn setdefiningword(&mut self,word:&str,equalsfrom: NscriptVar, block:&mut NscriptCodeBlock)->NscriptVar{
@@ -598,7 +615,10 @@ impl NscriptStorage{
                     var.stringvec[idvar] = equalsfrom.stringdata;
                 }
                 else {
-                    print(&format!("block [{}] array [{}] tries to set a index but its out of bounds",&block.name,&wordsplit[0]),"r");
+
+                    if self.debugging {
+                        print(&format!("block [{}] array [{}] tries to set a index but its out of bounds",&block.name,&wordsplit[0]),"r");
+                    }
                 }
                 self.setdefiningword(wordsplit[0], var, block);
             }
@@ -636,7 +656,10 @@ impl NscriptStorage{
         if let Some(thisclass) = self.classes.get_mut(&name.to_string()){
             return thisclass.getprop(&prop);
         }
-        println!("cant find obj {} prop {}",&name,&prop);
+
+        if self.debugging {
+            println!("cant find obj {} prop {}",&name,&prop);
+        }
         NscriptVar::new(name)
     }
     /// used for rust made functions , this is used on storage to fastly set object properties
@@ -701,7 +724,10 @@ impl NscriptStorage{
                 if let Some(thisclass) = self.getclassref(&cname){
                     return thisclass.getpropstr(&pname).to_string();
                 }else{
-                    print(&format!("getargstring() storage block:[{}] word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+
+                    if self.debugging {
+                        print(&format!("getargstring() storage block:[{}] word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                    }
                     return "".to_owned();
                 }
                 //}
@@ -732,7 +758,10 @@ impl NscriptStorage{
                 if thisvar.len() > index{
                     return thisvar[index].to_string();
                 }else{
-                    print(&format!("getargstring() storage block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&word,&block.name,&arrays[0],&index,&thisvar.len()),"r");
+
+                    if self.debugging {
+                        print(&format!("getargstring() storage block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&word,&block.name,&arrays[0],&index,&thisvar.len()),"r");
+                    }
                 }
                 return "".to_owned();
             }
@@ -790,7 +819,10 @@ impl NscriptStorage{
                     if let Some(thisclass) = self.getclassref(&cname){
                         return thisclass.getpropstr(&pname).into();
                     }else{
-                        print(&format!("nscript::getwordstring() block[{}] word [{}]is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+
+                        if self.debugging {
+                            print(&format!("nscript::getwordstring() block[{}] word [{}]is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                        }
                         return "".into();
                     }
                 }
@@ -807,7 +839,10 @@ impl NscriptStorage{
                 if thisvar.stringvec.len() > index{
                     return thisvar.stringvec[index].as_str().into();
                 }else{
-                    print(&format!("nscript::getwordstring() block[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+
+                    if self.debugging {
+                        print(&format!("nscript::getwordstring() block[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+                    }
                 }
                 return "".into();
             }
@@ -849,7 +884,10 @@ impl NscriptStorage{
                     if let Some(thisclass) = self.getclassref(&cname){
                         return thisclass.getprop(&pname).stringvec;
                     }else{
-                        print(&format!(" getargstringvec() storage block:[{}]  word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+
+                        if self.debugging {
+                            print(&format!(" getargstringvec() storage block:[{}]  word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                        }
                     }
                 }
             }
@@ -889,7 +927,10 @@ impl NscriptStorage{
                 if let Some(thisclass) = self.getclassref(&cname){
                     return thisclass.getprop(&pname);
                 }else{
-                    print(&format!(" getvar() storage block:[{}]  word:[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+
+                    if self.debugging {
+                        print(&format!(" getvar() storage block:[{}]  word:[{}] word is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                    }
                 }
                 //}
             }
@@ -923,7 +964,10 @@ impl NscriptStorage{
                 if thisvar.stringvec.len() > index{
                     return NscriptVar::newstring("e",thisvar.stringvec[index].to_string());
                 }else{
-                    print(&format!(" getvar() block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&word,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+
+                    if self.debugging {
+                        print(&format!(" getvar() block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&word,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+                    }
                 }
                 return NscriptVar::new("entree");
             }
@@ -946,7 +990,10 @@ impl NscriptStorage{
         if let Some(thisclass) = self.getclassref(&cname){
             thisvar = thisclass.getprop(&pname);
         }else{
-            print(&format!("storage block:[{}] theres no class on cname [{}] pname[{}]",&block.name,&cname,&pname),"r");
+
+            if self.debugging {
+                print(&format!("storage block:[{}] theres no class on cname [{}] pname[{}]",&block.name,&cname,&pname),"r");
+            }
         }
         thisvar
     }

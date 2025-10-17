@@ -2190,7 +2190,10 @@ impl  Nscript{
                         }
                     }
                     _ =>{
-                        print("error in njh::???","r");
+
+                        if self.debugging {
+                            print("error in njh::???","r");
+                        }
                     }
 
                 }
@@ -2201,7 +2204,10 @@ impl  Nscript{
                     return userstruct.nscript_exec(splitstruct[1], &argvarvec,&mut self.storage);
                 }
                 else{
-                    print(&format!("cant find userstruct::[{}]::[{}]",&splitstruct[0],&splitstruct[1]),"r");
+
+                    if self.debugging {
+                        print(&format!("cant find userstruct::[{}]::[{}]",&splitstruct[0],&splitstruct[1]),"r");
+                    }
                     return NscriptVar::new("error");
                 }
             }
@@ -2532,7 +2538,10 @@ impl  Nscript{
             }  else if operator == "xor".into() {
                 result = result ^ self.check_statement(&a, &b, &c,&formattedblock,block);
             }else {
-                print("error operator on if statement", "r");
+
+                if self.debugging {
+                    print("error operator on if statement", "r");
+                }
             }
             index += 4;
         }

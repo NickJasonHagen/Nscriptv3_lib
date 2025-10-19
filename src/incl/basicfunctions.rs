@@ -1001,8 +1001,22 @@ pub fn copy_directory(dir_path: &str, todir_path: &str) -> String {
 pub fn nscriptfn_dirsize(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
  let dir = storage.getargstring(&args[0], block);
     let mut var = NscriptVar::new(&dir);
-    let mut size = get_size(&dir).unwrap_or(0);
+    var.stringdata = formatbytes(&get_size(&dir).unwrap_or(0));
+    return var
+}
+pub fn nscriptfn_formatbytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+ let dir = storage.getargstring(&args[0], block);
+    let mut var = NscriptVar::new(&dir);
+    var.stringdata = formatbytes(&get_size(&dir).unwrap_or(0));
+    return var
+}
+fn formatbytes(bytesize:&u64)->String{
     let mut unit = "B";
+    let mut size = bytesize.clone();
+    if size > 1000000000000{
+        unit = "TB";
+        size = size / 1000000000;
+    }
     if size > 1000000000{
         unit = "GB";
         size = size / 1000000000;
@@ -1015,8 +1029,7 @@ pub fn nscriptfn_dirsize(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
         unit = "KB";
         size = size / 1000;
     }
-    var.stringdata = size.to_string() + &unit;
-    return var
+    size.to_string() + &unit
 }
 pub fn nscriptfn_dirsizebytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
  let dir = storage.getargstring(&args[0], block);

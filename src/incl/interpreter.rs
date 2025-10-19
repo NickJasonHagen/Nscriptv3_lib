@@ -136,6 +136,7 @@ impl  Nscript{
             self.insertfn("dirdelete", nscriptfn_directory_delete,"(directorypath)  // deletes a directory");
             self.insertfn("dircreate", nscriptfn_dircreate,"(directorypath)  // creates a directory");
             self.insertfn("dirsize", nscriptfn_dirsize,"(directorypath)  // returns the size of a directory");
+            self.insertfn("formatbytes", nscriptfn_formatbytes,"(bytesize)  // returns a B,KB,MB,GB,TB string");
             self.insertfn("dirsizebytes", nscriptfn_dirsizebytes,"(directorypath)  // returns the bytesize of a directory");
             self.insertfn("listdir", nscriptfn_listdir,"(directorypath,bool:fullpathasresult default=false)  // returns a vector with all the files \n if the second argument is set to true all the entrees will have a full filepath \n if set false, or not given at all the entrees will only contain the filenames");
             self.insertfn("filesize", nscriptfn_filesize,"(filepath) // returns a kb/mb/gb floored number of the filesize");

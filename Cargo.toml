@@ -21,5 +21,6 @@ cgmath = "0.18.0"
 crossterm = "0.27.0"
 qrcode = "0.14.1"
 image = "0.25.8"
+fs_extra = "1.2.0"
 [target.'cfg(unix)'.dependencies]
 termion = "3.0.0"

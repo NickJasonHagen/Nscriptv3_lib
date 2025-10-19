@@ -998,7 +998,12 @@ pub fn copy_directory(dir_path: &str, todir_path: &str) -> String {
         Err(err) => format!("Error creating directory: {:?}", err),
     }
 }
-
+pub fn nscriptfn_dirsize(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+ let dir = storage.getargstring(&args[0], block);
+    let mut var = NscriptVar::new(&dir);
+    var.stringdata = get_size(&dir).unwrap_or(0).to_string();
+    return var
+}
 
 // Move a file from the source path to the destination path
 pub fn nscriptfn_filemove(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {

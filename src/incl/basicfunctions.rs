@@ -673,16 +673,7 @@ impl Nfile {
             Err(_) => return String::new(),
         };
         let realsize = metadata.len();
-        if realsize >= 1_000_000_000 {
-            return format!("{:.2} GB", realsize as f64 / 1_000_000_000.0);
-        }
-        if realsize >= 1_000_000 {
-            return format!("{:.2} MB", realsize as f64 / 1_000_000.0);
-        }
-        if realsize >= 1_000 {
-            return format!("{:.2} KB", realsize as f64 / 1_000.0);
-        }
-        format!("{} B", realsize)
+        formatbytes(&realsize)
     }
 
     pub fn checkexists(fp: &str) -> bool {

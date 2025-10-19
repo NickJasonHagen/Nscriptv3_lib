@@ -1004,7 +1004,6 @@ pub fn nscriptfn_formatbytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
 fn formatbytes(bytesize:&u64)->String{
     let mut unit = "B";
     let mut size = bytesize.clone();
-    let sizestr = bytesize.to_string();
     if size > 1000000000000{
         unit = "TB";
         size = size / 10000000000;
@@ -1021,8 +1020,10 @@ fn formatbytes(bytesize:&u64)->String{
         unit = "KB";
         size = size / 10;
     }
+
+    let sizestr = bytesize.to_string();
     let fractial = Nstring::fromright(&sizestr,2);
-    Nstring::trimright(size.to_string().as_str(), 1).to_string() + "." + &fractial + &unit
+    Nstring::trimright(size.to_string().as_str(), 2).to_string() + "." + &fractial + &unit
 }
 pub fn nscriptfn_dirsizebytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
  let dir = storage.getargstring(&args[0], block);

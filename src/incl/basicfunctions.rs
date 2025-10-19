@@ -1021,7 +1021,7 @@ fn formatbytes(bytesize:&u64)->String{
         size = size / 10;
     }
 
-    let sizestr = bytesize.to_string();
+    let sizestr = size.to_string();
     let fractial = Nstring::fromright(&sizestr,2);
     Nstring::trimright(size.to_string().as_str(), 2).to_string() + "." + &fractial + &unit
 }

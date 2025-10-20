@@ -1025,6 +1025,34 @@ fn formatbytes(bytesize:&u64)->String{
     let fractial = Nstring::fromright(&sizestr,2);
     Nstring::trimright(size.to_string().as_str(), 2).to_string() + "." + &fractial + &unit
 }
+pub fn nscriptfn_int_or(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let isor = Nstring::i64(&storage.getargstring(&args[1], block));
+    let mut var = storage.getvar(&args[0], block);
+    if let Ok(isint) =  storage.getargstring(&args[0], block).parse::<i64>(){
+        var.stringdata = isint.to_string();
+    }else{
+        var.stringdata = isor.to_string();
+    };
+    return var
+}
+pub fn nscriptfn_float_or(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let isor = Nstring::f64(&storage.getargstring(&args[1], block));
+    let mut var = storage.getvar(&args[0], block);
+    if let Ok(isint) =  storage.getargstring(&args[0], block).parse::<f64>(){
+        var.stringdata = isint.to_string();
+    }else{
+        var.stringdata = isor.to_string();
+    };
+    return var
+}
+pub fn nscriptfn_string_or(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let mut var = storage.getvar(&args[0], block);
+    if var.stringdata == ""{
+        let isor = storage.getargstring(&args[1], block);
+        var.stringdata = isor;
+    };
+    return var
+}
 pub fn nscriptfn_dirsizebytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
  let dir = storage.getargstring(&args[0], block);
     let mut var = NscriptVar::new(&dir);

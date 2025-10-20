@@ -192,6 +192,9 @@ impl  Nscript{
             self.insertfn("suffix", nscriptfn_suffix,"(string) // returns the last character");
             self.insertfn("castray", nscriptfn_castray,"(rayid,vec:pos_a,vec:pos_b,f32:steps) // returns vec lenght creates a buffer vector , use with getraypoint(rayid,vecid)");
             self.insertfn("getraypoint", nscriptfn_getraypoint,"(rayid,step) // returns a vector with the position , by the given step of the ray");
+            self.insertfn("int_or", nscriptfn_int_or,"(checkvarint,defaultint) // returns or if not a int");
+            self.insertfn("float_or", nscriptfn_int_or,"(checkvarfloat,defaultfloat) // returns or if not a float");
+            self.insertfn("string_or", nscriptfn_int_or,"(checkvar,default) // returns or if string is empty");
             #[cfg(not(windows))]
             if 1 == 1{
                 // termion terminal functions. Unix only

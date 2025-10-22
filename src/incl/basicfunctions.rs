@@ -33,6 +33,9 @@ pub fn nscriptfn_replace(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
     }
     return neovar;
 }
+pub fn nscriptfn_newvar(_args:&Vec<&str>,_block :&mut NscriptCodeBlock , _storage :&mut NscriptStorage) ->NscriptVar{
+    return NscriptVar::new("v");
+}
 pub fn nscriptfn_replacebyref(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     if args.len() > 2{
         //println!("raw ref = {}",&args[0]);

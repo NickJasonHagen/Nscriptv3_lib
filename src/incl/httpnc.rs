@@ -184,6 +184,17 @@ impl  Nscript{
             "/..",
             "",
         );
+        let mut httpaccessfile = split(&pathparts[0],"/");
+        let arglen = httpaccessfile.len();
+        httpaccessfile[arglen-1] = "httpaccess.nc";
+        let httpa = httpaccessfile.join("/");
+        if Nfile::checkexists(&httpa) {
+            let ret = self.parsefile(&httpa).stringdata.to_string();
+            if ret == "false" || ret == "!false"{
+                return;
+            }
+        }
+
         let checkthis = webroot.clone() + "domains/" + &domainname + "/http.nc";
         if Nfile::checkexists(&checkthis) {
             file_path = webroot.clone() + "domains/" + &domainname + "/public/" + &pathparts[0];

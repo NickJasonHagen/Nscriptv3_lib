@@ -932,7 +932,7 @@ impl  Nscript{
                                                             }
                                                             NscriptWordTypes::Bool =>{
                                                                 xline.insert(0,"SETB".to_string());
-                                                                println!("SETB:{}",xline.join(" "));
+                                                                //println!("SETB:{}",xline.join(" "));
                                                                 preprocessedvec.push(xline.to_owned());
                                                             }
                                                             NscriptWordTypes::Variable | NscriptWordTypes::Global | NscriptWordTypes::Property |
@@ -1037,12 +1037,6 @@ impl  Nscript{
                 let  onvar = self.storage.getvar(&line[3],block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
-            // "SETVa" =>{
-            //     let  onvar = self.storage.getvar(&line[3],block);
-            //
-            //     println!("settingv:{} w:{}",&line[1],&onvar.stringdata);
-            //     self.setdefiningword(&line[1], onvar, &formattedblock,block);
-            // }
             "SETVEC" =>{
                 let  onvar = self.executeword(&line[3],&formattedblock,block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);

@@ -202,7 +202,7 @@ impl  Nscript{
                 let mut wordvec:Vec<String> = Vec::new();
 
                 //first make sure syntax isnt conflicting
-                let syntaxwords = ["BRF","SCOPE","return", "true","false","cat","&=", "class","func","coroutine","thread",
+                let syntaxwords = ["BRF","SCOPE","return", "!true","!false", "true","false","cat","&=", "class","func","coroutine","thread",
                     "spawnthread","string","vec",",","!!","!",":","for" ,"if","else","elseif","math","match","=",
                     "+","-","/","*","loop","==","++","--","in","to","=>","!=",">","<","<=","=>","&&","||","and",
                     "init","or","break","!","!!","]"];
@@ -277,6 +277,9 @@ impl  Nscript{
                             }
                         }
                         else{
+                            if arg == "!!false" || arg == "!!true"{
+                                arg = Nstring::trimleft(&arg,1);
+                            }
                             wordvec.push(arg);
                         }
                     }
@@ -929,6 +932,7 @@ impl  Nscript{
                                                             }
                                                             NscriptWordTypes::Bool =>{
                                                                 xline.insert(0,"SETB".to_string());
+                                                                println!("SETB:{}",xline.join(" "));
                                                                 preprocessedvec.push(xline.to_owned());
                                                             }
                                                             NscriptWordTypes::Variable | NscriptWordTypes::Global | NscriptWordTypes::Property |
@@ -1027,7 +1031,7 @@ impl  Nscript{
             }
             "SETB" =>{
                 //let  onvar = self.storage.getvar(&line[3],block);
-                self.setdefiningword(&line[1], NscriptVar::newstring("b",Nstring::trimprefix(&line[3]).to_string()), &formattedblock,block);
+                self.setdefiningword(&line[1], NscriptVar::newstring("b",Nstring::trimleft(&line[3],1)), &formattedblock,block);
             }
             "SETV" =>{
                 let  onvar = self.storage.getvar(&line[3],block);
@@ -2319,7 +2323,8 @@ impl  Nscript{
         newcode
     }
     fn prefixbooleans(&mut self,filedata:&str) -> String{
-        return Nstring::replace(&Nstring::replace(&filedata,"true","!true"),"false","!false");
+        let this =  Nstring::replace(&Nstring::replace(&filedata,"true","!true"),"false","!false");
+        return  Nstring::replace(&Nstring::replace(&this,"!!true","!true"),"!!false","!false");
     }
     /// encodes the static strings, will later on be parsed per scope and set as variables.
     /// pre-formatting

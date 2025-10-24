@@ -1927,7 +1927,7 @@ impl  Nscript{
             let formattedblockfunc = self.getexecutableblock(&getblock.name);//func.formattedcodeblock.clone();
             //let len = func.args.len();
             let len2 = givenargs.len();
-            for xarg in 0..len2{
+            for xarg in 0..func.args.len(){
                 if len2 > xarg{
                     getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
                 }else{break;}

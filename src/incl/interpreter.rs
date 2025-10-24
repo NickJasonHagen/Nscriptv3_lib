@@ -805,6 +805,9 @@ impl NscriptStorage{
             NscriptWordTypes::Variable=>{
                 return block.getstr(word).into();
             }
+            NscriptWordTypes::Bool => {
+                return Nstring::trimprefix(&word).into();
+            }
             NscriptWordTypes::Property=>{
                 let thisword = Nstring::trimprefix(word);
                 let wordsplit = split(&thisword,".");

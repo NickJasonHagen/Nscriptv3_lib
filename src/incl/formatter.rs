@@ -927,8 +927,12 @@ impl  Nscript{
                                                                 }
 
                                                             }
+                                                            NscriptWordTypes::Bool =>{
+                                                                xline.insert(0,"SETB".to_string());
+                                                                preprocessedvec.push(xline.to_owned());
+                                                            }
                                                             NscriptWordTypes::Variable | NscriptWordTypes::Global | NscriptWordTypes::Property |
-                                                            NscriptWordTypes::Bool   |
+
                                                             NscriptWordTypes::Macro |NscriptWordTypes::Array=>{
                                                                 xline.insert(0,"SETV".to_string());
                                                                 preprocessedvec.push(xline.to_owned());
@@ -1020,6 +1024,10 @@ impl  Nscript{
             "xVCF" =>{
                 let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
                 block.setvar(&line[1], onvar);
+            }
+            "SETB" =>{
+                //let  onvar = self.storage.getvar(&line[3],block);
+                self.setdefiningword(&line[1], NscriptVar::newstring("b",Nstring::trimprefix(&line[3]).to_string()), &formattedblock,block);
             }
             "SETV" =>{
                 let  onvar = self.storage.getvar(&line[3],block);

@@ -1470,3 +1470,4 @@ pub fn nscriptfn_suffix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :
     let  var = storage.getargstring(args[0], block);
     NscriptVar::newstring("str",Nstring::postfix(&var).to_string())
 }
+

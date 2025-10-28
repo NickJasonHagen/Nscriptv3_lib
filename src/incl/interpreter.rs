@@ -1606,9 +1606,6 @@ impl NscriptVar{
         }
     }
 
-    pub fn setreturn(&mut self){
-        self.name = "return".to_string();
-    }
     /// returns the string value of the variable
     pub fn getstring(&mut self) -> &str{
         return &self.stringdata;

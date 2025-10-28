@@ -930,21 +930,16 @@ impl  Nscript{
                                                                 }
 
                                                             }
-                                                            NscriptWordTypes::Bool =>{
-                                                                xline.insert(0,"SETB".to_string());
-                                                                //println!("SETB:{}",xline.join(" "));
-                                                                preprocessedvec.push(xline.to_owned());
-                                                            }
-                                                            NscriptWordTypes::Variable | NscriptWordTypes::Global | NscriptWordTypes::Property |
+                                                            // NscriptWordTypes::Bool =>{
+                                                            //     xline.insert(0,"SETB".to_string());
+                                                            //     preprocessedvec.push(xline.to_owned());
+                                                            // }
+                                                            NscriptWordTypes::Variable | NscriptWordTypes::Global | NscriptWordTypes::Property |NscriptWordTypes::Bool|
 
                                                             NscriptWordTypes::Macro |NscriptWordTypes::Array=>{
                                                                 xline.insert(0,"SETV".to_string());
                                                                 preprocessedvec.push(xline.to_owned());
                                                             }
-                                                            // NscriptWordTypes::Array =>{
-                                                            //     xline.insert(0,"SETVa".to_string());
-                                                            //     preprocessedvec.push(xline.to_owned());
-                                                            // }
                                                             NscriptWordTypes::Arraydeclaration =>{
                                                                 xline.insert(0,"SETVEC".to_string());
                                                                 preprocessedvec.push(xline.to_owned());
@@ -1029,10 +1024,10 @@ impl  Nscript{
                 let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
                 block.setvar(&line[1], onvar);
             }
-            "SETB" =>{
-                //let  onvar = self.storage.getvar(&line[3],block);
-                self.setdefiningword(&line[1], NscriptVar::newstring("b",Nstring::trimleft(&line[3],1)), &formattedblock,block);
-            }
+            // "SETB" =>{
+            //     //let  onvar = self.storage.getvar(&line[3],block);
+            //     self.setdefiningword(&line[1], NscriptVar::newstring("b",Nstring::trimleft(&line[3],1)), &formattedblock,block);
+            // }
             "SETV" =>{
                 let  onvar = self.storage.getvar(&line[3],block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
@@ -1056,7 +1051,7 @@ impl  Nscript{
             }
             "RV" =>{
                 let mut retvar = block.getvar(&line[1]);
-                retvar.setreturn();
+                retvar.name = "return".to_string();
                 return retvar;
             }
             "RS" =>{
@@ -1064,32 +1059,32 @@ impl  Nscript{
             }
             "RP" =>{
                 let mut retvar = self.storage.classgetprop(&Nstring::trimprefix(&line[1]),&line[2], block);
-                retvar.setreturn();
+                retvar.name = "return".to_string();
                 return retvar;
             }
             "return" =>{
                 let mut retvar = self.executeword(&line[1], &formattedblock,block);
-                retvar.setreturn();
+                retvar.name = "return".to_string();
                 return retvar;
             }
             "R_FN" =>{
                 let mut retvar = self.execute_prencfunction(&line[3],&line, block);
-                retvar.setreturn();
+                retvar.name = "return".to_string();
                 return retvar;
             }
             "R_RFN" =>{
                 let mut retvar = self.execute_prerustfunction(&line[2],&line[2], block);
-                retvar.setreturn();
+                retvar.name = "return".to_string();
                 return retvar;
             }
             "R_CFN" =>{
                 let mut retvar = self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block);
-                retvar.setreturn();
+                retvar.name = "return".to_string();
                 return retvar;
             }
             "R_NFN" =>{
                 let mut retvar = self.execute_nestedfunction(&line[2],&formattedblock, block);
-                retvar.setreturn();
+                retvar.name = "return".to_string();
                 return retvar;
             }
             "CH" =>{

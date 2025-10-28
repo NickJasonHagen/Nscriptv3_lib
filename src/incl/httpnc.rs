@@ -91,7 +91,32 @@ impl  Nscript{
         var.stringdata = "theres no binding loaded".to_string();
         return var;
     }
-
+    fn httpsetarguments(&mut self,pathparts:&Vec<&str>){
+        let mut url_args = Vec::new();
+        if pathparts.len() > 1 {
+            url_args = split(pathparts[1], "&");
+        }
+        for i in 1..10 {
+            let name = "$param".to_string() + &i.to_string();
+            let mut paramvar = NscriptVar::new(&name);
+            if url_args.len() > i - 1 {
+                paramvar.stringdata = decode_html_url(&url_args[i - 1].to_owned());
+            }
+            self.storage.setglobal(&name, paramvar);
+        }
+    }
+    fn httprunhttpaccessnc(&mut self,pathparts:&Vec<&str>){
+        let mut httpaccessfile = split(&pathparts[0],"/");
+        let arglen = httpaccessfile.len();
+        httpaccessfile[arglen-1] = "httpaccess.nc";
+        let httpa = httpaccessfile.join("/");
+        if Nfile::checkexists(&httpa) {
+            let ret = self.parsefile(&httpa).stringdata.to_string();
+            if ret == "false" || ret == "!false"{
+                return;
+            }
+        }
+    }
     fn handle_connection(&mut self,mut stream: TcpStream) {
         // this is the webserver part it will take a GET request and handle it.
         // text files are on the main thread for other downloads it goes to a other thread
@@ -160,20 +185,9 @@ impl  Nscript{
         if pathparts[0] == "" {
             pathparts[0] = "index.nc";
         }
-        let mut url_args = Vec::new();
-        if pathparts.len() > 1 {
-            url_args = split(pathparts[1], "&");
-        }
-        let mut name:String;
 
-        for i in 1..10 {
-            name = "$param".to_string() + &i.to_string();
-            let mut paramvar = NscriptVar::new(&name);
-            if url_args.len() > i - 1 {
-                paramvar.stringdata = decode_html_url(&url_args[i - 1].to_owned());
-            }
-            self.storage.setglobal(&name, paramvar);
-        }
+        self.httpsetarguments(&pathparts);
+
         let mut webroot = self.executeword("&server.serverroot",&formattedblock,&mut connectionblock).stringdata.to_string();
         if webroot == "" {
             webroot = "./".to_string();
@@ -184,16 +198,7 @@ impl  Nscript{
             "/..",
             "",
         );
-        let mut httpaccessfile = split(&pathparts[0],"/");
-        let arglen = httpaccessfile.len();
-        httpaccessfile[arglen-1] = "httpaccess.nc";
-        let httpa = httpaccessfile.join("/");
-        if Nfile::checkexists(&httpa) {
-            let ret = self.parsefile(&httpa).stringdata.to_string();
-            if ret == "false" || ret == "!false"{
-                return;
-            }
-        }
+        self.httprunhttpaccessnc(&pathparts);
 
         let checkthis = webroot.clone() + "domains/" + &domainname + "/http.nc";
         if Nfile::checkexists(&checkthis) {
@@ -276,18 +281,13 @@ impl  Nscript{
                             }
                         }
                     }
-                    //let strippostdata = split(&postdata, "\r\n\r\n");
-
                     let mut postvar = NscriptVar::new("$POSTDATA");
                     postvar.stringdata = Nstring::replace(&postdata.trim(), "\0", "");
                     self.storage.setglobal(
                         "$POSTDATA",
                         postvar,
                     );
-
-                    let scriptcode = Nfile::read(&file_path);
-
-                    let response = self.parsecode(&scriptcode, &file_path).stringdata.to_string();
+                    let response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata.to_string();
 
                     match stream.write(response.as_bytes()) {
                         Ok(bytes_written) => {
@@ -305,6 +305,10 @@ impl  Nscript{
             return;
         }
         if request_parts[0] == "GET" {
+                    self.storage.setglobal(
+                        "$POSTDATA",
+                        NscriptVar::new("$POSTDATA"),
+                    );
             if let Some(extension) = Path::new(&file_path)
                 .extension()
                 .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
@@ -319,9 +323,8 @@ impl  Nscript{
                             webroot.clone() + "/404.nc";
                             println!("404={},", nc404file);
                             if Nfile::checkexists(&nc404file) {
-                                //let compcode = nscript_formatsheet(&read_file_utf8(&nc404file),vmap);
-                                let compcode = Nfile::read(&nc404file);
-                                let ret = self.parsecode(&compcode,"404").stringdata.to_string();
+                                //let compcode = Nfile::read(&nc404file);
+                                let ret = self.parsecode(&Nfile::read(&nc404file),"404").stringdata.to_string();
 
                                 response = format!(
                                     "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",

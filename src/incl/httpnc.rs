@@ -128,6 +128,7 @@ impl  Nscript{
             }
         }
     }
+
     fn handle_connection(&mut self,mut stream: TcpStream) {
         // this is the webserver part it will take a GET request and handle it.
         // text files are on the main thread for other downloads it goes to a other thread
@@ -249,14 +250,8 @@ impl  Nscript{
                     }
                     if bsize > nscript_usize(&self.executeword("&server.POSTbytesmax",&formattedblock, &mut connectionblock).stringdata) {
                         let response = "SERVERERROR:PostSizeExceedsLimit";
-                        match stream.write(response.as_bytes()) {
-                            Ok(_) => {
-                                return;
-                            }
-                            Err(_) => {
-                                return;
-                            }
-                        }
+                         stream.write(response.as_bytes()).unwrap();
+                        return;
                     }
                     if bsize > recveivedcontentlenght {
                         let mut start_time = Instant::now();
@@ -293,26 +288,16 @@ impl  Nscript{
                     );
                     let response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata.to_string();
 
-                    match stream.write(response.as_bytes()) {
-                        Ok(bytes_written) => {
-                            // Check if all bytes were successfully written.
-                            if bytes_written < response.len() {
-                                print!("post stream broken bytes written {} of {}",bytes_written,response.len());
-                            }
-                        }
-                        Err(_) => {
-                            //return;
-                        }
-                    }
+                    stream.write(response.as_bytes()).unwrap();
                 }
             }
             return;
         }
         if request_parts[0] == "GET" {
-                    self.storage.setglobal(
-                        "$POSTDATA",
-                        NscriptVar::new("$POSTDATA"),
-                    );
+            self.storage.setglobal(
+                "$POSTDATA",
+                NscriptVar::new("$POSTDATA"),
+            );
             if let Some(extension) = Path::new(&file_path)
                 .extension()
                 .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
@@ -336,16 +321,9 @@ impl  Nscript{
                                     &ret.len()
                                 );
                                 stream.write(response.as_bytes()).unwrap();
-                                match stream.write(ret.as_bytes()) {
-                                    Ok(bytes_written) => {
-                                        // Check if all bytes were successfully written.
-                                        if bytes_written < response.len() {
-                                            // Handle the situation where not all data was written if needed.
-                                        }
-                                    }
-                                    Err(_) => {
-                                        return;
-                                    }
+                                if let Err(_)  = stream.write(ret.as_bytes()) {
+                                    return;
+
                                 }
                                 return;
                             } else {
@@ -854,8 +832,8 @@ pub fn nscriptfn_get_http_content(args:&Vec<&str>,block :&mut NscriptCodeBlock ,
         return var;
     }
     let request = format!(
-    "GET {} HTTP/1.1\r\nHost: {}:{}\r\nConnection: close\r\n\r\n",
-    path, port, host);
+        "GET {} HTTP/1.1\r\nHost: {}:{}\r\nConnection: close\r\n\r\n",
+        path, port, host);
     if let Err(_) = stream.write_all(request.as_bytes()){
         return var;
     };

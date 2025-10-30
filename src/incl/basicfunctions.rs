@@ -1,6 +1,5 @@
 use colored::{ColoredString, CustomColor};
-use qrcode::QrCode;
-use image::Luma;
+
 use crate::*;
 use std::{char, time::{SystemTime, UNIX_EPOCH}};
 pub struct Nstring {
@@ -1454,13 +1453,13 @@ pub fn nscriptfn_arraynewsized(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
     )
 }
 
-pub fn nscriptfn_createqrcode(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let code = QrCode::new(storage.getargstring(args[0], block).as_bytes()).unwrap();
-    let image = code.render::<Luma<u8>>().build();
-    // Save the image.
-    image.save(storage.getargstring(args[1], block)).unwrap();
-    NscriptVar::new("qr")
-}
+// pub fn nscriptfn_createqrcode(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+//     let code = QrCode::new(storage.getargstring(args[0], block).as_bytes()).unwrap();
+//     let image = code.render::<Luma<u8>>().build();
+//     // Save the image.
+//     image.save(storage.getargstring(args[1], block)).unwrap();
+//     NscriptVar::new("qr")
+// }
 
 pub fn nscriptfn_prefix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let  var = storage.getargstring(args[0], block);

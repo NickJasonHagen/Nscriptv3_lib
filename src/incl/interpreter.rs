@@ -187,7 +187,7 @@ impl  Nscript{
             self.insertfn("decrypt", nscriptfn_decrypt,"(datastring,passwordstring) // returns a decrypted string, created by encrypt(str,pss)");
             self.insertfn("arraynew", nscriptfn_arraynew,"() // returns a new array");
             self.insertfn("arraynewsized", nscriptfn_arraynewsized,"(size) // returns a new array with empty strings by the given size");
-            self.insertfn("createqrcode", nscriptfn_createqrcode,"(url,filepathimage) // creates a qrcode link imagefile  ");
+            //self.insertfn("createqrcode", nscriptfn_createqrcode,"(url,filepathimage) // creates a qrcode link imagefile  ");
             self.insertfn("prefix", nscriptfn_prefix,"(string) // returns the first character");
             self.insertfn("suffix", nscriptfn_suffix,"(string) // returns the last character");
             self.insertfn("castray", nscriptfn_castray,"(rayid,vec:pos_a,vec:pos_b,f32:steps) // returns vec lenght creates a buffer vector , use with getraypoint(rayid,vecid)");

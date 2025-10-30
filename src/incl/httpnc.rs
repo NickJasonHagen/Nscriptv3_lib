@@ -117,6 +117,17 @@ impl  Nscript{
             }
         }
     }
+    fn checkstream(&mut self,stream: &mut TcpStream,mut buffer: &mut [u8]) -> bool{
+        match stream.read(&mut buffer) {
+            Ok(_) => {
+                true
+            }
+            Err(_) => {
+                println!("stream read error ! ");
+                false
+            }
+        }
+    }
     fn handle_connection(&mut self,mut stream: TcpStream) {
         // this is the webserver part it will take a GET request and handle it.
         // text files are on the main thread for other downloads it goes to a other thread
@@ -127,15 +138,8 @@ impl  Nscript{
         //stream.read(&mut buffer).unwrap();
         let mut connectionblock = NscriptCodeBlock::new("connection");
         //let  formattedblock = NscriptExecutableCodeBlock::new();
-        match stream.read(&mut buffer) {
-            Ok(_) => {
-                // procceed the connection.
-            }
-            Err(_) => {
-                // handle OS error on connection-reset
-                println!("stream read error ! ");
-                return;
-            }
+        if self.checkstream(&mut stream,&mut buffer) == false{
+            return
         }
 
         let request = String::from_utf8_lossy(&buffer[..]);

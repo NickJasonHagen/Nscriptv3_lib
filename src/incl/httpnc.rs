@@ -105,7 +105,7 @@ impl  Nscript{
             self.storage.setglobal(&name, paramvar);
         }
     }
-    fn httprunhttpaccessnc(&mut self,pathparts:&Vec<&str>){
+    fn httprunhttpaccessnc(&mut self,pathparts:&Vec<&str>) -> bool{
         let mut httpaccessfile = split(&pathparts[0],"/");
         let arglen = httpaccessfile.len();
         httpaccessfile[arglen-1] = "httpaccess.nc";
@@ -113,9 +113,10 @@ impl  Nscript{
         if Nfile::checkexists(&httpa) {
             let ret = self.parsefile(&httpa).stringdata.to_string();
             if ret == "false" || ret == "!false"{
-                return;
+                return false;
             }
         }
+        return true;
     }
     fn checkstream(&mut self,stream: &mut TcpStream,mut buffer: &mut [u8]) -> bool{
         match stream.read(&mut buffer) {
@@ -203,7 +204,7 @@ impl  Nscript{
             "/..",
             "",
         );
-        self.httprunhttpaccessnc(&pathparts);
+        if self.httprunhttpaccessnc(&pathparts) == false{return;};
 
         let checkthis = webroot.clone() + "domains/" + &domainname + "/http.nc";
         if Nfile::checkexists(&checkthis) {

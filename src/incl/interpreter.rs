@@ -25,6 +25,9 @@ pub struct Nscript{
     pub userfunctions: HashMap<String,NscriptFunc>,
     pub emptyexecutableblock: NscriptExecutableCodeBlock,// <- so we can send back a ref
     pub debugging: bool,// <- so we can send back a ref
+    pub httpposthandles: HashMap<String, NscriptPostHandle>,
+    // pub httppostthreadsreceiver: HashMap<String, mpsc::Receiver<NscriptVar>>,
+    // pub httppostthreadssenders: HashMap<String, mpsc::Sender<NscriptVar>>,
 }
 //ok
 
@@ -51,6 +54,10 @@ impl  Nscript{
             userfunctions:HashMap::new(),
             emptyexecutableblock:NscriptExecutableCodeBlock::new(),
             debugging:false,
+            httpposthandles:HashMap::new(),
+            // httppostthreadssenders:HashMap::new(),
+            // httppostthreadsreceiver:HashMap::new(),
+
 
         }
     }

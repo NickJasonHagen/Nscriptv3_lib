@@ -422,6 +422,122 @@ impl  Nscript{
 
 }
 
+
+pub struct NscriptPostHandle{
+    pub scriptpath: String,
+    pub params: Vec<NscriptVar>,
+    pub postdata: NscriptVar,
+    pub status: String,
+    pub httppostthreadsreceiver: mpsc::Receiver<NscriptVar>,
+    pub httppostthreadssenders: mpsc::Sender<NscriptVar>,
+}
+
+impl Nscript{
+
+    pub fn handleconnections(&mut self){
+
+    }
+    pub fn postthreadcall(&mut self,threadname:&str) -> NscriptVar{
+        if let Some(thishandle) = self.httpposthandles.get_mut(&threadname.to_string()){
+            match thishandle.httppostthreadssenders.send(NscriptVar::newstring("str", "check".to_string())){
+                Ok(_)=>{
+                    let msg: NscriptVar = match thishandle.httppostthreadsreceiver.try_recv(){
+                        Ok(m) =>m,
+                        Err(_e) =>{
+                            NscriptVar::new("error")
+                        },
+                    };
+                    match msg.stringdata.as_str(){
+                        _ =>{
+                            if msg.stringdata.as_str() != ""{
+                                return msg;
+                            }
+                        }
+                    }
+                },
+                Err(_)=>{
+                    return NscriptVar::new("error");
+                }
+            };
+            return NscriptVar::new("ok");
+        };
+
+        NscriptVar::new(".")
+    }
+    pub fn addnew(&mut self,mut stream:TcpStream,threadname:&str,bufferinit :Vec<u8>,mut postdata:String,bsize:usize,scripttocall: &str,args:Vec<NscriptVar>){
+        let mut buffer = bufferinit.to_owned();
+        let (main_to_worker_tx, main_to_worker_rx) = mpsc::channel();
+        let (worker_to_main_tx, worker_to_main_rx) = mpsc::channel();
+        let thishandle = NscriptPostHandle{
+            scriptpath:scripttocall.to_string(),
+            params:args,
+            postdata:NscriptVar::new("."),
+            status:"init".to_string(),
+            httppostthreadsreceiver:worker_to_main_rx,
+            httppostthreadssenders:main_to_worker_tx
+        };
+        self.httpposthandles.insert(threadname.to_string(),thishandle);
+        let worker_to_main_tx = Arc::new(Mutex::new(worker_to_main_tx));
+        thread::spawn(move || {
+            let mut streamready = false;
+            let mut  start_time = Instant::now();
+            loop {
+                let end = Instant::now();
+                if (start_time - end).as_millis() >= 1000 {
+                    print("closed by timeout", "r");
+                    break;
+                }
+                match stream.read(&mut buffer) {
+                    Ok(bytes_read) => {
+                        postdata = postdata + &String::from_utf8_lossy(&buffer[0..bytes_read]);
+                        if bytes_read <= 1023 && postdata.len() + 1024 >= bsize{
+                            streamready = true;
+                            break;
+                        }
+                        start_time = Instant::now();
+                    }
+                    Err(e) => {
+                        print!("error nchttp {}", e); // handle OS error on connection-reset)
+                        break;
+                    }
+                }
+            }
+
+
+            loop {
+                let sender = worker_to_main_tx.lock().unwrap();
+                let received_message: NscriptVar = match main_to_worker_rx.try_recv(){
+                    Ok(rmsg) => {
+                        rmsg
+                    }
+                    Err(_)=>{
+                        NscriptVar::new("error")
+                    }
+                };
+                if received_message.name == "close"{// when alls handled, mainthread signals close
+                    break;
+                }
+                if received_message.name != "error"{
+                    if streamready{
+                        match sender.send(NscriptVar::newstring("some",postdata.to_string())){
+                            Ok(_)=>{},
+                            Err(_)=>{},
+                        };
+                    }
+               }
+            }
+        });
+
+    }
+}
+// pub struct NscriptPostHandle{
+//     stream: TcpStream,
+// }
+// impl NscriptPostHandle{
+//     pub fn new(streamhandle:TcpStream) -> NscriptPostHandle{
+//         NscriptPostHandle{stream:streamhandle}
+//     }
+// }
 pub fn nscriptfn_decode_html_url(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut nvar = NscriptVar::new("decode");
     nvar.stringdata = decode_html_url(&storage.getargstring(&args[0], block));

@@ -219,11 +219,11 @@ impl  Nscript{
             );
             let strippostdata = split(&request, "\r\n\r\n");
             if strippostdata.len() > 1 {
-                postdata = "".to_owned() + strippostdata[1]; // used for post buffer data
+                postdata = "".to_owned() + &strippostdata[1..].join("\r\n\r\n"); // used for post buffer data
             } else {
                 return; //some jacked up post request being done.
             }
-            let recveivedcontentlenght = postdata.len();
+            let receivedcontentlenght = postdata.len();
 
             if let Some(extension) = Path::new(&file_path)
                 .extension()
@@ -236,30 +236,17 @@ impl  Nscript{
                         &Nstring::stringbetween(&request, "Content-Length: ", "Cache").trim(),
                     );
                     let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-
-                    match stream.write(response.as_bytes()) {
-                        Ok(bytes_written) => {
-                            // Check if all bytes were successfully written.
-                            if bytes_written < response.len() {
-                                // Handle the situation where not all data was written if needed.
-                            }
-                        }
-                        Err(_) => {
-                            //return;
-                        }
-                    }
+                    stream.write(response.as_bytes()).unwrap();
                     if bsize > nscript_usize(&self.executeword("&server.POSTbytesmax",&formattedblock, &mut connectionblock).stringdata) {
                         let response = "SERVERERROR:PostSizeExceedsLimit";
-                         stream.write(response.as_bytes()).unwrap();
+                        stream.write(response.as_bytes()).unwrap();
                         return;
                     }
-                    if bsize > recveivedcontentlenght {
+                    if bsize > receivedcontentlenght {
                         let mut start_time = Instant::now();
                         loop {
                             let end = Instant::now();
                             if (start_time - end).as_millis() >= 1000 {
-                                // dc timer for inactivity should break the loop.
-                                //
                                 print("closed by timeout", "r");
                                 break;
                             }
@@ -267,11 +254,10 @@ impl  Nscript{
                             match stream.read(&mut buffer) {
                                 Ok(bytes_read) => {
                                     postdata = postdata + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-                                    if bytes_read <= 1023 {
+                                    if bytes_read <= 1023 && postdata.len() + 1024 >= bsize{
                                         break;
                                     }
                                     start_time = Instant::now();
-                                    // procceed the connection.
                                 }
                                 Err(e) => {
                                     print!("error nchttp {}", e); // handle OS error on connection-reset)
@@ -312,19 +298,14 @@ impl  Nscript{
                             webroot.clone() + "/404.nc";
                             println!("404={},", nc404file);
                             if Nfile::checkexists(&nc404file) {
-                                //let compcode = Nfile::read(&nc404file);
                                 let ret = self.parsecode(&Nfile::read(&nc404file),"404").stringdata.to_string();
-
                                 response = format!(
                                     "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
                                     "text/html",
                                     &ret.len()
                                 );
                                 stream.write(response.as_bytes()).unwrap();
-                                if let Err(_)  = stream.write(ret.as_bytes()) {
-                                    return;
-
-                                }
+                                stream.write(ret.as_bytes()).unwrap();
                                 return;
                             } else {
                                 stream.write(response.as_bytes()).unwrap();
@@ -339,29 +320,10 @@ impl  Nscript{
                         "text/html",
                         &ret.len()
                     );
-                    match stream.write(response.as_bytes()) {
-                        Ok(bytes_written) => {
-                            // Check if all bytes were successfully written.
-                            if bytes_written < response.len() {
-                                // Handle the situation where not all data was written if needed.
-                            }
-                        }
-                        Err(_) => {
-                            return;
-                        }
-                    }
-                    match stream.write(ret.as_bytes()) {
-                        Ok(bytes_written) => {
-                            // Check if all bytes were successfully written.
-                            if bytes_written < response.len() {
-                                // Handle the situation where not all data was written if needed.
-                            }
-                        }
-                        Err(_) => {
-                            return;
-                        }
-                    }
-                    return;
+
+                    if let Err(_) = stream.write(response.as_bytes()) {return;}
+                    stream.write(ret.as_bytes()).unwrap();
+                    return
                 }
                 if ["html"].contains(&extension.as_str()) {
                     let _ = match File::open(&file_path) {
@@ -382,17 +344,7 @@ impl  Nscript{
                                     &ret.len()
                                 );
                                 stream.write(response.as_bytes()).unwrap();
-                                match stream.write(ret.as_bytes()) {
-                                    Ok(bytes_written) => {
-                                        // Check if all bytes were successfully written.
-                                        if bytes_written < response.len() {
-                                            // Handle the situation where not all data was written if needed.
-                                        }
-                                    }
-                                    Err(_) => {
-                                        return;
-                                    }
-                                }
+                                stream.write(ret.as_bytes()).unwrap();
                                 return;
                             } else {
                                 stream.write(response.as_bytes()).unwrap();
@@ -424,28 +376,10 @@ impl  Nscript{
                         "text/html",
                         &ret.len()
                     );
-                    match stream.write(response.as_bytes()) {
-                        Ok(bytes_written) => {
-                            // Check if all bytes were successfully written.
-                            if bytes_written < response.len() {
-                                // Handle the situation where not all data was written if needed.
-                            }
-                        }
-                        Err(_) => {
-                            return;
-                        }
-                    }
-                    match stream.write(ret.as_bytes()) {
-                        Ok(bytes_written) => {
-                            // Check if all bytes were successfully written.
-                            if bytes_written < response.len() {
-                                // Handle the situation where not all data was written if needed.
-                            }
-                        }
-                        Err(_) => {
-                            return;
-                        }
-                    }
+
+                    stream.write(response.as_bytes()).unwrap();
+                    stream.write(ret.as_bytes()).unwrap();
+
                     return;
                 }
                 let file_path_clone = file_path.clone(); // clone file_path
@@ -475,29 +409,10 @@ impl  Nscript{
                         content_type,
                         contents.len()
                     );
-                    match stream.write(response.as_bytes()) {
-                        Ok(bytes_written) => {
-                            // Check if all bytes were successfully written.
-                            if bytes_written < response.len() {
-                                eprintln!("Not all data was written to the stream.");
-                                // Handle the situation where not all data was written if needed.
-                            }
-                        }
-                        Err(_error) => {
-                            return;
-                        }
-                    }
-                    match stream.write(&contents) {
-                        Ok(bytes_written) => {
-                            // Check if all bytes were successfully written.
-                            if bytes_written < contents.len() {
-                                // Handle the situation where not all data was written if needed.
-                            }
-                        }
-                        Err(_) => {
-                            return;
-                        }
-                    }
+
+                    if let Err(_) = stream.write(response.as_bytes()) {return;}
+                    if let Err(_) = stream.write(&contents) {return;}
+
                 });
                 return;
             }

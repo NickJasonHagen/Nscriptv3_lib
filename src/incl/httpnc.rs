@@ -12,8 +12,11 @@ impl  Nscript{
                 }
             }
             "listen" =>{
+
+                self.handleconnections();// running post thread handler!
                 return self.httplisten(&args[0].stringdata);
             }
+
             _ => {
 
             }
@@ -50,6 +53,7 @@ impl  Nscript{
     }
 
     pub fn httplisten(&mut self,nameid:&str) ->NscriptVar{
+
         let mut var = NscriptVar::new("listener");
         if let Some(listener) = self.tcplisteners.get_mut(nameid){
             match listener.accept() {
@@ -96,13 +100,17 @@ impl  Nscript{
         if pathparts.len() > 1 {
             url_args = split(pathparts[1], "&");
         }
+        let mut params:Vec<String> = Vec::new();
         for i in 1..10 {
             let name = "$param".to_string() + &i.to_string();
             let mut paramvar = NscriptVar::new(&name);
             if url_args.len() > i - 1 {
                 paramvar.stringdata = decode_html_url(&url_args[i - 1].to_owned());
+                params.push(decode_html_url(&url_args[i - 1].to_owned()));
             }
+            let paramsvec = NscriptVar::newvec("$params", params.to_owned());
             self.storage.setglobal(&name, paramvar);
+            self.storage.setglobal("$params", paramsvec);
         }
     }
     fn httprunhttpaccessnc(&mut self,pathparts:&Vec<&str>,webroot:&str) -> bool{
@@ -243,6 +251,12 @@ impl  Nscript{
                         stream.write(response.as_bytes()).unwrap();
                         return;
                     }
+                    if bsize > 8096{
+                        let tname = self.storage.getmacrostring("@now").to_string() + "_postthread";
+                        self.addnewposthandle(stream, &tname, buffer.to_vec(), postdata, bsize, &file_path);
+                        return;
+                    }
+
                     if bsize > receivedcontentlenght {
                         let mut start_time = Instant::now();
                         loop {
@@ -323,7 +337,7 @@ impl  Nscript{
                     );
 
                     if let Err(_) = stream.write(response.as_bytes()) {return;}
-                    stream.write(ret.as_bytes()).unwrap();
+                    if let Ok(_) = stream.write(ret.as_bytes()){};
                     return
                 }
                 if ["html"].contains(&extension.as_str()) {
@@ -430,56 +444,148 @@ pub struct NscriptPostHandle{
     pub status: String,
     pub httppostthreadsreceiver: mpsc::Receiver<NscriptVar>,
     pub httppostthreadssenders: mpsc::Sender<NscriptVar>,
+    pub parsed: bool,
 }
 
 impl Nscript{
 
     pub fn handleconnections(&mut self){
-
+        let allcons = self.storage.getglobal("$POSTCONNECTIONS");
+        let mut convec = Vec::new();
+        for xcon in allcons.stringvec{
+            self.postthreadcall(&xcon);
+            if let Some(thishandle) = self.httpposthandles.get_mut(&xcon.to_string()){
+                if thishandle.status == "exit"{
+                    //print("cleared thread","r");
+                    self.httpposthandles.remove(&xcon);
+                }
+                else{
+                    convec.push(xcon.to_string());
+                }
+            }
+        }
+        self.storage.setglobal("$POSTCONNECTIONS", NscriptVar::newvec("$POSTCONNECTIONS", convec.to_owned()));
     }
-    pub fn postthreadcall(&mut self,threadname:&str) -> NscriptVar{
+
+    pub fn postthreadcall(&mut self,threadname:&str){
+        let mut scrpath = "".to_string();
+        let mut parsedcode = false;
+        let mut tosend = NscriptVar::newstring("v","".to_string());
         if let Some(thishandle) = self.httpposthandles.get_mut(&threadname.to_string()){
-            match thishandle.httppostthreadssenders.send(NscriptVar::newstring("str", "check".to_string())){
+
+            if thishandle.status == "exit"{return;}
+            parsedcode = thishandle.parsed.clone();
+            if thishandle.status == "close"{
+
+                //print("posthandle stats:close","bg");
+                tosend = NscriptVar::newstring("check","check".to_string());
+                //if tosend.name == "some"{
+                    //tosend.name = "close".to_string();
+                    //print("SomeReceived!","g");
+                    self.storage.setglobal("$POSTDATA",thishandle.postdata.clone());
+                    for xvar in 0..thishandle.params.len(){
+                        self.storage.setglobal(&format!("$param{}",xvar), thishandle.params[xvar].clone());
+                    }
+                scrpath = thishandle.scriptpath.to_string();
+
+                //}
+
+            }
+        }
+        if scrpath != "" && parsedcode == false{
+
+            //print("posthandle settingscript","bg");
+            tosend = self.parsefile(&scrpath);
+            tosend.name = "close".to_string();
+        }
+
+        if let Some(thishandle) = self.httpposthandles.get_mut(&threadname.to_string()){
+            if tosend.name == "close"{
+                thishandle.parsed = true;
+            }
+            if thishandle.status == "init"{
+                //print("posthandle init, sending check!","bg");
+                tosend = NscriptVar::newstring("check","check".to_string());
+            }
+            // if thishandle.status == "exit"{
+            //     return
+            //     print("posthandle init, sending check!","bg");
+            //     tosend = NscriptVar::newstring("exit","exit".to_string());
+            // }
+            match thishandle.httppostthreadssenders.send(tosend.clone()){
                 Ok(_)=>{
-                    let msg: NscriptVar = match thishandle.httppostthreadsreceiver.try_recv(){
-                        Ok(m) =>m,
+                    let _msg: NscriptVar = match thishandle.httppostthreadsreceiver.try_recv(){
+                        Ok(m) =>{
+                            if m.name == "close"{
+
+                                //print("posthandle exit thread","bg");
+                                thishandle.status = "exit".to_string();
+                                return;
+                            }
+                            if m.name == "some"{
+                                if thishandle.parsed{
+                                    //print("poscloser","bg");
+                                    thishandle.status = "exit".to_string();
+                                }else{
+                                    //print("posthandle gotsome","bg");
+                                    thishandle.postdata = m.clone();
+                                    thishandle.status = "close".to_string();
+                                }
+
+                            }
+
+                            m
+                        },
                         Err(_e) =>{
                             NscriptVar::new("error")
                         },
                     };
-                    match msg.stringdata.as_str(){
-                        _ =>{
-                            if msg.stringdata.as_str() != ""{
-                                return msg;
-                            }
-                        }
-                    }
+
+                    // match msg.stringdata.as_str(){
+                    //     _ =>{
+                    //         return msg;
+                    //     }
+                    // }
+
                 },
                 Err(_)=>{
-                    return NscriptVar::new("error");
+                    //return NscriptVar::new("error");
                 }
-            };
-            return NscriptVar::new("ok");
+            }
+            //return NscriptVar::new("ok");
         };
 
-        NscriptVar::new(".")
+        //NscriptVar::new(".")
     }
-    pub fn addnew(&mut self,mut stream:TcpStream,threadname:&str,bufferinit :Vec<u8>,mut postdata:String,bsize:usize,scripttocall: &str,args:Vec<NscriptVar>){
+
+    pub fn addnewposthandle(&mut self,mut stream:TcpStream,threadname:&str,bufferinit :Vec<u8>,mut postdata:String,bsize:usize,scripttocall: &str){
         let mut buffer = bufferinit.to_owned();
         let (main_to_worker_tx, main_to_worker_rx) = mpsc::channel();
         let (worker_to_main_tx, worker_to_main_rx) = mpsc::channel();
+        let params = self.storage.getglobal("$params");
+        let mut argumentvarvec : Vec<NscriptVar> = Vec::new();
+        for xarg in 0..params.stringvec.len(){
+            argumentvarvec.push(NscriptVar::newstring(&format!("$param{}",xarg), params.stringvec[xarg].to_string()));
+        }
+        //print("adding new posthandle","y");
         let thishandle = NscriptPostHandle{
             scriptpath:scripttocall.to_string(),
-            params:args,
+            params:argumentvarvec,
             postdata:NscriptVar::new("."),
             status:"init".to_string(),
             httppostthreadsreceiver:worker_to_main_rx,
-            httppostthreadssenders:main_to_worker_tx
+            httppostthreadssenders:main_to_worker_tx,
+            parsed:false,
         };
+
+        let mut allcons = self.storage.getglobal("$POSTCONNECTIONS");
+        allcons.stringvec.push(threadname.to_string());
+        self.storage.setglobal("$POSTCONNECTIONS", allcons);
         self.httpposthandles.insert(threadname.to_string(),thishandle);
         let worker_to_main_tx = Arc::new(Mutex::new(worker_to_main_tx));
         thread::spawn(move || {
             let mut streamready = false;
+            let mut slackertimer = Ntimer::init();
             let mut  start_time = Instant::now();
             loop {
                 let end = Instant::now();
@@ -503,11 +609,17 @@ impl Nscript{
                 }
             }
 
+            //print("posthandle received done","y");
 
             loop {
+                if Ntimer::diff(slackertimer) > 4000{
+                    print("THREAD CLOSED BY TIMEOUT!","r");
+                    break
+                }
                 let sender = worker_to_main_tx.lock().unwrap();
                 let received_message: NscriptVar = match main_to_worker_rx.try_recv(){
                     Ok(rmsg) => {
+                        slackertimer = Ntimer::init();
                         rmsg
                     }
                     Err(_)=>{
@@ -515,10 +627,20 @@ impl Nscript{
                     }
                 };
                 if received_message.name == "close"{// when alls handled, mainthread signals close
+                    stream.write(received_message.stringdata.as_bytes()).unwrap();
+
+                    //print("posthandle sending result","y");
+                    //print(&received_message.stringdata,"by");
+                        match sender.send(NscriptVar::newstring("close","close".to_string())){
+                            Ok(_)=>{},
+                            Err(_)=>{},
+                        };
                     break;
                 }
-                if received_message.name != "error"{
+
+                if received_message.name == "check"{
                     if streamready{
+                        //print(&postdata.len().to_string(),"p");
                         match sender.send(NscriptVar::newstring("some",postdata.to_string())){
                             Ok(_)=>{},
                             Err(_)=>{},
@@ -528,6 +650,7 @@ impl Nscript{
             }
         });
 
+        //print("posthandle closing thread","y");
     }
 }
 // pub struct NscriptPostHandle{

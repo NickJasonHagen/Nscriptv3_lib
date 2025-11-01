@@ -288,7 +288,9 @@ impl  Nscript{
                     );
                     let response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata.to_string();
 
-                    stream.write(response.as_bytes()).unwrap();
+                    thread::spawn(move || {
+                        stream.write(response.as_bytes()).unwrap();
+                    });
                 }
             }
             return;
@@ -318,11 +320,15 @@ impl  Nscript{
                                     "text/html",
                                     &ret.len()
                                 );
-                                stream.write(response.as_bytes()).unwrap();
-                                stream.write(ret.as_bytes()).unwrap();
+                                thread::spawn(move || {
+                                    stream.write(response.as_bytes()).unwrap();
+                                    stream.write(ret.as_bytes()).unwrap();
+                                });
                                 return;
                             } else {
-                                stream.write(response.as_bytes()).unwrap();
+                                thread::spawn(move || {
+                                    stream.write(response.as_bytes()).unwrap();
+                                });
                                 return;
                             }
                         }
@@ -357,11 +363,15 @@ impl  Nscript{
                                     "text/html",
                                     &ret.len()
                                 );
-                                stream.write(response.as_bytes()).unwrap();
-                                stream.write(ret.as_bytes()).unwrap();
+                                thread::spawn(move || {
+                                    stream.write(response.as_bytes()).unwrap();
+                                    stream.write(ret.as_bytes()).unwrap();
+                                });
                                 return;
                             } else {
-                                stream.write(response.as_bytes()).unwrap();
+                                thread::spawn(move || {
+                                    stream.write(response.as_bytes()).unwrap();
+                                });
                                 return;
                             }
                         }

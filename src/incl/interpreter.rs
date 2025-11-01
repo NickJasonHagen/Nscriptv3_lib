@@ -134,7 +134,8 @@ impl  Nscript{
             self.insertfn("hextostring", nscriptfn_hextostring,"(hexstring)  // returns a string from a given hexstring");
             self.insertfn("print", nscriptfn_print,"(string,string:color default=white)  // prints a string to the console,\n the color argument is optional colors can be given as the first character \n every color has a bright version \nred = r \n blue = b \n bright blue = bb \n red = r etc"  );
             self.insertfn("fileread", nscriptfn_fileread,"(filepath)  // reads a file and returns the contents as a string");
-            self.insertfn("filewrite", nscriptfn_filewrite,"(filepath,string)  // writes a string to a file");
+            self.insertfn("filewrite", nscriptfn_filewrite,"(filepath,string)  // returns status, writes a string to a file");
+            self.insertfn("filewriteasync", nscriptfn_filewriteasync,"(filepath,string)  // writes a string to a file as a new thread.");
             self.insertfn("fileexists", nscriptfn_fileexists,"(filepath)  // returns a bool true if the filepath contains a file, and false if theres no file");
             self.insertfn("filedelete", nscriptfn_filedelete,"(filepath)  // deletes a file at a given path");
             self.insertfn("filemove", nscriptfn_filemove,"(filepath,newpath)  // moves a file from a given path to another");

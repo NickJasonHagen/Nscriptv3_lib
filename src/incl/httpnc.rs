@@ -63,16 +63,8 @@ impl  Nscript{
                             let mut socketvar = NscriptVar::new("$socketip");
                             socketvar.stringdata = remote_ip.to_string();
                             self.storage.setglobal("$socketip",socketvar);
-                            //let mut block = NscriptCodeBlock::new("httplisten");
-                            //let formattedblock = NscriptExecutableCodeBlock::new();//.formattedcode.clone();
-                            //let onconnectvar = self.executeword("\\server.onconnect($socketip)",&formattedblock, &mut block);
-                            // if onconnectvar.stringdata == "false" {
-                            //     var.stringdata = format!("connection server.onconnect($socketip) returned false -> closed");
-                            // }
-                            // else{
-                                self.handle_connection( stream);
-                                var.stringdata = format!("connection ok and closed");
-                            //}
+                            self.handle_connection( stream);
+                            var.stringdata = format!("connection ok and closed");
                             return var;
                         }
                         Err(err) => {
@@ -459,6 +451,7 @@ pub struct NscriptPostHandle{
     pub httppostthreadsreceiver: mpsc::Receiver<NscriptVar>,
     pub httppostthreadssenders: mpsc::Sender<NscriptVar>,
     pub parsed: bool,
+    pub resultscript: NscriptVar,
 }
 
 impl Nscript{
@@ -487,10 +480,10 @@ impl Nscript{
         let mut tosend = NscriptVar::newstring("v","".to_string());
         if let Some(thishandle) = self.httpposthandles.get_mut(&threadname.to_string()){
 
-            if thishandle.status == "exit"{return;}
+            //if thishandle.status == "exit"{return;}
             parsedcode = thishandle.parsed.clone();
             if thishandle.status == "close"{
-                tosend = NscriptVar::newstring("check","check".to_string());
+                tosend = NscriptVar::newstring("close","close".to_string());
                 self.storage.setglobal("$POSTDATA",thishandle.postdata.clone());
                 for xvar in 0..thishandle.params.len(){
                     self.storage.setglobal(&format!("$param{}",xvar), thishandle.params[xvar].clone());
@@ -500,17 +493,22 @@ impl Nscript{
         }
         if scrpath != "" && parsedcode == false{
             tosend = self.parsefile(&scrpath);
+
             tosend.name = "close".to_string();
         }
 
         if let Some(thishandle) = self.httpposthandles.get_mut(&threadname.to_string()){
             if tosend.name == "close"{
+                thishandle.resultscript = tosend.clone();
                 thishandle.parsed = true;
             }
             if thishandle.status == "init"{ // checks the spawned thread for a status
                 tosend = NscriptVar::newstring("check","check".to_string());
             }
-
+            if thishandle.status == "exit"{
+                tosend = thishandle.resultscript.clone();
+                tosend.name = "close".to_string();
+            }
             match thishandle.httppostthreadssenders.send(tosend.clone()){
                 Ok(_)=>{
                     let _msg: NscriptVar = match thishandle.httppostthreadsreceiver.try_recv(){
@@ -559,6 +557,7 @@ impl Nscript{
             httppostthreadsreceiver:worker_to_main_rx,
             httppostthreadssenders:main_to_worker_tx,
             parsed:false,
+            resultscript:NscriptVar::new("res")
         };
 
         let mut allcons = self.storage.getglobal("$POSTCONNECTIONS");
@@ -568,8 +567,14 @@ impl Nscript{
         let worker_to_main_tx = Arc::new(Mutex::new(worker_to_main_tx));
         thread::spawn(move || {
             let mut streamready = false;
+            let mut streamreadytoclose = false;
             let mut slackertimer = Ntimer::init();
             let mut  start_time = Instant::now();
+            let mut validreceivedvar = NscriptVar::new("");
+            let mut timedout = false;
+            //let mut resultvar = NscriptVar::new("res");
+            //let mut readytoclose = false;
+            let mut bytetotalread = 0;
             loop {
                 let end = Instant::now();
                 if (start_time - end).as_millis() >= 1000 {
@@ -579,7 +584,8 @@ impl Nscript{
                 match stream.read(&mut buffer) {
                     Ok(bytes_read) => {
                         postdata = postdata + &String::from_utf8_lossy(&buffer[0..bytes_read]);
-                        if bytes_read <= 1023 && postdata.len() + 1024 >= bsize{
+                        bytetotalread += bytes_read;
+                        if bytes_read <= 1023 && bytetotalread + 1024 >= bsize{
                             streamready = true;
                             break;
                         }
@@ -593,39 +599,59 @@ impl Nscript{
             }
 
             loop {
-                if Ntimer::diff(slackertimer) > 4000{
-                    print("THREAD CLOSED BY TIMEOUT!","r");
-                    break
-                }
+
                 let sender = worker_to_main_tx.lock().unwrap();
-                let received_message: NscriptVar = match main_to_worker_rx.try_recv(){
+                 match main_to_worker_rx.try_recv(){
                     Ok(rmsg) => {
-                        slackertimer = Ntimer::init();
-                        rmsg
+                        validreceivedvar = rmsg.clone();
+
                     }
                     Err(_)=>{
-                        NscriptVar::new("error")
+                       // NscriptVar::new("error")
                     }
                 };
-                if received_message.name == "close"{// when alls handled, mainthread signals close
-                    thread::spawn(move || {
-                        stream.write(received_message.stringdata.as_bytes()).unwrap();
-                    });
+
+                // when alls handled, mainthread signals close
+                    if validreceivedvar.name == "close" || timedout{// when alls handled, mainthread signals close
+                    if timedout ||validreceivedvar.stringdata == "" {
+                        validreceivedvar.stringdata = "{\"result\":\"Done\"}".to_string();
+                    }
+
+                    //resultvar = validreceivedvar.clone();
                         match sender.send(NscriptVar::newstring("close","close".to_string())){
                             Ok(_)=>{},
                             Err(_)=>{},
                         };
+                    thread::spawn(move || {
+                        stream.write(validreceivedvar.stringdata.as_bytes()).unwrap();
+                    });
                     break;
                 }
 
-                if received_message.name == "check"{
+                if validreceivedvar.name == "check"{
                     if streamready{
                         match sender.send(NscriptVar::newstring("some",postdata.to_string())){
-                            Ok(_)=>{},
+                            Ok(_)=>{
+                                streamreadytoclose = true;
+                            },
                             Err(_)=>{},
                         };
                     }
+                    if streamreadytoclose == false{
+                        print("POSTSTREAM READY TO CLOSE!","r");
+                        slackertimer = Ntimer::init();
+                    }
                }
+                if Ntimer::diff(slackertimer) > 9999{
+                    print("THREAD CLOSED BY TIMEOUT!","r");
+                    validreceivedvar.stringdata = "Closed".to_string();
+                    timedout = true;
+                    //break;
+                }
+                // else{
+                //     print(&Ntimer::diff(slackertimer).to_string(),"r");
+                // }
+
             }
         });
 

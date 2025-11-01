@@ -562,29 +562,29 @@ pub fn nscriptgetprintingcolor(m:&str,color: &str)->ColoredString{
     };
     retcolor
 }
-
-
-impl NscriptStructBinding for Nfile{
-    fn nscript_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>,_storage:&mut NscriptStorage) -> NscriptVar {
-        let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
-        match tocall {
-            "listdir" | "dirlist" =>{
-                let mut fullp = false;
-                if args.len() > 1{
-                    if args[1].stringdata == "true"{
-                        fullp = true;
-                    }
-                }
-                thisvar.stringvec = Nfile::dirtolist(&args[0].stringdata, fullp);
-            }
-            "read" => {if args.len() > 0 {thisvar.stringdata = Nfile::read(&args[0].stringdata);}}
-            "write" => {if args.len() > 1 {thisvar.stringdata = Nfile::write(&args[0].stringdata,&args[1].stringdata);}}
-            "exists" => {thisvar.stringdata = Nfile::checkexists(&args[0].stringdata).to_string();}
-            _ => {println!("Cant find rust function file::{}",tocall);}
-        }
-        return thisvar;
-    }
-}
+//
+//
+// impl NscriptStructBinding for Nfile{
+//     fn nscript_exec(&mut self,tocall:&str,args: &Vec<NscriptVar>,_storage:&mut NscriptStorage) -> NscriptVar {
+//         let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
+//         match tocall {
+//             "listdir" | "dirlist" =>{
+//                 let mut fullp = false;
+//                 if args.len() > 1{
+//                     if args[1].stringdata == "true"{
+//                         fullp = true;
+//                     }
+//                 }
+//                 thisvar.stringvec = Nfile::dirtolist(&args[0].stringdata, fullp);
+//             }
+//             "read" => {if args.len() > 0 {thisvar.stringdata = Nfile::read(&args[0].stringdata);}}
+//             "write" => {if args.len() > 1 {thisvar.stringdata = Nfile::write(&args[0].stringdata,&args[1].stringdata);}}
+//             "exists" => {thisvar.stringdata = Nfile::checkexists(&args[0].stringdata).to_string();}
+//             _ => {println!("Cant find rust function file::{}",tocall);}
+//         }
+//         return thisvar;
+//     }
+// }
 
 pub fn nscriptfn_fileread(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
@@ -598,6 +598,16 @@ pub fn nscriptfn_filewrite(args:&Vec<&str>,block :&mut NscriptCodeBlock , storag
         thisvar.stringdata = Nfile::write(&storage.getargstring(&args[0], block),&storage.getargstring(&args[1], block));
     };
     thisvar
+}
+pub fn nscriptfn_filewriteasync(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let fdata = storage.getargstring(&args[1], block).to_string();
+    let fname = storage.getargstring(&args[0], block);
+    if args.len() > 1 {
+        thread::spawn(move || {
+            Nfile::write(&fname,&fdata);
+        });
+    };
+    NscriptVar::new("Nfile")
 }
 
 pub fn nscriptfn_fileexists(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{

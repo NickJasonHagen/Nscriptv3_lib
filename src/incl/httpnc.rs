@@ -247,7 +247,9 @@ impl  Nscript{
                     stream.write(response.as_bytes()).unwrap();
                     if bsize > nscript_usize(&self.executeword("&server.POSTbytesmax",&formattedblock, &mut connectionblock).stringdata) {
                         let response = "SERVERERROR:PostSizeExceedsLimit";
-                        stream.write(response.as_bytes()).unwrap();
+                        thread::spawn(move || {
+                            stream.write(response.as_bytes()).unwrap();
+                        });
                         return;
                     }
                     if bsize > 8096{
@@ -341,8 +343,10 @@ impl  Nscript{
                         &ret.len()
                     );
 
-                    if let Err(_) = stream.write(response.as_bytes()) {return;}
-                    if let Ok(_) = stream.write(ret.as_bytes()){};
+                    thread::spawn(move || {
+                        stream.write(response.as_bytes()).unwrap();
+                        stream.write(ret.as_bytes()).unwrap();
+                    });
                     return
                 }
                 if ["html"].contains(&extension.as_str()) {
@@ -604,7 +608,9 @@ impl Nscript{
                     }
                 };
                 if received_message.name == "close"{// when alls handled, mainthread signals close
-                    stream.write(received_message.stringdata.as_bytes()).unwrap();
+                    thread::spawn(move || {
+                        stream.write(received_message.stringdata.as_bytes()).unwrap();
+                    });
                         match sender.send(NscriptVar::newstring("close","close".to_string())){
                             Ok(_)=>{},
                             Err(_)=>{},

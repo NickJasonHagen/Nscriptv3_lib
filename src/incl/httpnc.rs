@@ -1,4 +1,6 @@
 
+use std::process;
+use std::process::Command;
 use crate::*;
 
 impl  Nscript{
@@ -650,7 +652,6 @@ impl Nscript{
             }
         });
 
-        //print("posthandle closing thread","y");
     }
 }
 // pub struct NscriptPostHandle{

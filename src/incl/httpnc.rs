@@ -11,7 +11,6 @@ impl  Nscript{
                 }
             }
             "listen" =>{
-
                 self.handleconnections();// running post thread handler!
                 return self.httplisten(&args[0].stringdata);
             }
@@ -486,7 +485,7 @@ impl Nscript{
                 tosend = NscriptVar::newstring("close","close".to_string());
                 self.storage.setglobal("$POSTDATA",thishandle.postdata.clone());
                 for xvar in 0..thishandle.params.len(){
-                    self.storage.setglobal(&format!("$param{}",xvar), thishandle.params[xvar].clone());
+                    self.storage.setglobal(&format!("$param{}",xvar+1), thishandle.params[xvar].clone());
                 }
                 scrpath = thishandle.scriptpath.to_string();
             }
@@ -565,6 +564,7 @@ impl Nscript{
         self.storage.setglobal("$POSTCONNECTIONS", allcons);
         self.httpposthandles.insert(threadname.to_string(),thishandle);
         let worker_to_main_tx = Arc::new(Mutex::new(worker_to_main_tx));
+        let debugging = self.debugging.clone();
         thread::spawn(move || {
             let mut streamready = false;
             let mut streamreadytoclose = false;
@@ -638,12 +638,14 @@ impl Nscript{
                         };
                     }
                     if streamreadytoclose == false{
-                        print("POSTSTREAM READY TO CLOSE!","r");
+                        //print("POSTSTREAM READY TO CLOSE!","r");
                         slackertimer = Ntimer::init();
                     }
                }
-                if Ntimer::diff(slackertimer) > 9999{
-                    print("THREAD CLOSED BY TIMEOUT!","r");
+                if Ntimer::diff(slackertimer) > 2999{
+                    if debugging {
+                        print("THREAD CLOSED BY TIMEOUT!","r");
+                    }
                     validreceivedvar.stringdata = "Closed".to_string();
                     timedout = true;
                     //break;

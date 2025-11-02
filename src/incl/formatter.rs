@@ -2318,7 +2318,8 @@ impl  Nscript{
     /// encodes the static strings, will later on be parsed per scope and set as variables.
     /// pre-formatting
     fn stringextract(&mut self,filedata : &str) -> String {
-        let mut parsingtext = Nstring::replace(&filedata.to_string(), "\\\"", "#!@NSCRIPTQUOTE#@!");
+        let mut parsingtext = Nstring::replace(&filedata.to_string(), "\\\\", "#!@NCBKSL#@!");
+        parsingtext = Nstring::replace(&parsingtext, "\\\"", "#!@NSCRIPTQUOTE#@!");
         parsingtext = Nstring::replace(&parsingtext, "\"\"", "@emptystring");
         let parsingvec = split(&parsingtext, "\"");
         let mut newcode = "".to_string();
@@ -2328,7 +2329,9 @@ impl  Nscript{
                 newcode += &x;
                 isstring = true;
             }else{
-                newcode = newcode + "^" + &string_to_hex(&Nstring::replace(&x, "#!@NSCRIPTQUOTE#@!", "\""));
+                let mut toset = Nstring::replace(&x, "#!@NCBKSL#@!",  "\\");
+                toset = Nstring::replace(&toset, "#!@NSCRIPTQUOTE#@!","\"");
+                newcode = newcode + "^" + &string_to_hex(&toset);
                 isstring = false;
             }
         }

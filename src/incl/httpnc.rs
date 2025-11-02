@@ -642,7 +642,7 @@ impl Nscript{
                         slackertimer = Ntimer::init();
                     }
                }
-                if Ntimer::diff(slackertimer) > 2999{
+                if Ntimer::diff(slackertimer) > 9999{
                     if debugging {
                         print("THREAD CLOSED BY TIMEOUT!","r");
                     }

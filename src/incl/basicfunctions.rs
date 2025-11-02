@@ -283,15 +283,28 @@ impl Nstring {
     }
     pub fn stringtoeval(s: &str) -> String {
         // saver for hashmap keys usages
-        let mut r = s.replace("-", "_");
-        let all = [
-            "~", "!", "#", "%", "^", "&", "*", "(", ")", "\\", "{", "}", "[", "]", ".", ",", "?",
-            "'", "$", "/",
-        ];
-        for c in all {
-            r = r.replace(c, "_");
+        // let mut r = s.replace("-", "_");
+        // let all = [
+        //     "~", "!", "#", "%", "^", "&", "*", "(", ")", "\\", "{", "}", "[", "]", ".", ",", "?",
+        //     "'", "$", "/",
+        // ];
+        // for c in all {
+        //     r = r.replace(c, "_");
+        // }
+        // r
+        let checkstring = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
+        let fromstring = s.to_lowercase();
+        let mut newstring = "".to_string();
+        for xchr in split(&fromstring,""){
+            if Nstring::instring(&checkstring, &xchr){
+                newstring += &xchr;
+            }
+            else{
+                newstring += "_";
+            }
         }
-        r
+        newstring
+
     }
     /// returns the value between 2 search strings
     pub fn stringbetween<'a>(str: &'a str, a: &str, b: &str) -> String {
@@ -1462,7 +1475,23 @@ pub fn nscriptfn_arraynewsized(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
         vect
     )
 }
-
+// pub fn nscriptfn_stingtoalphanummeric(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+//     let checkstring = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
+//     let fromstring = storage.getargstring(args[0], block).to_lowercase();
+//     let mut newstring = "".to_string();
+//     for xchr in split(&fromstring,""){
+//         if Nstring::instring(&checkstring, &xchr){
+//             newstring += &xchr;
+//         }
+//         else{
+//             newstring += "_";
+//         }
+//     }
+//
+//     NscriptVar::newstring("r",
+//         newstring
+//     )
+// }
 // pub fn nscriptfn_createqrcode(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
 //     let code = QrCode::new(storage.getargstring(args[0], block).as_bytes()).unwrap();
 //     let image = code.render::<Luma<u8>>().build();

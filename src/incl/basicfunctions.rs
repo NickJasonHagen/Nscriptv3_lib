@@ -49,20 +49,7 @@ pub fn nscriptfn_replacebyref(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     return NscriptVar::new("res");
 }
 pub fn nscriptfn_stringtoeval(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
-    let mut return_val = storage.getargstring(&args[0], block);
-
-    let replacements = [
-        ("#", ""), ("%", ""), ("-", "_"), (" ", "_"), (":", "_"), ("\\", "_"), ("/", "_"),
-        (".", "_"), ("@", "_"), ("&", "_"), ("!", ""), ("'", ""), ("[", "_"), ("]", "_"),
-        ("(", "_"), (",", "_"), ("^", "_"), (")", "_"), ("|", "_")
-    ];
-
-    for (search, replace) in replacements {
-        return_val = return_val.replace(search, replace);
-    }
-    neovar.stringdata = return_val;
-    return neovar;
+    NscriptVar::newstring("res",Nstring::stringtoeval(&storage.getargstring(&args[0], block)))
 }
 pub fn nscriptfn_len(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");

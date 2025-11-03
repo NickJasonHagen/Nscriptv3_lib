@@ -297,6 +297,10 @@ impl  Nscript{
                 "$POSTDATA",
                 NscriptVar::new("$POSTDATA"),
             );
+            self.storage.setglobal(
+                "$POSTPACKET",
+                NscriptVar::new("$POSTPACKET"),
+            );
             if let Some(extension) = Path::new(&file_path)
                 .extension()
                 .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))

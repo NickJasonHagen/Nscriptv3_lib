@@ -42,7 +42,7 @@ extern crate fs_extra;
 pub use fs_extra::dir::get_size;
 pub const NC_PROGRAM_DIR: &str = env!("CARGO_MANIFEST_DIR");
 pub const EMPTYSTR: &'static str  = "";
-pub const NSCRIPT_VERSION: &'static str = "3.3.069";
+pub const NSCRIPT_VERSION: &'static str = "3.3.070";
 #[cfg(windows)]
 const MACRO_OS: &'static str = "Windows";
 #[cfg(not(windows))]

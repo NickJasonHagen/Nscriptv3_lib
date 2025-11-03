@@ -216,6 +216,10 @@ impl  Nscript{
                 "$POSTPACKET",
                 postvar,
             );
+            self.storage.setglobal(
+                "$POSTDATA",
+                NscriptVar::new("$POSTDATA"),
+            );
             let strippostdata = split(&request, "\r\n\r\n");
             if strippostdata.len() > 1 {
                 postdata = "".to_owned() + &strippostdata[1..].join("\r\n\r\n"); // used for post buffer data

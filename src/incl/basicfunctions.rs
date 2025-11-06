@@ -82,17 +82,17 @@ pub fn nscriptfn_stringbetween(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
     }
     neovar
 }
-pub fn nscriptfn_stringbetweennested(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
-    if args.len() < 2 {
-        neovar.stringdata = "".to_string();
-    }
-    else{
-        neovar.stringdata = Nstring::stringbetween(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block))
-
-    }
-    neovar
-}
+// pub fn nscriptfn_stringbetweennested(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+//     let mut neovar = NscriptVar::new("result");
+//     if args.len() < 2 {
+//         neovar.stringdata = "".to_string();
+//     }
+//     else{
+//         neovar.stringdata = Nstring::stringbetween(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block))
+//
+//     }
+//     neovar
+// }
 pub fn nscriptfn_trim(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     neovar.stringdata = storage.getargstring(&args[0],block).trim().to_string();

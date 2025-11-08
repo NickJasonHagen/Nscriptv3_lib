@@ -204,6 +204,8 @@ impl  Nscript{
             self.insertfn("float_or", nscriptfn_int_or,"(checkvarfloat,defaultfloat) // returns or if not a float");
             self.insertfn("string_or", nscriptfn_string_or,"(checkvar,default) // returns or if string is empty");
             self.insertfn("newvar", nscriptfn_newvar,"() // returns a new var");
+            self.insertfn("percentage", nscriptfn_percentage,"(someammount,totalammount) // returns the percentage value");
+
             #[cfg(not(windows))]
             if 1 == 1{
                 // termion terminal functions. Unix only

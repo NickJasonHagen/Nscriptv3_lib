@@ -1495,4 +1495,10 @@ pub fn nscriptfn_suffix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :
     let  var = storage.getargstring(args[0], block);
     NscriptVar::newstring("str",Nstring::postfix(&var).to_string())
 }
+pub fn nscriptfn_percentage(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let  given = storage.getargstring(args[0], block);
+    let  total = storage.getargstring(args[1], block);
+    let result = (Nstring::f32(&given) * 100.0) / Nstring::f32(&total);
+    NscriptVar::newstring("str",result.to_string())
+}
 

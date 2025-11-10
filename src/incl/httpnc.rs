@@ -209,6 +209,7 @@ impl  Nscript{
             file_path = webroot.clone() + "domains/" + &domainname + "/public/" + &pathparts[0];
         }
         if request_parts[0] == "POST" {
+            self.storage.setglobal("$PACKETTYPE", NscriptVar::newstring("$POSTTYPE","POST".to_string()));
             let mut postdata:String;// String::new();
             let mut postvar = NscriptVar::new("$POSTPACKET");
             postvar.stringdata = Nstring::replace(&request.to_string(), "\0", "");
@@ -293,6 +294,8 @@ impl  Nscript{
             return;
         }
         if request_parts[0] == "GET" {
+
+            self.storage.setglobal("$PACKETTYPE", NscriptVar::newstring("$POSTTYPE","GET".to_string()));
             self.storage.setglobal(
                 "$POSTDATA",
                 NscriptVar::new("$POSTDATA"),
@@ -499,6 +502,8 @@ impl Nscript{
             }
         }
         if scrpath != "" && parsedcode == false{
+
+            self.storage.setglobal("$PACKETTYPE", NscriptVar::newstring("$POSTTYPE","POST".to_string()));
             tosend = self.parsefile(&scrpath);
 
             tosend.name = "close".to_string();

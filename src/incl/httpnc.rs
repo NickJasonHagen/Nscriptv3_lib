@@ -204,9 +204,9 @@ impl  Nscript{
         );
         if self.httprunhttpaccessnc(&pathparts,&webroot) == false{return;};
 
-        let checkthis = webroot.clone() + "domains/" + &domainname + "/http.nc";
+        let checkthis = NC_SCRIPT_DIR.to_string() + "domains/" + &domainname + "/http.nc";
         if Nfile::checkexists(&checkthis) {
-            file_path = webroot.clone() + "domains/" + &domainname + "/public/" + &pathparts[0];
+            file_path = NC_SCRIPT_DIR.to_string() + "domains/" + &domainname + "/public/" + &pathparts[0];
         }
         if request_parts[0] == "POST" {
             self.storage.setglobal("$PACKETTYPE", NscriptVar::newstring("$POSTTYPE","POST".to_string()));

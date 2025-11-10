@@ -154,6 +154,7 @@ impl  Nscript{
             self.insertfn("round", nscriptfn_round,"(numbervar,decimals) // returns a rounded number by the given decimals.");
             self.insertfn("sleep", nscriptfn_sleep,"(int:timeinms) //  will pause the thread for x ms seconds.\n can be usefull for lowering powerconsumption");
             self.insertfn("cat", nscriptfn_cat,"(a,b,c,..) //  concatinates all arguments to eachother returns that as a new string. \n theres no limit on the ammount of arguments");
+            self.insertfn("string", nscriptfn_cat,"(a,b,c,..) //  concatinates all arguments to eachother returns that as a new string. \n theres no limit on the ammount of arguments");
             self.insertfn("random", nscriptfn_random,"(int:min, int:max, int:decimals default= maximum) //  generates a random number by a minimum and maximum. \nset decimal to 0 to get flat numbers");
             self.insertfn("arraycontains", nscriptfn_arraycontains,"(vector,string) //  returns a bool if a vector contains the given string.");
             self.insertfn("arrayroll", nscriptfn_arrayroll,"(vector,string)  // returns a new vec, LiFo , if the vector has a size of 6 is will remain the size the new entree will be inserted as 0 and the last one will be left out, each one will shift one spot.");

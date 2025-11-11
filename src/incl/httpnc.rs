@@ -284,8 +284,17 @@ impl  Nscript{
                         "$POSTDATA",
                         postvar,
                     );
-                    let response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata.to_string();
+                    let response:String;
+                    if extension.as_str() == "wnc"{
+                        let entreesplit = split(&file_path,"/");
 
+                        let wncfunction = "/webnc.".to_string() + &Nstring::replace(&entreesplit[entreesplit.len()-1],".wnc","()");
+                        response = self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new("")).stringdata.to_string();
+                    }
+                    else{
+                        response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata.to_string();
+
+                    }
                     thread::spawn(move || {
                         stream.write(response.as_bytes()).unwrap();
                     });
@@ -310,7 +319,9 @@ impl  Nscript{
             {
                 if ["wnc"].contains(&extension.as_str()) {
                     //let scriptcode = Nfile::read(&file_path);
-                    let wncfunction = ".webnc.".to_string() + &Nstring::replace(&file_path,".wnc","");
+                    let entreesplit = split(&file_path,"/");
+
+                    let wncfunction = "/webnc.".to_string() + &Nstring::replace(&entreesplit[entreesplit.len()-1],".wnc","()");
                     let ret = self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new("")).stringdata.to_string();
                     let response = format!(
                         "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
@@ -502,6 +513,7 @@ impl Nscript{
     pub fn postthreadcall(&mut self,threadname:&str){
         let mut scrpath = "".to_string();
         let mut parsedcode = false;
+        let mut extention = "nc".to_string();
         let mut tosend = NscriptVar::newstring("v","".to_string());
         if let Some(thishandle) = self.httpposthandles.get_mut(&threadname.to_string()){
 
@@ -514,13 +526,22 @@ impl Nscript{
                     self.storage.setglobal(&format!("$param{}",xvar+1), thishandle.params[xvar].clone());
                 }
                 scrpath = thishandle.scriptpath.to_string();
+                if Nstring::instring(&scrpath,".wnc"){
+                    extention = "wnc".to_string();
+                }
             }
         }
         if scrpath != "" && parsedcode == false{
 
             self.storage.setglobal("$PACKETTYPE", NscriptVar::newstring("$POSTTYPE","POST".to_string()));
-            tosend = self.parsefile(&scrpath);
-
+            if extention == "wnc"{
+                let entreesplit = split(&scrpath,"/");
+                let wncfunction = "/webnc.".to_string() + &Nstring::replace(&entreesplit[entreesplit.len()-1],".wnc","()");
+                tosend = self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new(""));
+            }
+            else{
+                tosend = self.parsefile(&scrpath);
+            }
             tosend.name = "close".to_string();
         }
 

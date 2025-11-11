@@ -286,10 +286,9 @@ impl  Nscript{
                     );
                     let response:String;
                     if extension.as_str() == "wnc"{
-                        let entreesplit = split(&file_path,"/");
 
-                        let wncfunction = "/webnc.".to_string() + &Nstring::replace(&entreesplit[entreesplit.len()-1],".wnc","()");
-                        response = self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new("")).stringdata.to_string();
+                    let response = self.executewebnc(&file_path);
+
                     }
                     else{
                         response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata.to_string();
@@ -318,11 +317,7 @@ impl  Nscript{
                 .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
             {
                 if ["wnc"].contains(&extension.as_str()) {
-                    //let scriptcode = Nfile::read(&file_path);
-                    let entreesplit = split(&file_path,"/");
-
-                    let wncfunction = "/webnc.".to_string() + &Nstring::replace(&entreesplit[entreesplit.len()-1],".wnc","()");
-                    let ret = self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new("")).stringdata.to_string();
+                    let ret = self.executewebnc(&file_path);
                     let response = format!(
                         "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
                         "text/html",
@@ -475,7 +470,18 @@ impl  Nscript{
             }
         }
     }
+    pub fn executewebnc(&mut self,file_path:&str)->NscriptVar{
+        let entreesplit = split(&file_path,"/");
+        if entreesplit.len() > 2{
+        let wncfunction = "/webnc_".to_string()+ &entreesplit[entreesplit.len()-2]+"." + &Nstring::replace(&entreesplit[entreesplit.len()-1],".wnc","()");
+            self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new(""))
+        }
+        else{
+        let wncfunction = "/webnc.".to_string() + &Nstring::replace(&entreesplit[entreesplit.len()-1],".wnc","()");
+            self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new(""))
+        }
 
+    }
 }
 
 
@@ -535,9 +541,7 @@ impl Nscript{
 
             self.storage.setglobal("$PACKETTYPE", NscriptVar::newstring("$POSTTYPE","POST".to_string()));
             if extention == "wnc"{
-                let entreesplit = split(&scrpath,"/");
-                let wncfunction = "/webnc.".to_string() + &Nstring::replace(&entreesplit[entreesplit.len()-1],".wnc","()");
-                tosend = self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new(""));
+                tosend = self.executewebnc(&scrpath);
             }
             else{
                 tosend = self.parsefile(&scrpath);

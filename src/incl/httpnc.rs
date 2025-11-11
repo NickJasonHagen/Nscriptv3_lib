@@ -286,13 +286,10 @@ impl  Nscript{
                     );
                     let response:String;
                     if extension.as_str() == "wnc"{
-
                      response = self.executewebnc(&file_path).stringdata;
-
                     }
                     else{
                         response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata;
-
                     }
                     thread::spawn(move || {
                         stream.write(response.as_bytes()).unwrap();
@@ -505,7 +502,6 @@ impl Nscript{
             self.postthreadcall(&xcon);
             if let Some(thishandle) = self.httpposthandles.get_mut(&xcon.to_string()){
                 if thishandle.status == "exit"{
-                    //print("cleared thread","r");
                     self.httpposthandles.remove(&xcon);
                 }
                 else{
@@ -522,8 +518,6 @@ impl Nscript{
         let mut extention = "nc".to_string();
         let mut tosend = NscriptVar::newstring("v","".to_string());
         if let Some(thishandle) = self.httpposthandles.get_mut(&threadname.to_string()){
-
-            //if thishandle.status == "exit"{return;}
             parsedcode = thishandle.parsed.clone();
             if thishandle.status == "close"{
                 tosend = NscriptVar::newstring("close","close".to_string());
@@ -600,7 +594,6 @@ impl Nscript{
         for xarg in 0..params.stringvec.len(){
             argumentvarvec.push(NscriptVar::newstring(&format!("$param{}",xarg), params.stringvec[xarg].to_string()));
         }
-        //print("adding new posthandle","y");
         let thishandle = NscriptPostHandle{
             scriptpath:scripttocall.to_string(),
             params:argumentvarvec,
@@ -625,8 +618,6 @@ impl Nscript{
             let mut  start_time = Instant::now();
             let mut validreceivedvar = NscriptVar::new("");
             let mut timedout = false;
-            //let mut resultvar = NscriptVar::new("res");
-            //let mut readytoclose = false;
             let mut bytetotalread = 0;
             loop {
                 let end = Instant::now();
@@ -691,7 +682,6 @@ impl Nscript{
                         };
                     }
                     if streamreadytoclose == false{
-                        //print("POSTSTREAM READY TO CLOSE!","r");
                         slackertimer = Ntimer::init();
                     }
                }
@@ -703,10 +693,6 @@ impl Nscript{
                     timedout = true;
                     //break;
                 }
-                // else{
-                //     print(&Ntimer::diff(slackertimer).to_string(),"r");
-                // }
-
             }
         });
 

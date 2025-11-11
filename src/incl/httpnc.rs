@@ -308,7 +308,22 @@ impl  Nscript{
                 .extension()
                 .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
             {
+                if ["wnc"].contains(&extension.as_str()) {
+                    //let scriptcode = Nfile::read(&file_path);
+                    let wncfunction = "webnc.".to_string() + &Nstring::replace(&file_path,".wnc","");
+                    let ret = self.execute_ncfunction(&wncfunction,&mut NscriptCodeBlock::new("")).stringdata.to_string();
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                        "text/html",
+                        &ret.len()
+                    );
 
+                    thread::spawn(move || {
+                        stream.write(response.as_bytes()).unwrap();
+                        stream.write(ret.as_bytes()).unwrap();
+                    });
+                    return
+                }
                 if ["nc"].contains(&extension.as_str()) {
                     let _ = match File::open(&file_path) {
                         Ok(_) => {}

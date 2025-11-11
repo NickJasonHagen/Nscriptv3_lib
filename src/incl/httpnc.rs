@@ -233,7 +233,7 @@ impl  Nscript{
                 .extension()
                 .and_then(|os_str| os_str.to_str().map(|s| s.to_owned()))
             {
-                if ["nc"].contains(&extension.as_str()) {
+                if ["nc"].contains(&extension.as_str()) || ["wnc"].contains(&extension.as_str()) {
 
                     //println!("Its a Post to Nc");
                     let bsize = nscript_usize(

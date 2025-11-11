@@ -310,8 +310,8 @@ impl  Nscript{
             {
                 if ["wnc"].contains(&extension.as_str()) {
                     //let scriptcode = Nfile::read(&file_path);
-                    let wncfunction = "webnc.".to_string() + &Nstring::replace(&file_path,".wnc","");
-                    let ret = self.execute_ncfunction(&wncfunction,&mut NscriptCodeBlock::new("")).stringdata.to_string();
+                    let wncfunction = ".webnc.".to_string() + &Nstring::replace(&file_path,".wnc","");
+                    let ret = self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new("")).stringdata.to_string();
                     let response = format!(
                         "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
                         "text/html",

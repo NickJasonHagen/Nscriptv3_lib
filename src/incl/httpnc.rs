@@ -287,11 +287,11 @@ impl  Nscript{
                     let response:String;
                     if extension.as_str() == "wnc"{
 
-                    let response = self.executewebnc(&file_path);
+                     response = self.executewebnc(&file_path).stringdata;
 
                     }
                     else{
-                        response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata.to_string();
+                        response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata;
 
                     }
                     thread::spawn(move || {
@@ -321,12 +321,12 @@ impl  Nscript{
                     let response = format!(
                         "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
                         "text/html",
-                        &ret.len()
+                        &ret.stringdata.len()
                     );
 
                     thread::spawn(move || {
                         stream.write(response.as_bytes()).unwrap();
-                        stream.write(ret.as_bytes()).unwrap();
+                        stream.write(ret.stringdata.as_bytes()).unwrap();
                     });
                     return
                 }

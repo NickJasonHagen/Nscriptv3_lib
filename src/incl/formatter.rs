@@ -2505,8 +2505,8 @@ impl  Nscript{
                 break
             }
             else{
-                let block = " = ^".to_string() + &string_to_hex(&Nstring::trimleft(&Nstring::trimleft(&rawscope,1),1));
-                let toreplace = " = #raw".to_owned()+ &rawscope + "#endraw";
+                let block = "^".to_string() + &string_to_hex(&Nstring::trimleft(&Nstring::trimright(&rawscope,1),1));
+                let toreplace = "#raw".to_owned()+ &rawscope + "#endraw";
                 parsecode = parsecode.replace(&toreplace, &block);
             }
         }

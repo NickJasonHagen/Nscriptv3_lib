@@ -1976,7 +1976,7 @@ impl  Nscript{
         }
         return NscriptVar::new("ncfunc");
     }
-    fn execute_classfunction(&mut self,word:&str,block:&mut NscriptCodeBlock) ->NscriptVar{
+    pub fn execute_classfunction(&mut self,word:&str,block:&mut NscriptCodeBlock) ->NscriptVar{
         let splitf = split(&word,"(");
         let splitfunc = split(&splitf[0],".");
         self.execute_preformattedclassfunction(&splitfunc[0], &splitfunc[1], &Nstring::trimsuffix(&splitf[1]), block)

@@ -206,6 +206,7 @@ impl  Nscript{
             self.insertfn("string_or", nscriptfn_string_or,"(checkvar,default) // returns or if string is empty");
             self.insertfn("newvar", nscriptfn_newvar,"() // returns a new var");
             self.insertfn("percentage", nscriptfn_percentage,"(someammount,totalammount) // returns the percentage value");
+            self.insertfn("url", nscriptfn_url,"(hostaddress,param,params..) // returns the the url string like http://site.com?parm1&param2&etc");
 
             #[cfg(not(windows))]
             if 1 == 1{

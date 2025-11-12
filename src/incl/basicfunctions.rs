@@ -1501,4 +1501,14 @@ pub fn nscriptfn_percentage(args:&Vec<&str>,block :&mut NscriptCodeBlock , stora
     let result = (Nstring::f32(&given) * 100.0) / Nstring::f32(&total);
     NscriptVar::newstring("str",result.to_string())
 }
+pub fn nscriptfn_url(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    let  host = storage.getargstring(args[0], block);
+    let mut result = host.to_string() + "?";
+    for xarg in &args[1..]{
+        let  param = storage.getargstring(xarg, block);
+        result = result + &param +"&";
+    }
+
+    NscriptVar::newstring("url",result.to_string())
+}
 

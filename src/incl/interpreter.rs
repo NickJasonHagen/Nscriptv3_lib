@@ -225,6 +225,7 @@ impl  Nscript{
     }
     pub fn setcmdarguments(&mut self){
         let args: Vec<String> = env::args().collect();
+        self.storage.setglobal("$cmdargs", NscriptVar::newvec("$cmdargs", args.clone()));
         let mut i = 0;
         for givenarg in &args {
             let v = "".to_owned() + &givenarg.to_owned();

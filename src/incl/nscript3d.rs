@@ -419,6 +419,20 @@ impl AABB {
     }
 }
 
+pub fn nscriptfn_objectgetrangebetween(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+
+    let mut var = NscriptVar::new("ray");
+    let obj1 = storage.getargstring(args[0], block);
+    let obj2 = storage.getargstring(args[1], block);
+    let vector1 = vec!(Nstring::f32(&storage.objectgetprop(&obj1,"x").stringdata),Nstring::f32(&storage.objectgetprop(&obj1,"y").stringdata),Nstring::f32(&storage.objectgetprop(&obj1,"z").stringdata));
+    let vector2 = vec!(Nstring::f32(&storage.objectgetprop(&obj2,"x").stringdata),Nstring::f32(&storage.objectgetprop(&obj2,"y").stringdata),Nstring::f32(&storage.objectgetprop(&obj2,"z").stringdata));
+    let mut sum_squares_diff = 0.0;
+    for (x1, x2) in vector1.iter().zip(vector2.iter()) {
+        sum_squares_diff += (x1 - x2).powi(2);
+    }
+    var.stringdata = sum_squares_diff.sqrt().to_string();
+    return var;
+}
 
 
 pub fn nscriptfn_castray(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

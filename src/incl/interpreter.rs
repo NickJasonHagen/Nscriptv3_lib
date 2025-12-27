@@ -207,6 +207,7 @@ impl  Nscript{
             self.insertfn("newvar", nscriptfn_newvar,"() // returns a new var");
             self.insertfn("percentage", nscriptfn_percentage,"(someammount,totalammount) // returns the percentage value");
             self.insertfn("url", nscriptfn_url,"(hostaddress,param,params..) // returns the the url string like http://site.com?parm1&param2&etc");
+            self.insertfn("objectgetrangebetween", nscriptfn_objectgetrangebetween,"(object1,object2) // returns the range as a f32 using objects x y z propererties.");
 
             #[cfg(not(windows))]
             if 1 == 1{

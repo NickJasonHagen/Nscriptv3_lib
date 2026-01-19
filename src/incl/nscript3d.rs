@@ -418,6 +418,70 @@ impl AABB {
         true
     }
 }
+pub fn nscriptfn_objectgetsiderange(args:&Vec<&str>,block:&mut NscriptCodeBlock,storage:&mut NscriptStorage) -> NscriptVar{
+
+    let object = storage.getargstring(&args[0], block);
+    let pitch = Nstring::f32(&storage.objectgetprop(&object,"pitch").stringdata);
+    let yaw = Nstring::f32(&storage.objectgetprop(&object,"yaw").stringdata);
+    let side = storage.getargstring(&args[1], block);
+    let range = storage.getargstring(&args[2], block);
+
+    //storage.customdata.static_vec_bool[Q_CAMERA] = true;
+    let ispos = get_object_strafe_targets(&object,&side, Nstring::f32(&range),pitch,yaw, storage);
+    NscriptVar::newvec("v",vec!(ispos.0.to_string(),ispos.1.to_string(),ispos.2.to_string()))
+}
+    fn get_object_strafe_targets(object:&str,
+        towards:&str, distance: f32,pitch:f32,yaw:f32,storage:&mut NscriptStorage,
+    ) -> (f32, f32, f32) {
+        // Helper function to calculate target position based on pitch, yaw, and distance
+        fn calculate_target(pitch: f32, yaw: f32, distance: f32, cam_position: (f32, f32, f32)) -> (f32, f32, f32) {
+            let pitch = pitch.to_radians();
+            let yaw = yaw.to_radians();
+
+            let direction_x = pitch.cos() * yaw.sin();
+            let direction_y = pitch.sin();
+            let direction_z = pitch.cos() * yaw.cos();
+
+            let target_x = cam_position.0 + direction_x * distance;
+            let target_y = cam_position.1 + direction_y * distance;
+            let target_z = cam_position.2 + direction_z * distance;
+
+            (target_x, target_y, target_z)
+        }
+        //let pitch =Nstring::f32(&storage.objectgetprop("camera","pitch").stringdata);
+        //let yaw = Nstring::f32(&storage.objectgetprop("camera","yaw").stringdata);
+        let cam_position = (Nstring::f32(&storage.objectgetprop(&object,"x").stringdata),Nstring::f32(&storage.objectgetprop(&object,"y").stringdata),Nstring::f32(&storage.objectgetprop(&object,"z").stringdata));
+
+        match towards{
+
+            "left" => {
+                return calculate_target(0.0, yaw + 90.0, distance, cam_position);
+            }
+            "right" => {
+                return calculate_target(0.0, yaw - 90.0, distance, cam_position);
+            }
+            "back" => {
+                return calculate_target(0.0, yaw + 180.0, distance, cam_position);
+            }
+            "forward" =>{
+                return calculate_target(0.0, yaw, distance, cam_position);
+            }
+            "up" =>{
+                return calculate_target(90.0, yaw, distance, cam_position);
+            }
+            "down" =>{
+                return calculate_target(-90.0, yaw, distance, cam_position);
+            }
+            "fly" =>{
+                return calculate_target(pitch, yaw, distance, cam_position);
+            }
+            _ => {
+                print!("error on the strafe part, no match for towards={}", &towards);
+                return calculate_target(pitch, yaw, distance, cam_position);
+            }
+        }
+
+    }
 
 pub fn nscriptfn_objectgetrangebetween(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
 

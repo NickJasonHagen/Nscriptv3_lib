@@ -923,11 +923,9 @@ pub fn nscriptfn_arrayreverse(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     return var;
 }
 pub fn nscriptfn_arrayinsert(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
+    let mut var = storage.getvar(&args[0], block);
     if args.len() > 2{
-    var.stringdata = storage.getargstring(&args[0], block);
-    var.stringvec = storage.getargstringvec(&args[0], block);
-    var.stringvec.insert(storage.getargstring(&args[1],block).parse::<usize>().unwrap_or(0),storage.getargstring(&args[2],block))
+        var.stringvec.insert(storage.getargstring(&args[1],block).parse::<usize>().unwrap_or(0),storage.getargstring(&args[2],block))
     }
     else{
         print("arrayinsert() error , unmatched arguments given arrayinsert(array,entreeid, entreedata)","r");

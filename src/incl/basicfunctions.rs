@@ -956,9 +956,7 @@ pub fn nscriptfn_arraysort(args:&Vec<&str>,block :&mut NscriptCodeBlock , storag
     var
 }
 pub fn nscriptfn_arrayfilter(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
-    var.stringdata = storage.getargstring(&args[0], block);
-    var.stringvec = storage.getargstringvec(&args[0], block);
+    let mut var = storage.getvar(&args[0], block);
     let tosearch = storage.getargstring(&args[1], block);
     let mut newvec = Vec::new();
     for xitem in var.stringvec{
@@ -971,8 +969,6 @@ pub fn nscriptfn_arrayfilter(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
 }
 pub fn nscriptfn_arrayroll(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let var = storage.getvar(&args[0], block);
-    //var.stringdata = storage.getargstring(&args[0], block);
-    //var.stringvec = storage.getargstringvec(&args[0], block);
     let mut newvar = NscriptVar::newvar(&var.name, var.stringdata.to_string(),Vec::new());
     newvar.stringvec.push(storage.getargstring(&args[1], block));
     if args.len() > 1 {

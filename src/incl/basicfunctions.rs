@@ -884,9 +884,7 @@ pub fn nscriptfn_arraymerge(args:&Vec<&str>,block :&mut NscriptCodeBlock , stora
     return var;
 }
 pub fn nscriptfn_arraycontains(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
-    var.stringdata = storage.getargstring(&args[0], block);
-    var.stringvec = storage.getargstringvec(&args[0], block);
+    let mut var = storage.getvar(&args[0], block);
     if args.len() > 1 {
         var.stringdata = var.stringvec.contains(&storage.getargstring(&args[1], block)).to_string();
     }
@@ -894,9 +892,7 @@ pub fn nscriptfn_arraycontains(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
 }
 
 pub fn nscriptfn_arrayretain(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
-    var.stringdata = storage.getargstring(&args[0], block);
-    var.stringvec = storage.getargstringvec(&args[0], block);
+    let mut var = storage.getvar(&args[0], block);
     if args.len() > 1 {
         var.stringvec.retain(|x| x != &storage.getargstring(&args[1], block));
     }

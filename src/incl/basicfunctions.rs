@@ -903,17 +903,13 @@ pub fn nscriptfn_arrayretain(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
     return var
 }
 pub fn nscriptfn_arrayshuffle(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
-    var.stringdata = storage.getargstring(&args[0], block);
-    var.stringvec = storage.getargstringvec(&args[0], block);
+    let mut var = storage.getvar(&args[0], block);
     let mut rng = rand::thread_rng();
     var.stringvec.shuffle(&mut rng);
     return var;
 }
 pub fn nscriptfn_arrayreverse(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
-    var.stringdata = storage.getargstring(&args[0], block);
-    var.stringvec = storage.getargstringvec(&args[0], block);
+    let mut var = storage.getvar(&args[0], block);
     let mut newvec:Vec<String> = Vec::new();
     for x in var.stringvec.clone(){
         //newvec.push("".to_string());

@@ -368,7 +368,7 @@ impl Nscript3d {
         lenght
     }
     pub fn getraypoint(&mut self,rayid:&str,entree:usize)-> (f32,f32,f32){
-        if let Some(ray) = self.rays.get(rayid.into()){
+        if let Some(ray) = self.rays.get(rayid){
             if ray.len() > entree{
                 return ray[entree].clone();
             }
@@ -378,7 +378,7 @@ impl Nscript3d {
     }
 
     pub fn removeray(&mut self,rayid:&str){
-       self.rays.remove(rayid.into());
+       self.rays.remove(rayid);
     }
 }
 

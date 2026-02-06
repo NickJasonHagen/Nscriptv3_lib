@@ -257,7 +257,7 @@ impl  Nscript{
                                 wordvec.push(Nstring::replace(&arg,"\\)",")"));
                             }
                             else if Nstring::instring(&arg, ".") == false && Nstring::postfix(&arg) == "(" {
-                                match self.rustfunctions.get(Nstring::trimright(&arg,1).as_str().into()){
+                                match self.rustfunctions.get(Nstring::trimright(&arg,1).as_str()){
                                     Some(_) =>{
                                         arg = "1".to_string() + &arg;
                                     }
@@ -353,7 +353,7 @@ impl  Nscript{
     /// this keeps the coroutines running , after all routines are ran the code returns!
     pub fn executecoroutines(&mut self){
         for xid in self.coroutinesindex.clone(){
-            if let Some(thisroutine) = self.coroutines.get_mut(xid.as_str().into()){
+            if let Some(thisroutine) = self.coroutines.get_mut(xid.as_str()){
                 if thisroutine.timedroutine == false{
                     let mut thisroutine = thisroutine.clone();
                     self.executeblock(&mut thisroutine.storageblock,&thisroutine.executableblock);
@@ -442,7 +442,7 @@ impl  Nscript{
                                         preprocessedvec.push(xline.to_owned());
                                     }
                                     NscriptWordTypes::RustFunction |NscriptWordTypes::Function =>{
-                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[0],1),"(")[0].into()){
+                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[0],1),"(")[0]){
                                             let mut insertvec:Vec<String> = Vec::new();
                                             insertvec.push("RFN".to_string());
                                             let splitfunc = split(&xline[0],"(")[0];
@@ -514,7 +514,7 @@ impl  Nscript{
                                     NscriptWordTypes::RustFunction |NscriptWordTypes::Function =>{
                                             let getargs = Nstring::stringbetween(&xline[1], "(", ")");
                                             let givenargs = Nstring::split(&getargs,",");
-                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[1],1),"(")[0].into()){
+                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[1],1),"(")[0]){
                                             let mut newline: Vec<String>  = Vec::new();
                                             let getargs = Nstring::stringbetween(&xline[1], "(", ")");
                                             newline.push("R_RFN".to_string());
@@ -816,7 +816,7 @@ impl  Nscript{
                                                             NscriptWordTypes::RustFunction | NscriptWordTypes::Function=>{
                                                                 match self.checkwordtype(&xline[0]){
                                                                     NscriptWordTypes::Variable =>{
-                                                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[2],1),"(")[0].into()){
+                                                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[2],1),"(")[0]){
 
                                                                             let mut newline: Vec<String>  = Vec::new();
                                                                             let funcname = split(&xline[2],"(")[0];
@@ -1899,7 +1899,7 @@ impl  Nscript{
     /// preparsed; for preproccesed lines (optimizing)
     pub fn execute_prerustfunction(&mut self,funcname:&str,getargs:&str, block:&mut NscriptCodeBlock) ->NscriptVar{
         let funcname = Nstring::trimprefix(&funcname);
-        if let Some(rustfn) = self.rustfunctions.get(funcname.into()){
+        if let Some(rustfn) = self.rustfunctions.get(funcname){
             return rustfn(&split(&getargs,","),block,&mut self.storage);
         }
         print(&format!("cant find func {}",funcname),"r");

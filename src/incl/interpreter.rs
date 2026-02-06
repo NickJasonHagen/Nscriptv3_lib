@@ -75,7 +75,7 @@ impl  Nscript{
     pub fn newthread(&mut self) -> Nscript{
         let mut this = Nscript::setclean();
         for xfn in self.rustfunctionsindex.clone(){
-            if let Some(fnr) = self.rustfunctions.get(xfn.as_str().into()){
+            if let Some(fnr) = self.rustfunctions.get(xfn.as_str()){
                 this.insertfn(&xfn, fnr.clone(),"");
             }
         }
@@ -283,7 +283,7 @@ impl  Nscript{
     }
     pub fn removecoroutine(&mut self,routine:&str){
         self.coroutinesindex.retain(|x| x != routine);
-        self.coroutines.remove(routine.into());
+        self.coroutines.remove(routine);
     }
     pub fn addcoroutine(&mut self,name:&str,routine:NscriptCoroutine){
         let string = name.to_string();
@@ -1451,7 +1451,7 @@ impl NscriptCodeBlock{
         self.variables.insert(nameref.into(),NscriptVar::newstring(&nameref,string));
     }
     pub fn getstring(&mut self,namref:&str) ->String{
-        if let Some(data) = self.variables.get(namref.into()){
+        if let Some(data) = self.variables.get(namref){
             return data.stringdata.to_string();
         }
         else{
@@ -1459,7 +1459,7 @@ impl NscriptCodeBlock{
         }
     }
     pub fn getstr(&mut self,namref:&str) ->&str{
-        if let Some(data) = self.variables.get(namref.into()){
+        if let Some(data) = self.variables.get(namref){
             return &data.stringdata;
         }
         else{
@@ -1468,12 +1468,12 @@ impl NscriptCodeBlock{
     }
     /// stored Vec<String> for NscriptVar types.
     pub fn setstringvec(&mut self,nameref:&str,stringvec:Vec<String>){
-        self.variables.insert(nameref.into(),NscriptVar::newvec(nameref.into(), stringvec));
+        self.variables.insert(nameref.into(),NscriptVar::newvec(nameref, stringvec));
     }
 
     /// stored Vec<String> for NscriptVar types.
     pub fn getstringvec(&mut self,nameref:&str) ->Vec<String>{
-        if let Some(data) = self.variables.get(nameref.into()){
+        if let Some(data) = self.variables.get(nameref){
             return data.stringvec.to_owned();
         }
         else{

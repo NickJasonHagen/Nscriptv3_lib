@@ -923,9 +923,7 @@ pub fn nscriptfn_arrayinsert(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
 }
 pub fn nscriptfn_arraysearch(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = storage.getvar(&args[0], block);
-
     let tosearch = storage.getargstring(&args[1], block);
-
     let mut newvec = Vec::new();
     for xitem in var.stringvec{
         if Nstring::instring(&xitem,&tosearch) {
@@ -960,7 +958,6 @@ pub fn nscriptfn_arrayroll(args:&Vec<&str>,block :&mut NscriptCodeBlock , storag
     if args.len() > 1 {
         for xitem in 0..var.stringvec.len() -1{
             newvar.stringvec.push(var.stringvec[xitem].to_string());
-
         }
     }
     return newvar

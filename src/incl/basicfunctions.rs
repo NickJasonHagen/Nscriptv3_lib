@@ -865,9 +865,7 @@ pub fn nscriptfn_random(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :
 }
 
 pub fn nscriptfn_arraypush(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new(&storage.getargstring(&args[0], block));
-    var.stringdata = storage.getargstring(&args[0], block);
-    var.stringvec = storage.getargstringvec(&args[0], block);
+    let mut var = storage.getvar(&args[0], block);
     if args.len() > 1 {
         var.stringvec.push(storage.getargstring(&args[1], block));
     }

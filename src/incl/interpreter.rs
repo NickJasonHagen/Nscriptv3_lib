@@ -1196,6 +1196,7 @@ impl NscriptStorage{
             "@msec" => time.timestamp_millis().to_string(),
             "@socketip" => self.getglobal("$socketip").stringdata,
             "@crlf" => String::from("\r\n"),
+            "@cr" => String::from("\r"),
             "@lf" => String::from("\n"),
             "@error" => self.getglobal("$error").stringdata,
             "@emptystring" | _ =>{

@@ -1137,7 +1137,7 @@ pub fn nscriptfn_terminalinput(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
     // Remove trailing newline character
     input = input.trim_end().to_string();
 
-    if input.is_empty() {
+    if input.is_empty() == true|| &input == ""{
         default.to_string()
     } else {
         input.to_string()

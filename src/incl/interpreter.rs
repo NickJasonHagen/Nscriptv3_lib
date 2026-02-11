@@ -209,6 +209,7 @@ impl  Nscript{
             self.insertfn("url", nscriptfn_url,"(hostaddress,param,params..) // returns the the url string like http://site.com?parm1&param2&etc");
             self.insertfn("objectgetrangebetween", nscriptfn_objectgetrangebetween,"(object1,object2) // returns the range as a f32 using objects x y z propererties.");
             self.insertfn("objectgetsiderange",nscriptfn_objectgetsiderange,"objectgetrange(side,range) // returns a f32;3 with the position, sides up/down/left/right #object requires .yaw .pitch");
+            self.insertfn("panic",nscriptfn_panic,"panic(errormsg) // panics the program with a msg. Exits after");
 
             #[cfg(not(windows))]
             if 1 == 1{

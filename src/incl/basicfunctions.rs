@@ -1441,6 +1441,9 @@ pub fn nscriptfn_arraynewsized(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
         vect
     )
 }
+pub fn nscriptfn_panic(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
+    panic!("{}",&storage.getargstring(args[0], block));
+}
 // pub fn nscriptfn_stingtoalphanummeric(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
 //     let checkstring = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
 //     let fromstring = storage.getargstring(args[0], block).to_lowercase();

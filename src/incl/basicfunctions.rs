@@ -11,7 +11,11 @@ pub fn nscriptfn_split(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
         if  args.len() > 1{
             delim = storage.getargstring(&args[1], block).to_string();
         }
-        return NscriptVar::newvec("split",Nstring::split(&storage.getargstring(&args[0], block),&delim));
+        let mut var = storage.getvar(&args[0], block);
+        var.stringvec = Nstring::split(&var.stringdata,&delim);
+        var.stringdata = "".to_string();
+        return var;
+        //return NscriptVar::newvec("split",Nstring::split(&,&delim));
         // for xitem in split(&storage.getargstring(&args[0], block),&delim){
         //     thisvar.stringvec.push(xitem.to_string());
         // }
@@ -763,6 +767,18 @@ pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     var
 }
 pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    //let mut var = NscriptVar::new("cat");
+    let mut var = storage.getvar(&args[0],block);
+
+    let mut string = var.stringdata.to_string();
+    for xcat in 1..args.len(){
+        string = string + &storage.getargstring(&args[xcat], block);
+    }
+    //var.stringdata = string;
+    var.stringdata = string;
+    return var;
+}
+pub fn nscriptfn_catbk(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     //let mut var = NscriptVar::new("cat");
     let mut string = "".to_string();
     for xcat in args{

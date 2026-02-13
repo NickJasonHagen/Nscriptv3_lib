@@ -1442,7 +1442,9 @@ pub fn nscriptfn_arraynewsized(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
     )
 }
 pub fn nscriptfn_panic(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    panic!("[NscriptRuntimePanic]{}",&storage.getargstring(args[0], block));
+    let blockname = block.name.to_string();
+    let blocksub = block.insubblock.to_string();
+    panic!("[NscriptRuntimePanic]Panix in block[{} @ subblock{}] error msg: {}",blockname, blocksub,&storage.getargstring(args[0], block));
 }
 // pub fn nscriptfn_stingtoalphanummeric(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
 //     let checkstring = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();

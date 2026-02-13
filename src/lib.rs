@@ -62,3 +62,4 @@ const NC_LINE_ENDING: &'static str = "\n";
 #[cfg(not(windows))]
 pub const NC_LINE_ENDING: &'static str = "\n";
 
+

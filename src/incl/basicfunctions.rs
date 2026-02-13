@@ -1333,9 +1333,8 @@ pub fn nscriptfn_devide(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :
         print!("wrong arguments for devide (number , devideby)");
         return var;
     }
-    let var1 = storage.getargstring(&args[0], block);
-    let var2 = storage.getargstring(&args[1], block);
-    var.stringdata = (Nstring::f64(&var1) / Nstring::f64(&var2)).to_string();
+
+    var.stringdata = (Nstring::f64(&storage.getargstring(&args[0], block)) / Nstring::f64(&storage.getargstring(&args[1], block))).to_string();
     return var;
 }
 pub fn nscriptfn_cos(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

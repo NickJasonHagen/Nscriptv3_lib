@@ -1144,7 +1144,7 @@ impl  Nscript{
             }
             "+" =>{
                 let mut onvar = self.storage.getvar(&line[1], block);
-                onvar.stringdata = (onvar.getnumber() + 1).to_string();
+                onvar.stringdata = (onvar.stringdata.parse::<u64>().unwrap_or(0) + 1 + 1).to_string();
                 return self.setdefiningword(&line[1], onvar,&formattedblock, block);
             }
             "l+" =>{

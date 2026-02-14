@@ -6,7 +6,6 @@ pub struct Nstring {
 }
 pub fn nscriptfn_split(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     //let mut thisvar = NscriptVar::new("var");
-    if args.len() > 1 {
         let mut delim = "".to_string();
         if  args.len() > 1{
             delim = storage.getargstring(&args[1], block).to_string();
@@ -15,22 +14,12 @@ pub fn nscriptfn_split(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
         var.stringvec = Nstring::split(&var.stringdata,&delim);
         var.stringdata = "".to_string();
         return var;
-        //return NscriptVar::newvec("split",Nstring::split(&,&delim));
-        // for xitem in split(&storage.getargstring(&args[0], block),&delim){
-        //     thisvar.stringvec.push(xitem.to_string());
-        // }
-    }
-    else{
-        println!("Error on givenarguments for func split");
-    }
-    NscriptVar::new("var")
 }
 
 pub fn nscriptfn_replace(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
     if args.len() > 2{
-        let value = Nstring::replace(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block));
-        neovar.stringdata = value.to_string();
+        neovar.stringdata = Nstring::replace(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block));
     }else{
         print("string::replace arguments missing, returing nothing","r");
     }
@@ -767,27 +756,13 @@ pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     var
 }
 pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    //let mut var = NscriptVar::new("cat");
     let mut var = storage.getvar(&args[0],block);
-
-    let mut string = var.stringdata.to_string();
     for xcat in 1..args.len(){
-        string = string + &storage.getargstring(&args[xcat], block);
+        var.stringdata = var.stringdata + &storage.getargstring(&args[xcat], block);
     }
-    //var.stringdata = string;
-    var.stringdata = string;
     return var;
 }
-pub fn nscriptfn_catbk(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    //let mut var = NscriptVar::new("cat");
-    let mut string = "".to_string();
-    for xcat in args{
-        string = string + &storage.getargstring(&xcat, block);
-    }
-    //var.stringdata = string;
-    let var = NscriptVar::newstring("cat", string);
-    return var;
-}
+
 pub fn nscriptfn_vec(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut vec = NscriptVar::new("v");
     for xcat in args{

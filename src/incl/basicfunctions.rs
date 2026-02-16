@@ -257,17 +257,8 @@ impl Nstring {
     pub fn split(string:&str,delim:&str)->Vec<String>{
         string.split(delim).map(str::to_string).collect()
     }
+    /// string to evaluatable string
     pub fn stringtoeval(s: &str) -> String {
-        // saver for hashmap keys usages
-        // let mut r = s.replace("-", "_");
-        // let all = [
-        //     "~", "!", "#", "%", "^", "&", "*", "(", ")", "\\", "{", "}", "[", "]", ".", ",", "?",
-        //     "'", "$", "/",
-        // ];
-        // for c in all {
-        //     r = r.replace(c, "_");
-        // }
-        // r
         let checkstring = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
         let fromstring = s.to_lowercase();
         let mut newstring = "".to_string();
@@ -342,10 +333,10 @@ pub struct Ntimer {
 }
 
 pub fn nscriptfn_timerinit(_var:&Vec<&str>,_block:&mut NscriptCodeBlock , _storage :&mut NscriptStorage) -> NscriptVar{
-    return NscriptVar::newstring("timer", Ntimer::init().to_string());
+    NscriptVar::newstring("timer", Ntimer::init().to_string())
 }
 pub fn nscriptfn_timerdiff(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    return NscriptVar::newstring("timer", Ntimer::diff(storage.getargstring(&args[0], block).parse::<i64>().unwrap_or(0)).to_string());
+    NscriptVar::newstring("timer", Ntimer::diff(storage.getargstring(&args[0], block).parse::<i64>().unwrap_or(0)).to_string())
 }
 impl Ntimer {
     pub fn init() -> i64 {

@@ -45,9 +45,7 @@ pub fn nscriptfn_stringtoeval(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     NscriptVar::newstring("res",Nstring::stringtoeval(&storage.getargstring(&args[0], block)))
 }
 pub fn nscriptfn_len(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
-    neovar.stringdata = storage.getargstringvec(&args[0],block).len().to_string();
-    neovar
+    NscriptVar::newstring("len", storage.getargstringvec(&args[0],block).len().to_string())
 }
 pub fn nscriptfn_instring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");
@@ -65,12 +63,12 @@ pub fn nscriptfn_instring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
     neovar
 }
 pub fn nscriptfn_stringbetween(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
+    let mut neovar = storage.getvar(&args[0], block);
     if args.len() < 2 {
         neovar.stringdata = "".to_string();
     }
     else{
-        neovar.stringdata = Nstring::stringbetween(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block))
+        neovar.stringdata = Nstring::stringbetween(&neovar.stringdata, &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block))
 
     }
     neovar

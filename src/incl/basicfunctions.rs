@@ -17,13 +17,13 @@ pub fn nscriptfn_split(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
 }
 
 pub fn nscriptfn_replace(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
+    let mut nvar = storage.getvar(&args[0], block);
     if args.len() > 2{
-        neovar.stringdata = Nstring::replace(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block));
+        nvar.stringdata = Nstring::replace(&nvar.stringdata, &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block));
     }else{
         print("string::replace arguments missing, returing nothing","r");
     }
-    return neovar;
+    return nvar;
 }
 pub fn nscriptfn_newvar(_args:&Vec<&str>,_block :&mut NscriptCodeBlock , _storage :&mut NscriptStorage) ->NscriptVar{
     return NscriptVar::new("v");

@@ -135,24 +135,18 @@ pub fn nscriptfn_fromright(args:&Vec<&str>,block :&mut NscriptCodeBlock , storag
 }
 
 pub fn nscriptfn_trimright(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
     if args.len() > 1{
-        let string = Nstring::trimright(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
-        neovar.stringdata = string;
-    }else{
-        print("string::fromleft arguments missing, returing nothing","r");
+        return NscriptVar::newstring("res",Nstring::trimright(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0)).to_string());
     }
-    return neovar;
+    print("string::fromleft arguments missing, returing nothing","r");
+    NscriptVar::new("result")
 }
 pub fn nscriptfn_trimleft(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
     if args.len() > 1{
-        let string = Nstring::trimleft(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
-        neovar.stringdata = string;
-    }else{
-        print("string::fromleft arguments missing, returing nothing","r");
+        return NscriptVar::newstring("res",Nstring::trimleft(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0)).to_string());
     }
-    return neovar;
+    print("string::fromleft arguments missing, returing nothing","r");
+    NscriptVar::new("result")
 }
 pub fn nscriptfn_toupper(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut neovar = NscriptVar::new("result");

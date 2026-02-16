@@ -216,7 +216,7 @@ impl  Nscript{
                 // termion terminal functions. Unix only
                 self.insertfn("terminaldisableraw", nscriptfn_terminaldisableraw,"() // disables raw mode terminal printing");
                 self.insertfn("terminalupdate", nscriptfn_updateterminal,"(string) // prints a frame");
-                self.insertfn("printpos", nscriptfn_printpos,"(string,color) // todo..");
+                self.insertfn("printpos", nscriptfn_printpos,"(string,color,x,y) // printtext printcolor charposx, charposy");
                 self.insertfn("terminalflush", nscriptfn_terminalflush,"() // flushes the terminal : rawmode");
                 self.insertfn("terminalreset", nscriptfn_terminalreset,"() // resets the terminal : rawmode");
                 self.insertfn("terminalenableraw", nscriptfn_terminalenableraw,"() // enables raw mode terminal printing");

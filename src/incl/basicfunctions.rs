@@ -47,59 +47,59 @@ pub fn nscriptfn_len(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mu
     NscriptVar::newstring("len", storage.getargstringvec(&args[0],block).len().to_string())
 }
 pub fn nscriptfn_instring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
+    let mut nvar = NscriptVar::new("result");
     if args.len() < 2 {
-        neovar.stringdata = "false".to_string();
+        nvar.stringdata = "false".to_string();
     }
     else{
         if Nstring::instring(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block)) {
-            neovar.stringdata = "true".to_string();
+            nvar.stringdata = "true".to_string();
         }
         else{
-            neovar.stringdata = "false".to_string();
+            nvar.stringdata = "false".to_string();
         }
     }
-    neovar
+   nvar
 }
 pub fn nscriptfn_stringbetween(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = storage.getvar(&args[0], block);
+    let mut nvar = storage.getvar(&args[0], block);
     if args.len() < 2 {
-        neovar.stringdata = "".to_string();
+        nvar.stringdata = "".to_string();
     }
     else{
-        neovar.stringdata = Nstring::stringbetween(&neovar.stringdata, &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block))
+        nvar.stringdata = Nstring::stringbetween(&nvar.stringdata, &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block))
 
     }
-    neovar
+   nvar
 }
 
 pub fn nscriptfn_trim(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     NscriptVar::newstring("trim",storage.getargstring(&args[0],block).trim().to_string())
 }
 pub fn nscriptfn_contains(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
+    let mut nvar = NscriptVar::new("result");
     if args.len() > 1{
         let value = Nstring::instring(&storage.getargstring(&args[0],block), & storage.getargstring(&args[1],block) );
-        neovar.stringdata = value.to_string();
+        nvar.stringdata = value.to_string();
     }else{
         print("string::contains arguments missing, returing nothing","r");
     }
-    return neovar;
+    return nvar;
 }
 
 pub fn nscriptfn_join(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
+    let mut nvar = NscriptVar::new("result");
     if args.len() > 0{
         let mut tojoin = "".to_string();
         if args.len() > 1 {
             tojoin = storage.getargstring(&args[1], block);
         }
-        neovar.stringdata = storage.getargstringvec(&args[0], block).join(&tojoin);
+        nvar.stringdata = storage.getargstringvec(&args[0], block).join(&tojoin);
     }
     else{
         print("join arguments missing, returing nothing","r");
     }
-    return neovar;
+    return nvar;
 }
 
 pub fn nscriptfn_fromleft(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{

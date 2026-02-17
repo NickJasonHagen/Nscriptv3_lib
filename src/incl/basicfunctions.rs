@@ -106,32 +106,32 @@ pub fn nscriptfn_join(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&m
             tojoin = storage.getargstring(&args[1], block);
         }
         neovar.stringdata = storage.getargstringvec(&args[0], block).join(&tojoin);
-    }else{
+    }
+    else{
         print("join arguments missing, returing nothing","r");
     }
     return neovar;
 }
 
 pub fn nscriptfn_fromleft(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
+    let mut nvar = storage.getvar(&args[0], block);
     if args.len() > 1{
-        let string = Nstring::fromleft(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
-        neovar.stringdata = string;
+         nvar.stringdata = Nstring::fromleft(&nvar.stringdata, storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
     }else{
         print("string::fromleft arguments missing, returing nothing","r");
     }
-    return neovar;
+    return nvar;
 }
 
 pub fn nscriptfn_fromright(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = storage.getvar(&args[0], block);
+    let mut nvar = storage.getvar(&args[0], block);
     if args.len() > 1{
-        let string = Nstring::fromright(&neovar.stringdata, storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
-        neovar.stringdata = string;
-    }else{
+        nvar.stringdata = Nstring::fromright(&nvar.stringdata, storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
+    }
+    else{
         print("string::fromleft arguments missing, returing nothing","r");
     }
-    return neovar;
+    return nvar;
 }
 
 pub fn nscriptfn_trimright(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{

@@ -124,9 +124,9 @@ pub fn nscriptfn_fromleft(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
 }
 
 pub fn nscriptfn_fromright(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
+    let mut neovar = storage.getvar(&args[0], block);
     if args.len() > 1{
-        let string = Nstring::fromright(&storage.getargstring(&args[0], block), storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
+        let string = Nstring::fromright(&neovar.stringdata, storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0));
         neovar.stringdata = string;
     }else{
         print("string::fromleft arguments missing, returing nothing","r");

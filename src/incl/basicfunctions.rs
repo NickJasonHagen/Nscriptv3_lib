@@ -30,7 +30,6 @@ pub fn nscriptfn_newvar(_args:&Vec<&str>,_block :&mut NscriptCodeBlock , _storag
 }
 pub fn nscriptfn_replacebyref(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     if args.len() > 2{
-        //println!("raw ref = {}",&args[0]);
         let mut refvar = storage.getvar(args[0], block);
         let value = Nstring::replace(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block));
         refvar.stringdata = value.to_string();
@@ -73,17 +72,7 @@ pub fn nscriptfn_stringbetween(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
     }
     neovar
 }
-// pub fn nscriptfn_stringbetweennested(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-//     let mut neovar = NscriptVar::new("result");
-//     if args.len() < 2 {
-//         neovar.stringdata = "".to_string();
-//     }
-//     else{
-//         neovar.stringdata = Nstring::stringbetween(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block))
-//
-//     }
-//     neovar
-// }
+
 pub fn nscriptfn_trim(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     NscriptVar::newstring("trim",storage.getargstring(&args[0],block).trim().to_string())
 }
@@ -149,16 +138,14 @@ pub fn nscriptfn_trimleft(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
     NscriptVar::new("result")
 }
 pub fn nscriptfn_toupper(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
-    let value = storage.getargstring(&args[0], block).to_uppercase();
-    neovar.stringdata = value.to_string();
-    return neovar;
+    let mut var = storage.getvar(&args[0], block);
+    var.stringdata = var.stringdata.to_uppercase();
+    var
 }
 pub fn nscriptfn_tolower(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut neovar = NscriptVar::new("result");
-    let value = storage.getargstring(&args[0], block).to_lowercase();
-    neovar.stringdata = value.to_string();
-    return neovar;
+    let mut var = storage.getvar(&args[0], block);
+    var.stringdata = var.stringdata.to_lowercase();
+    var
 }
 impl Nstring {
 

@@ -573,15 +573,13 @@ pub fn nscriptfn_fileexists(args:&Vec<&str>,block :&mut NscriptCodeBlock , stora
     return NscriptVar::newstring("fe", Nfile::checkexists(&storage.getargstring(&args[0], block)).to_string());
 }
 pub fn nscriptfn_listdir(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
     let mut fullp = false;
     if args.len() > 1{
         if storage.getargstring(&args[1], block) == "true"{
             fullp = true;
         }
     }
-    thisvar.stringvec = Nfile::dirtolist(&storage.getargstring(&args[0], block), fullp);
-    thisvar
+    NscriptVar::newvec("r",Nfile::dirtolist(&storage.getargstring(&args[0], block), fullp))
 }
 pub fn nscriptfn_filesize(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     NscriptVar::newstring("r",Nfile::filesize(&storage.getargstring(&args[0], block)))

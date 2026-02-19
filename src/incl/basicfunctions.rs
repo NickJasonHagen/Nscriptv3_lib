@@ -347,9 +347,8 @@ pub fn nscriptfn_hextostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
     var
 }
 pub fn nscriptfn_stringtohex(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
-    let mut var = NscriptVar::new("var");
-    let string = storage.getargstring(&args[0], block);
-    var.stringdata = stringtohex(&string);// hex_string;
+    let mut var = storage.getvar(&args[0], block);
+    var.stringdata = stringtohex(&var.stringdata);// hex_string;
     var
 }
 fn stringtohex(string:&str)->String{

@@ -570,9 +570,7 @@ pub fn nscriptfn_filewriteasync(args:&Vec<&str>,block :&mut NscriptCodeBlock , s
 }
 
 pub fn nscriptfn_fileexists(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
-    thisvar.stringdata = Nfile::checkexists(&storage.getargstring(&args[0], block)).to_string();
-    thisvar
+    return NscriptVar::newstring("fe", Nfile::checkexists(&storage.getargstring(&args[0], block)).to_string());
 }
 pub fn nscriptfn_listdir(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut thisvar = NscriptVar::new("Nfile"); // Var to return.

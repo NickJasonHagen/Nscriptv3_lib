@@ -587,9 +587,7 @@ pub fn nscriptfn_filesize(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
     NscriptVar::newstring("r",Nfile::filesize(&storage.getargstring(&args[0], block)))
 }
 pub fn nscriptfn_filesizebytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
-    thisvar.stringdata = Nfile::filesizebytes(&storage.getargstring(&args[0], block)).to_string();
-    thisvar
+    NscriptVar::newstring("r",Nfile::filesizebytes(&storage.getargstring(&args[0], block)).to_string())
 }
 impl Nfile {
     pub fn dirtolist(readpath: &str, fullpathnames: bool) -> Vec<String> {

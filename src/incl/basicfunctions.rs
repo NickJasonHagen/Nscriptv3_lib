@@ -584,9 +584,7 @@ pub fn nscriptfn_listdir(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
     thisvar
 }
 pub fn nscriptfn_filesize(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
-    thisvar.stringdata = Nfile::filesize(&storage.getargstring(&args[0], block));
-    thisvar
+    NscriptVar::newstring("r",Nfile::filesize(&storage.getargstring(&args[0], block)))
 }
 pub fn nscriptfn_filesizebytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut thisvar = NscriptVar::new("Nfile"); // Var to return.

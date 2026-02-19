@@ -547,9 +547,8 @@ pub fn nscriptgetprintingcolor(m:&str,color: &str)->ColoredString{
 // }
 
 pub fn nscriptfn_fileread(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut thisvar = NscriptVar::new("Nfile"); // Var to return.
-    if args.len() > 0 {thisvar.stringdata = Nfile::read(&storage.getargstring(&args[0], block));}
-    thisvar
+    if args.len() > 0 {return NscriptVar::newstring("r",Nfile::read(&storage.getargstring(&args[0], block)));}
+    else{return NscriptVar::new("Nfile");}
 }
 
 pub fn nscriptfn_filewrite(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{

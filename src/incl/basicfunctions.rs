@@ -723,8 +723,8 @@ pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mu
 
 pub fn nscriptfn_vec(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut vec = NscriptVar::new("v");
-    for xcat in args{
-        vec.stringvec.push(storage.getargstring(&xcat, block));
+    for xcat in 1..args.len(){
+        vec.stringvec.push(storage.getargstring(&args[xcat], block));
     }
     return vec;
 }

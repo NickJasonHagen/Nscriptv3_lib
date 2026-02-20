@@ -930,10 +930,7 @@ pub fn copy_directory(dir_path: &str, todir_path: &str) -> String {
     }
 }
 pub fn nscriptfn_dirsize(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
- let dir = storage.getargstring(&args[0], block);
-    let mut var = NscriptVar::new(&dir);
-    var.stringdata = formatbytes(&get_size(&dir).unwrap_or(0));
-    return var
+    NscriptVar::newstring("r", formatbytes(&get_size(&storage.getargstring(&args[0], block)).unwrap_or(0)))
 }
 pub fn nscriptfn_formatbytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     NscriptVar::newstring("r",  formatbytes(&get_size(&storage.getargstring(&args[0], block)).unwrap_or(0)))

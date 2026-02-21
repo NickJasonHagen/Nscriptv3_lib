@@ -553,9 +553,8 @@ pub fn nscriptfn_aabb_removefromgroup(args:&Vec<&str>,block :&mut NscriptCodeBlo
     return NscriptVar::new("r");
 }
 pub fn nscriptfn_aabb_getgroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("aabb");
-    let object = storage.getargstring(&args[0],block);
-    var.stringvec = storage.nscript3d.collisionbox_getgroup(&object);
+    let var = storage.getvar(&args[0],block);
+    storage.nscript3d.collisionbox_getgroup(&var.stringdata);
     return var;
 }
 pub fn nscriptfn_aabb_removegroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

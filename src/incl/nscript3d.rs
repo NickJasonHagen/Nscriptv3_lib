@@ -544,13 +544,13 @@ pub fn nscriptfn_aabb_addtogroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , 
     return NscriptVar::new("aabb");
 }
 pub fn nscriptfn_aabb_removefromgroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let var = NscriptVar::new("aabb");
     if args.len() > 1 {
-        let objname = storage.getargstring(&args[0],block);
+        let objname = storage.getvar(&args[0],block);
         let group = storage.getargstring(&args[1],block);
-        storage.nscript3d.collisionbox_removefromgroup(&objname,&group);
+        storage.nscript3d.collisionbox_removefromgroup(&objname.stringdata,&group);
+        return objname;
     }
-    return var;
+    return NscriptVar::new("r");
 }
 pub fn nscriptfn_aabb_getgroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let mut var = NscriptVar::new("aabb");

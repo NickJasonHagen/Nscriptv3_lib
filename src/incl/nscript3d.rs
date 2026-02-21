@@ -524,15 +524,14 @@ pub fn nscriptfn_aabb_newbox(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
     return var;
 }
 pub fn nscriptfn_aabb_sizedbox(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("addbox");
     if args.len() > 3 {
-        let objname = storage.getargstring(&args[0],block);
+        let mut var = storage.getvar(&args[0],block);
         let x = storage.getargstring(&args[1],block);
         let y = storage.getargstring(&args[2],block);
         let z = storage.getargstring(&args[3],block);
-        var.stringdata = storage.nscript3d.collisionbox_sizedbox(&objname,Nstring::f32(&x),Nstring::f32(&y),Nstring::f32(&z));
+        var.stringdata = storage.nscript3d.collisionbox_sizedbox(&var.stringdata,Nstring::f32(&x),Nstring::f32(&y),Nstring::f32(&z));
     }
-    return var;
+    return NscriptVar::new("addbox");
 }
 pub fn nscriptfn_aabb_addtogroup(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let var = NscriptVar::new("aabb");

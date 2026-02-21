@@ -520,9 +520,8 @@ pub fn nscriptfn_getraypoint(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
     return var;
 }
 pub fn nscriptfn_aabb_newbox(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("addbox");
-    let objname = storage.getargstring(&args[0],block);
-    var.stringdata = storage.nscript3d.collisionbox_newbox(&objname);
+    let var = storage.getvar(&args[0],block);
+    storage.nscript3d.collisionbox_newbox(&var.stringdata);
     return var;
 }
 pub fn nscriptfn_aabb_sizedbox(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

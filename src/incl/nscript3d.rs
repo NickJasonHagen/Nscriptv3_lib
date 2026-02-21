@@ -512,10 +512,9 @@ pub fn nscriptfn_castray(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
     return var;
 }
 pub fn nscriptfn_getraypoint(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("ray");
-    let rayid = storage.getargstring(args[0], block);
+    let mut var = storage.getvar(args[0], block);
     let entree = Nstring::usize(&storage.getargstring(args[1], block));
-    let point = storage.nscript3d.getraypoint(&rayid,entree);
+    let point = storage.nscript3d.getraypoint(&var.stringdata,entree);
     var.stringvec = vec!(point.0.to_string(),point.1.to_string(),point.2.to_string());
     return var;
 }

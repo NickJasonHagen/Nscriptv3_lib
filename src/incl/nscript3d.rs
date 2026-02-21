@@ -530,6 +530,7 @@ pub fn nscriptfn_aabb_sizedbox(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
         let y = storage.getargstring(&args[2],block);
         let z = storage.getargstring(&args[3],block);
         var.stringdata = storage.nscript3d.collisionbox_sizedbox(&var.stringdata,Nstring::f32(&x),Nstring::f32(&y),Nstring::f32(&z));
+        return var;
     }
     return NscriptVar::new("addbox");
 }

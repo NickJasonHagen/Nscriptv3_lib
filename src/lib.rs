@@ -10,6 +10,7 @@ mod incl {
     pub mod basicfunctions;
     pub mod httpnc;
     pub mod tcp;
+    pub mod udp;
     pub mod nscript3d;
 
     #[cfg(not(windows))]
@@ -20,6 +21,7 @@ pub use incl::formatter::*;
 pub use incl::basicfunctions::*;
 pub use incl::httpnc::*;
 pub use incl::tcp::*;
+pub use incl::udp::*;
 pub use incl::nscript3d::*;
 
 #[cfg(not(windows))]

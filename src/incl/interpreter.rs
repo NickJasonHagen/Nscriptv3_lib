@@ -213,6 +213,8 @@ impl  Nscript{
             self.insertfn("udpbind",nscriptfn_udpbind,"udpbind(ip,poort) // returns a socketID which can be used by udplisten(socketid) and udpsend(socketid,clientid,msg)");
             self.insertfn("udplisten",nscriptfn_udplisten,"udplisten(udpsocketid) // returns a vec[0] for clientsocket and [1] for msgdata");
             self.insertfn("udpsend",nscriptfn_udpsend,"udpsend(udpsocketid,clientsocketid,msgstring) // returns a error value=[ERROR] on failure");
+            self.insertfn("udpreply",nscriptfn_udpreply,"udpreply(udpsocketid,clientsocketid,msgstring) //used for the listen() function to send to a clientsocket,  returns a error value=[ERROR] on failure");
+            self.insertfn("socketaddress",nscriptfn_socketaddress,"socketaddress(ip,port) //returns a socketaddress string eg: 0.0.0.0:8080 usable for udpsend()");
 
             #[cfg(not(windows))]
             if 1 == 1{

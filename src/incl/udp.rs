@@ -19,6 +19,7 @@ impl NscriptUDP{
         // Set the socket to receive packets
         socket.set_nonblocking(true).unwrap();
         self.sockets.insert(port.into(), socket);
+        // return the socket object for nscript to work with
         NscriptVar::newstring("r", format!("{}:{}",&ip,&port))
     }
     pub fn listen(&mut self,bindsocket:&str)->NscriptVar{
@@ -30,20 +31,14 @@ impl NscriptUDP{
             let string = String::from_utf8_lossy(&buf).to_string();
             let addressname = format!("upd:{}",&src);
             self.connections.insert(addressname.to_string().into(), src);
+            // return a nscript vector with [0] for the returning socket and [1] with the data
             return  NscriptVar { name:"r".into(),stringdata:"".to_string() , stringvec:vec!(addressname,string) };
-            // Handle the received data
-            //println!("Received {} bytes from {}", amt, src);
-
-            // Send a response back to the client
-            //let mut resp = [0; 1024];
-            // ...
-            //socket.send_to(&resp[..], src).unwrap();
         }
 
         NscriptVar::new("r")
     }
-    pub fn send(&mut self,port:&str,clientsocket:&str,msg:&str)->NscriptVar{
-        if let Some(s) = self.sockets.get(port){
+    pub fn send(&mut self,socketaddr:&str,clientsocket:&str,msg:&str)->NscriptVar{
+        if let Some(s) = self.sockets.get(socketaddr){
             if let Some(sock) = self.connections.get(clientsocket){
                 if let Ok(e) = s.send_to(msg.as_bytes(),sock){
                     return NscriptVar::newstring("r", format!("{}",e));

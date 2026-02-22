@@ -51,7 +51,7 @@ impl NscriptUDP{
 pub fn nscriptfn_udpbind(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     if args.len() > 1{
         let  ip = storage.getargstring(args[0], block);
-        let  port = storage.getargstring(args[0], block);
+        let  port = storage.getargstring(args[1], block);
         return storage.udp.bind(&ip, &port);
 
     }else{
@@ -60,8 +60,8 @@ pub fn nscriptfn_udpbind(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
     return NscriptVar::new("res");
 }
 pub fn nscriptfn_udplisten(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-        let  socketid = storage.getargstring(args[0], block);
-        return storage.udp.listen(&socketid);
+    let  socketid = storage.getargstring(args[0], block);
+    return storage.udp.listen(&socketid);
 }
 pub fn nscriptfn_udpsend(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let socketid = storage.getargstring(args[0], block);

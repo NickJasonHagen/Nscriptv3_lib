@@ -210,6 +210,9 @@ impl  Nscript{
             self.insertfn("objectgetrangebetween", nscriptfn_objectgetrangebetween,"(object1,object2) // returns the range as a f32 using objects x y z propererties.");
             self.insertfn("objectgetsiderange",nscriptfn_objectgetsiderange,"objectgetrange(side,range) // returns a f32;3 with the position, sides up/down/left/right #object requires .yaw .pitch");
             self.insertfn("panic",nscriptfn_panic,"panic(errormsg) // panics the program with a msg. Exits after");
+            self.insertfn("udpbind",nscriptfn_udpbind,"udpbind(ip,poort) // returns a socketID which can be used by udplisten(socketid) and udpsend(socketid,clientid,msg)");
+            self.insertfn("udplisten",nscriptfn_udplisten,"udplisten(udpsocketid) // returns a vec[0] for clientsocket and [1] for msgdata");
+            self.insertfn("udpsend",nscriptfn_udpsend,"udpsend(udpsocketid,clientsocketid,msgstring) // returns a error value=[ERROR] on failure");
 
             #[cfg(not(windows))]
             if 1 == 1{

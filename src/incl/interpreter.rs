@@ -600,7 +600,7 @@ impl NscriptStorage{
             debugging: true,
         }
     }
-    pub fn setdefiningword(&mut self,word:&str,equalsfrom: NscriptVar, block:&mut NscriptCodeBlock)->NscriptVar{
+    pub fn setdefiningword(&mut self,word:&str,equalsfrom: NscriptVar, block:&mut NscriptCodeBlock){
         match self.checkdefiningwordtype(&word){
             NscriptWordTypes::Variable => {
                 block.setvar(&word, equalsfrom);
@@ -659,7 +659,7 @@ impl NscriptStorage{
 
             }
         };
-        return NscriptVar::new("v");
+        //return NscriptVar::new("v");
     }
 
     pub fn getglobal(&mut self,name:&str) ->NscriptVar{

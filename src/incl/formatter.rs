@@ -369,20 +369,29 @@ impl  Nscript{
         }
     }
     /// entree point for executing a new block
-    pub fn executeblock(&mut self,block:&mut NscriptCodeBlock,formattedblock: &NscriptExecutableCodeBlock) -> NscriptVar{
+    pub fn executeblock(&mut self,block:&mut NscriptCodeBlock,formattedblock: &NscriptExecutableCodeBlock) -> Option<NscriptVar>{
         //let formattedblock = block.formattedcode.clone();
         if let Some(returnvar) = self.executescope(&formattedblock.boxedcode[0],&formattedblock, block){
             if &returnvar.name == "return" {
-                return returnvar;
+                return Some(returnvar);
             }
         }
-        NscriptVar::new("blockend")
+        return None;
+        //NscriptVar::new("blockend")
     }
 
     fn executescope(&mut self, blockvec:&Vec<Vec<Box<str>>>, formattedblock: &NscriptExecutableCodeBlock, block: &mut NscriptCodeBlock) -> Option<NscriptVar> {
-        blockvec.iter().map(|line| {
-            self.executepreproccessedline(line, &formattedblock, block)
-        }).find(|result|result.name == "return")
+        // blockvec.iter().map(|line| {
+        //     self.executepreproccessedline(line, &formattedblock, block)
+        // }).find(|result|result.name == "return")
+        for x in blockvec{
+            if let Some(res) = self.executepreproccessedline(x, formattedblock, block){
+                if res.name == "return"{
+                    return Some(res);
+                }
+            }
+        }
+        return None;
     }
     /// executes if scopes which are still part of a scope so they use the local variables.
     fn executesubscope(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) -> Option<NscriptVar> {
@@ -966,7 +975,7 @@ impl  Nscript{
         preprocessedvec
     }
 
-    fn executepreproccessedline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
+    fn executepreproccessedline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
 
         //print("here","br");
         //:w
@@ -974,16 +983,17 @@ impl  Nscript{
         match line[0].as_ref(){
             "S" =>{ // scope
                 if let Some(ret) = self.executesubscope(&line,&formattedblock,block){
-                    return ret;
+                    return Some(ret);
                 };
-                return NscriptVar::new("line");
+                return None;
+ //               return NscriptVar::new("line");
             }
             "NFN" =>{
                 self.execute_nestedfunction(&line[1], formattedblock, block);
 
             }
             "SFN" =>{
-                  return self.execute_ruststructfn(&line[1],&formattedblock, block) ;
+                  return Some(self.execute_ruststructfn(&line[1],&formattedblock, block)) ;
             }
             "FN" =>{
                  self.execute_prencfunction(&line[3],&line, block) ;
@@ -1037,55 +1047,60 @@ impl  Nscript{
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
             "RFN" =>{
-                return self.execute_prerustfunction(&line[1],&line[2], block);
+                return Some(self.execute_prerustfunction(&line[1],&line[2], block));
             }
             "M" =>{
                 let tomatch = self.getwordstring(&line[1],&formattedblock, block);
-                return self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(0)-1,&formattedblock, block);
+                return Some(self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(0)-1,&formattedblock, block));
             }
             "B" =>{
-                return NscriptVar::newstring("return","break".to_string());
+                return Some(NscriptVar::newstring("return","break".to_string()));
             }
             "RET" =>{
-                return NscriptVar::new("return");
+                return Some(NscriptVar::new("return"));
             }
             "RV" =>{
                 let mut retvar = block.getvar(&line[1]);
                 retvar.name = "return".to_string();
-                return retvar;
+                return Some(retvar);
             }
             "RS" =>{
-                return NscriptVar::newstring("return", block.staticstrings[Nstring::trimprefix(&line[1]).parse::<usize>().unwrap_or(0)].to_string() );
+                return Some(NscriptVar::newstring("return", block.staticstrings[Nstring::trimprefix(&line[1]).parse::<usize>().unwrap_or(0)].to_string() ));
             }
             "RP" =>{
                 let mut retvar = self.storage.classgetprop(&Nstring::trimprefix(&line[1]),&line[2], block);
                 retvar.name = "return".to_string();
-                return retvar;
+                return Some(retvar);
             }
             "return" =>{
                 let mut retvar = self.executeword(&line[1], &formattedblock,block);
                 retvar.name = "return".to_string();
-                return retvar;
+                return Some(retvar);
+
             }
             "R_FN" =>{
                 let mut retvar = self.execute_prencfunction(&line[3],&line, block);
                 retvar.name = "return".to_string();
-                return retvar;
+                return Some(retvar);
+
             }
             "R_RFN" =>{
                 let mut retvar = self.execute_prerustfunction(&line[2],&line[2], block);
                 retvar.name = "return".to_string();
-                return retvar;
+                return Some(retvar);
+
             }
             "R_CFN" =>{
                 let mut retvar = self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block);
                 retvar.name = "return".to_string();
-                return retvar;
+                return Some(retvar);
+
             }
             "R_NFN" =>{
                 let mut retvar = self.execute_nestedfunction(&line[2],&formattedblock, block);
                 retvar.name = "return".to_string();
-                return retvar;
+                return Some(retvar);
+
             }
             "CH" =>{
                 let mut index = 1;
@@ -1116,36 +1131,36 @@ impl  Nscript{
             "SC" =>{
                 self.execute_setclassfromclass(&line[1],&line[3],&formattedblock, block);
 
-                return NscriptVar::new("line");
+                //return NscriptVar::new("line");
             }
             "L" =>{
                 self.execute_spawnloop(&line,&formattedblock,block);
             }
             "vi" =>{
                 let get = self.execute_vecloopsin(&line,&formattedblock, block);
-                return self.setdefiningword(&line[1], get, &formattedblock,block);
+                self.setdefiningword(&line[1], get, &formattedblock,block);
             }
             "vt" =>{
                 let get = self.execute_vecloopsto(&line,&formattedblock, block);
-                return self.setdefiningword(&line[1], get, &formattedblock,block);
+                 self.setdefiningword(&line[1], get, &formattedblock,block);
             }
             "si" =>{
                 let get = self.execute_stringloopsin(&line,&formattedblock, block);
-                return self.setdefiningword(&line[1], get, &formattedblock,block);
+                 self.setdefiningword(&line[1], get, &formattedblock,block);
             }
             "st" =>{
                 let get = self.execute_stringloopsto(&line,&formattedblock, block);
-                return self.setdefiningword(&line[1], get, &formattedblock,block);
+                 self.setdefiningword(&line[1], get, &formattedblock,block);
             }
             "-" =>{
                 let mut onvar = self.storage.getvar(&line[1],block);
                 onvar.stringdata = (onvar.getnumber() - 1).to_string();
-                return self.setdefiningword(&line[1], onvar, &formattedblock,block);
+                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
             "+" =>{
                 let mut onvar = self.storage.getvar(&line[1], block);
                 onvar.stringdata = (onvar.stringdata.parse::<u64>().unwrap_or(0) + 1 + 1).to_string();
-                return self.setdefiningword(&line[1], onvar,&formattedblock, block);
+                 self.setdefiningword(&line[1], onvar,&formattedblock, block);
             }
             "l+" =>{
                 let  onvar = block.getstr(&line[1]);
@@ -1157,7 +1172,7 @@ impl  Nscript{
                 for xadd in 4..line.len(){
                     onvar.stringdata += &self.getwordstring(&line[xadd],&formattedblock,block);
                 }
-                return self.setdefiningword(&line[1], onvar,&formattedblock,block);
+                self.setdefiningword(&line[1], onvar,&formattedblock,block);
             }
             "~" =>{ // set local with static
                 block.setstring(&line[1], block.staticstrings[line[3].parse::<usize>().unwrap_or(0)].to_string());
@@ -1183,33 +1198,33 @@ impl  Nscript{
                     let this = self.getwordstring(&line[xadd],&formattedblock,block);
                     onvar.stringvec.push(this);
                 }
-                return self.setdefiningword(&line[1], onvar,&formattedblock, block);
+                self.setdefiningword(&line[1], onvar,&formattedblock, block);
             }
             "SM" =>{
                 let tomatch = self.getwordstring(&line[4], &formattedblock,block);
                 let mut onvar = self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(1)-1, &formattedblock,block);
                 onvar.name = line[1].to_string();
-                return self.setdefiningword(&line[1], onvar,&formattedblock, block);
+                self.setdefiningword(&line[1], onvar,&formattedblock, block);
             }
             "M4" =>{
                 let onvar = self.runmath(&line, 4,&formattedblock,  block);
-                return self.setdefiningword(&line[1], onvar,&formattedblock, block);
+                self.setdefiningword(&line[1], onvar,&formattedblock, block);
             }
             "I" =>{
-                return self.execute_ifline(&line,&formattedblock, block);
+                return Some(self.execute_ifline(&line,&formattedblock, block));
             }
             "EI" =>{
-                return self.execute_elseifline(&line,&formattedblock,block);
+                return Some(self.execute_elseifline(&line,&formattedblock,block));
             }
             "E" =>{
-                return self.execute_elseline(&line,&formattedblock,block);
+                return Some(self.execute_elseline(&line,&formattedblock,block));
             }
             "BC" =>{
                 let tobreak = self.storage.getargstring(&line[2],block);
                 self.removecoroutine(&tobreak);
             }
             "ST" => {
-                return self.execute_spawnthread(line, &formattedblock,block);
+                return Some(self.execute_spawnthread(line, &formattedblock,block));
             }
             "FI" =>{
                 self.execute_forinloop(&line,&formattedblock,block);
@@ -1222,7 +1237,7 @@ impl  Nscript{
                 for xadd in 3..line.len(){
                     equalsfrom.stringdata = equalsfrom.stringdata + &self.executeword(&(line[xadd].to_string()),&formattedblock,block).stringdata.to_string();
                 }
-                return self.setdefiningword(&line[1], equalsfrom, &formattedblock,block);
+                self.setdefiningword(&line[1], equalsfrom, &formattedblock,block);
             }
             "SS" =>{// subtract self
                 let mut onvar = self.storage.getvar(&line[1], block);
@@ -1231,7 +1246,7 @@ impl  Nscript{
                     total -= self.executeword(&line[x],&formattedblock, block).getfloat32();
                 }
                 onvar.stringdata = total.to_string();
-                return self.setdefiningword(&line[1], onvar, &formattedblock,block);
+                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
             "BRF" =>{
                 for x in (1..line.len()).step_by(2){
@@ -1253,21 +1268,21 @@ impl  Nscript{
                 }
                // println!("AA:{}",line.join(" "));
 
-                return self.setdefiningword(&line[1], onvar, &formattedblock,block);
+                self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
             "tI" =>{//optimized timerchecks
                 if f64(&self.execute_rustfunction(&line[1], block).stringdata) > f64(&line[3]){
-                    return self.execute_ifscopeup(true,line,formattedblock,block);
+                    return Some(self.execute_ifscopeup(true,line,formattedblock,block));
                 }
             }
             "iI" =>{//optimized localvar > number
                 if f64(&block.getstring(&line[1])) > f64(&line[3]){
-                    return self.execute_ifscopeup(true,line,formattedblock,block);
+                    return Some(self.execute_ifscopeup(true,line,formattedblock,block));
                 }
             }
             "i" => {
                 let script = self.getwordstring(&line[1],&formattedblock, block);
-                return self.parsefile(&script);
+                return Some(self.parsefile(&script));
             }
             "d" =>{
                 let retvar = self.executeword(&line[2],&formattedblock,block);
@@ -1288,7 +1303,7 @@ impl  Nscript{
                 stringvec.push("".into());
                 stringvec.push("".into());
                 let retvar = NscriptVar::newstring("l",self.parse_and_check_statements(&stringvec,&formattedblock, block).to_string());
-                return self.setdefiningword(&line[1], retvar, &formattedblock,block);
+                self.setdefiningword(&line[1], retvar, &formattedblock,block);
             }
             "CO"=>{
                 self.execute_spawncoroutine(&line,false,0,&formattedblock,block);
@@ -1309,7 +1324,8 @@ impl  Nscript{
             }
             _ =>{}
         }
-        return NscriptVar::new("line");
+        return None;
+        //return NscriptVar::new("line");
     }
     fn execute_spawnloop(&mut self ,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->NscriptVar{
         block.inloop +=1;
@@ -1649,8 +1665,8 @@ impl  Nscript{
     }
 
     /// this function is used to check a defining variable type and set it with a Nvar
-    fn setdefiningword(&mut self,word:&str,equalsfrom: NscriptVar,_formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock)->NscriptVar{
-       return self.storage.setdefiningword(word, equalsfrom, block);
+    fn setdefiningword(&mut self,word:&str,equalsfrom: NscriptVar,_formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock){
+        self.storage.setdefiningword(word, equalsfrom, block);
     }
     // this parses and runs a nested function word
     fn execute_nestedfunction(&mut self,word:&str,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{

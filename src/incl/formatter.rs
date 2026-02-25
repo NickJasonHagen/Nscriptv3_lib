@@ -1217,7 +1217,7 @@ impl  Nscript{
                 return Some(self.execute_elseifline(&line,&formattedblock,block));
             }
             "E" =>{
-                return Some(self.execute_elseline(&line,&formattedblock,block));
+                return self.execute_elseline(&line,&formattedblock,block);
             }
             "BC" =>{
                 let tobreak = self.storage.getargstring(&line[2],block);
@@ -1420,16 +1420,15 @@ impl  Nscript{
         return result;
     }
     ///executes a else scope
-    fn execute_elseline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->NscriptVar{
+    fn execute_elseline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         if block.ifscopes[block.ifscopedepth] == false{
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
                 if result.name == "return" {
-                    return result;
+                    return Some(result);
                 }
             }
         }
-        let result = NscriptVar::new("else");
-        return result;
+        None
     }
     /// used for inherenting to other classes
     fn execute_setclassfromclass(&mut self,classto:&str,classfrom:&str,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock){

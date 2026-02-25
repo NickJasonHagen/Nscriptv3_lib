@@ -1224,7 +1224,7 @@ impl  Nscript{
                 self.removecoroutine(&tobreak);
             }
             "ST" => {
-                return Some(self.execute_spawnthread(line, &formattedblock,block));
+                self.execute_spawnthread(line, &formattedblock,block);
             }
             "FI" =>{
                 self.execute_forinloop(&line,&formattedblock,block);
@@ -1565,7 +1565,7 @@ impl  Nscript{
          return None;
      }
     // spawns a new nscript runtime as a thread and sets up the values functions and channels
-     fn execute_spawnthread(&mut self,line:&Vec<Box<str>>,formattedblock:&NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) -> NscriptVar{
+     fn execute_spawnthread(&mut self,line:&Vec<Box<str>>,formattedblock:&NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock){
         let fromthreadname = "thread_".to_string()+&line[line.len()-1];
         let threadname = "thread_".to_string()+&self.executeword(&line[1],&formattedblock, block).stringdata;
         let mut threadcode = self.getblock(&fromthreadname);
@@ -1662,7 +1662,6 @@ impl  Nscript{
                 }
             }
         });
-        return NscriptVar::new("THREAD")
     }
 
     /// this function is used to check a defining variable type and set it with a Nvar

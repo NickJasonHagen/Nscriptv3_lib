@@ -1214,7 +1214,7 @@ impl  Nscript{
                 return self.execute_ifline(&line,&formattedblock, block);
             }
             "EI" =>{
-                return Some(self.execute_elseifline(&line,&formattedblock,block));
+                return self.execute_elseifline(&line,&formattedblock,block);
             }
             "E" =>{
                 return self.execute_elseline(&line,&formattedblock,block);
@@ -1396,7 +1396,7 @@ impl  Nscript{
 
     }
     /// executes a if elsescope
-    fn execute_elseifline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->NscriptVar{
+    fn execute_elseifline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         if block.ifscopes[block.ifscopedepth] == false{
             let statementresult = self.parse_and_check_statements(&line,&formattedblock, block);
             if statementresult{
@@ -1406,7 +1406,7 @@ impl  Nscript{
                     if let Some(result) = self.executesubscope(&line,&formattedblock, block){
                         block.ifdown();
                         if result.name == "return" {
-                            return result;
+                            return Some(result);
                         }
                     }
                     block.ifdown();
@@ -1416,8 +1416,7 @@ impl  Nscript{
                 block.ifscopes[block.ifscopedepth] = false;
         }
         }
-        let result = NscriptVar::new("if");
-        return result;
+        None
     }
     ///executes a else scope
     fn execute_elseline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{

@@ -1051,7 +1051,7 @@ impl  Nscript{
             }
             "M" =>{
                 let tomatch = self.getwordstring(&line[1],&formattedblock, block);
-                return Some(self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(0)-1,&formattedblock, block));
+                return self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(0)-1,&formattedblock, block);
             }
             "B" =>{
                 return Some(NscriptVar::newstring("return","break".to_string()));
@@ -1202,9 +1202,10 @@ impl  Nscript{
             }
             "SM" =>{
                 let tomatch = self.getwordstring(&line[4], &formattedblock,block);
-                let mut onvar = self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(1)-1, &formattedblock,block);
-                onvar.name = line[1].to_string();
-                self.setdefiningword(&line[1], onvar,&formattedblock, block);
+                if let  Some(mut onvar) = self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(1)-1, &formattedblock,block){
+                    onvar.name = line[1].to_string();
+                    self.setdefiningword(&line[1], onvar,&formattedblock, block);
+                };
             }
             "M4" =>{
                 let onvar = self.runmath(&line, 4,&formattedblock,  block);
@@ -2666,7 +2667,7 @@ impl  Nscript{
         }
         return false;
     }
-    fn matchscope(&mut self,tomatch:&str,subscope:usize,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) -> NscriptVar {
+    fn matchscope(&mut self,tomatch:&str,subscope:usize,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) -> Option<NscriptVar> {
         //let matchscope = formattedblock[subscope].clone();
         for lines in &formattedblock.boxedcode[subscope]{
             if lines.len() >3{
@@ -2675,23 +2676,17 @@ impl  Nscript{
                         if lines[xcheck] != "|".into() && lines[xcheck] != "".into() {
                             //let thisvar = self.getwordstring(&lines[xcheck], &formattedblock,block);
                             if &self.getwordstring(&lines[xcheck], &formattedblock,block) == tomatch && &tomatch.to_string() != ""{
-                                if let Some(thisvar) = self.executesubscope(&lines, &formattedblock,block){
-                                    return thisvar;
-                                }
-                                return NscriptVar::new("match");
+                                return self.executesubscope(&lines, &formattedblock,block);
                             }
                             if lines[xcheck] == "_".into(){
-                                if let Some(thisvar) = self.executesubscope(&lines, &formattedblock,block){
-                                    return thisvar;
-                                };
-                                return NscriptVar::new("match");
+                                return self.executesubscope(&lines, &formattedblock,block);
                             }
                         }
                     }
                 }
             }
         }
-        return NscriptVar::new("error");
+        None
     }
 }
 fn f64(string:&str) ->f64{

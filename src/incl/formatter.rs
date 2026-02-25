@@ -1211,7 +1211,7 @@ impl  Nscript{
                 self.setdefiningword(&line[1], onvar,&formattedblock, block);
             }
             "I" =>{
-                return Some(self.execute_ifline(&line,&formattedblock, block));
+                return self.execute_ifline(&line,&formattedblock, block);
             }
             "EI" =>{
                 return Some(self.execute_elseifline(&line,&formattedblock,block));
@@ -1272,12 +1272,12 @@ impl  Nscript{
             }
             "tI" =>{//optimized timerchecks
                 if f64(&self.execute_rustfunction(&line[1], block).stringdata) > f64(&line[3]){
-                    return Some(self.execute_ifscopeup(true,line,formattedblock,block));
+                    return self.execute_ifscopeup(true,line,formattedblock,block);
                 }
             }
             "iI" =>{//optimized localvar > number
                 if f64(&block.getstring(&line[1])) > f64(&line[3]){
-                    return Some(self.execute_ifscopeup(true,line,formattedblock,block));
+                    return self.execute_ifscopeup(true,line,formattedblock,block);
                 }
             }
             "i" => {
@@ -1371,7 +1371,7 @@ impl  Nscript{
         self.addcoroutine(&coname,thisco);
         self.storage.codeblocks.insert(coname,coroutineblock );
     }
-     fn execute_ifline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->NscriptVar{
+     fn execute_ifline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         let statementresult = self.parse_and_check_statements(&line, &formattedblock,block);
         if statementresult == true{
             return self.execute_ifscopeup(statementresult,&line,&formattedblock, block);
@@ -1379,17 +1379,20 @@ impl  Nscript{
         else{
             block.ifscopes[block.ifscopedepth] = false;
         }
-        let result = NscriptVar::new("if");
-        return result;
+        return None;
+        //let result = NscriptVar::new("if");
+        //return result;
     }
-    fn execute_ifscopeup(&mut self,bl:bool,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->NscriptVar{
+    fn execute_ifscopeup(&mut self,bl:bool,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         block.ifsetup(bl);
         if let Some(result) = self.executesubscope(&line,&formattedblock, block){
             block.ifdown();
-            return result;
+            return Some(result);
         }
+
         block.ifdown();
-        return NscriptVar::new("if");
+        return None;
+        //return NscriptVar::new("if");
 
     }
     /// executes a if elsescope

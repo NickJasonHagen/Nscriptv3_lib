@@ -1534,7 +1534,7 @@ impl  Nscript{
         return NscriptVar::newstring(&line[0], createstring);
     }
     // logic for : for x in vec
-    fn execute_forinloop(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block: &mut NscriptCodeBlock) -> NscriptVar{
+    fn execute_forinloop(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block: &mut NscriptCodeBlock) -> Option<NscriptVar>{
         let arrayvar = self.executeword(&line[4],&formattedblock, block);
         let mut iteratevar = NscriptVar::new(&line[2]);
         for index in arrayvar.stringvec {
@@ -1542,14 +1542,14 @@ impl  Nscript{
             block.setvarstring(&line[2], iteratevar.clone());
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
                 if result.name == "return" && result.name == "break"{
-                    return result;
+                    return Some(result);
                 }
             }
         }
-        return iteratevar;
+        return None;
     }
     //logic for : for x to 10
-     fn execute_fortoloop(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block: &mut NscriptCodeBlock) -> NscriptVar{
+     fn execute_fortoloop(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block: &mut NscriptCodeBlock) -> Option<NscriptVar>{
          let splitfrom = split(&line[2],"=");
          let mut start = 0;
          if splitfrom.len() > 1{
@@ -1560,11 +1560,11 @@ impl  Nscript{
             block.setstring(&splitfrom[0],index.to_string());
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
                 if result.name == "return" && result.stringdata == "break"{
-                    return result;
+                    return Some(result);
                 }
              }
          }
-         return iteratevar;
+         return None;
      }
     // spawns a new nscript runtime as a thread and sets up the values functions and channels
      fn execute_spawnthread(&mut self,line:&Vec<Box<str>>,formattedblock:&NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) -> NscriptVar{

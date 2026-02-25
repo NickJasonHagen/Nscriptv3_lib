@@ -371,13 +371,14 @@ impl  Nscript{
     /// entree point for executing a new block
     pub fn executeblock(&mut self,block:&mut NscriptCodeBlock,formattedblock: &NscriptExecutableCodeBlock) -> Option<NscriptVar>{
         //let formattedblock = block.formattedcode.clone();
-        if let Some(returnvar) = self.executescope(&formattedblock.boxedcode[0],&formattedblock, block){
-            if &returnvar.name == "return" {
-                return Some(returnvar);
-            }
-        }
-        return None;
-        //NscriptVar::new("blockend")
+        return self.executescope(&formattedblock.boxedcode[0],&formattedblock, block);
+        // if let Some(returnvar) = self.executescope(&formattedblock.boxedcode[0],&formattedblock, block){
+        //     if &returnvar.name == "return" {
+        //         return Some(returnvar);
+        //     }
+        // }
+        // return None;
+        // //NscriptVar::new("blockend")
     }
 
     fn executescope(&mut self, blockvec:&Vec<Vec<Box<str>>>, formattedblock: &NscriptExecutableCodeBlock, block: &mut NscriptCodeBlock) -> Option<NscriptVar> {
@@ -401,14 +402,7 @@ impl  Nscript{
              block.breakloop[block.insubblock] = false;
          }
         let index = block.insubblock-1;
-        if let Some(result) = self.executescope(&formattedblock.boxedcode[index],&formattedblock,block){
-            if &result.name == "return"{
-                return Some(result);
-            }
-        }
-
-        //let toreturn:Option<NscriptVar> = None;
-        return None//toreturn;
+        self.executescope(&formattedblock.boxedcode[index],&formattedblock,block)
     }
     /// inserts a keystring infront of the lines to speed up the runtime.
     /// this ensures that word[0] will be the right instruction

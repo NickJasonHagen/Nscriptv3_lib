@@ -1521,17 +1521,14 @@ impl NscriptCodeBlock{
         if let Some(var) = self.variables.get(name){
             return var.clone();
         }
-        // else{
-        //      var.stringdata = "".to_owned();
-        // };
-        // if let Some(stringvec) = self.stringsvec.get(name){
-        //      var.stringvec = stringvec.to_owned();
-        // }
-        // else{
-        //      var.stringvec = Vec::new();
-        // };
-
         NscriptVar::new(&name)
+
+    }
+    pub fn getmutvar(&mut self,name:&str)->Option<&mut NscriptVar>{
+        if let Some(var) = self.variables.get_mut(name){
+            return Some(var);
+        }
+        None
 
     }
     pub fn setvar(&mut self,name:&str,var:NscriptVar){

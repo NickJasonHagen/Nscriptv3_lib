@@ -1718,8 +1718,9 @@ impl NscriptClass{
         let mut var = NscriptVar::new("self");
         var.stringdata = self.name.to_string();
         prop.codeblock.setvar("self", var);
-        if let Some(_) = self.functions.get(name){
-            self.functions.insert(name.to_string(),prop);
+        if let Some(func) = self.functions.get_mut(name){
+            *func = prop
+            //self.functions.insert(name.to_string(),prop);
         }
         else{
             self.functionindex.push(name.into());

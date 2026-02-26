@@ -703,13 +703,13 @@ impl NscriptStorage{
         let  cname:Box<str>;
         let  pname :Box<str>;
         if Nstring::prefix(&name) ==  "*" {
-            cname = self.getevaluatablewordstr(&Nstring::trimprefix(&name), block).into();
+            cname = self.getevaluatablewordstr(&Nstring::trimprefix(&name), block);
         }
         else{
             cname = name.trim().into();
         }
         if Nstring::prefix(&name) ==  "*" {
-            pname = self.getevaluatablewordstr(&Nstring::trimprefix(&name),block).into() ;
+            pname = self.getevaluatablewordstr(&Nstring::trimprefix(&name),block) ;
         }
         else{
             pname = prop.trim().into();
@@ -1698,6 +1698,7 @@ impl NscriptClass{
         }
     }
     pub fn getpropstr(&mut self,name:&str) ->Box<str>{
+
         if let Some(this) = self.properties.get(name){
             this.stringdata.to_string().into()
         }
@@ -1720,7 +1721,6 @@ impl NscriptClass{
         prop.codeblock.setvar("self", var);
         if let Some(func) = self.functions.get_mut(name){
             *func = prop
-            //self.functions.insert(name.to_string(),prop);
         }
         else{
             self.functionindex.push(name.into());

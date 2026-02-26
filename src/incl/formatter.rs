@@ -52,7 +52,6 @@ impl  Nscript{
     }
     fn formatcode(&mut self,code:&str,name:&str)-> String{
         let mut thiscodescope = NscriptScriptScope::new(name.to_string());
-        //let mut thiscodeblock = NscriptCodeBlock::new(name);
 
         let mut filedata = self.raw_scopeextract(&code);
         filedata = "\n".to_string() + &Nstring::replace(&filedata,"\"{","\" {");
@@ -84,8 +83,6 @@ impl  Nscript{
     }
     fn convertmultilinefunctionstosinge(filedataarg:String) ->String{
         let mut filedata = filedataarg.clone();//::replace(&filedataarg,"(\n", "(");// multilines: gott be after array!!
-        //filedata = Nstring::replace(&filedata,",\n", ",");// multiline functions to singleline
-        //filedata = Nstring::replace(&filedata,"\n)", ")");// multiline functions to singleline
         loop {
             let mut functionscope = Nstring::stringbetween(&filedata,"(\n","\n)");
             if functionscope == ""{
@@ -160,7 +157,6 @@ impl  Nscript{
         formattedcode.code[0] = self.preprocesscode(&mut prefixedcode);
         if formattedcode.code.len() > 0 {
             for xid in 1..formattedcode.code.len(){
-                //let fblock = formattedcode.clone();
                 let mut prefixedcode = self.wordtypeprefixing(&formattedcode.code[xid] );
                 formattedcode.code[xid] = self.preprocesscode(&mut prefixedcode);
             }
@@ -198,7 +194,6 @@ impl  Nscript{
                 xline[x] = Nstring::replace(&xline[x],"[","[ ");
                 xline[x] = Nstring::replace(&xline[x],"]"," ]");
                 xline[x] = Nstring::replace(&xline[x],","," , ");
-                //xline[x] = Nstring::replace(&xline[x],"*","* ");
                 let mut wordvec:Vec<String> = Vec::new();
 
                 //first make sure syntax isnt conflicting
@@ -382,12 +377,9 @@ impl  Nscript{
     }
 
     fn executescope(&mut self, blockvec:&Vec<Vec<Box<str>>>, formattedblock: &NscriptExecutableCodeBlock, block: &mut NscriptCodeBlock) -> Option<NscriptVar> {
-        // blockvec.iter().map(|line| {
-        //     self.executepreproccessedline(line, &formattedblock, block)
-        // }).find(|result|result.name == "return")
         for x in blockvec{
             if let Some(res) = self.executepreproccessedline(x, formattedblock, block){
-                if res.name == "return"{
+                if res.name == "return".into(){
                     return Some(res);
                 }
             }
@@ -1055,7 +1047,7 @@ impl  Nscript{
             }
             "RV" =>{
                 let mut retvar = block.getvar(&line[1]);
-                retvar.name = "return".to_string();
+                retvar.name = "return".into();
                 return Some(retvar);
             }
             "RS" =>{
@@ -1063,36 +1055,36 @@ impl  Nscript{
             }
             "RP" =>{
                 let mut retvar = self.storage.classgetprop(&Nstring::trimprefix(&line[1]),&line[2], block);
-                retvar.name = "return".to_string();
+                retvar.name = "return".into();
                 return Some(retvar);
             }
             "return" =>{
                 let mut retvar = self.executeword(&line[1], &formattedblock,block);
-                retvar.name = "return".to_string();
+                retvar.name = "return".into();
                 return Some(retvar);
 
             }
             "R_FN" =>{
                 let mut retvar = self.execute_prencfunction(&line[3],&line, block);
-                retvar.name = "return".to_string();
+                retvar.name = "return".into();
                 return Some(retvar);
 
             }
             "R_RFN" =>{
                 let mut retvar = self.execute_prerustfunction(&line[2],&line[2], block);
-                retvar.name = "return".to_string();
+                retvar.name = "return".into();
                 return Some(retvar);
 
             }
             "R_CFN" =>{
                 let mut retvar = self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block);
-                retvar.name = "return".to_string();
+                retvar.name = "return".into();
                 return Some(retvar);
 
             }
             "R_NFN" =>{
                 let mut retvar = self.execute_nestedfunction(&line[2],&formattedblock, block);
-                retvar.name = "return".to_string();
+                retvar.name = "return".into();
                 return Some(retvar);
 
             }
@@ -1197,7 +1189,7 @@ impl  Nscript{
             "SM" =>{
                 let tomatch = self.getwordstring(&line[4], &formattedblock,block);
                 if let  Some(mut onvar) = self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(1)-1, &formattedblock,block){
-                    onvar.name = line[1].to_string();
+                    onvar.name = line[1].to_string().into();
                     self.setdefiningword(&line[1], onvar,&formattedblock, block);
                 };
             }
@@ -1327,7 +1319,7 @@ impl  Nscript{
         block.breakloop[block.inloop] = false;
         loop {
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
-                if result.name == "return"{
+                if result.name == "return".into(){
                     if result.stringdata == "break"{
                         block.breakloop[block.inloop] = true;
                         block.inloop -=1;
@@ -1400,7 +1392,7 @@ impl  Nscript{
                 if block.ifscopes[block.ifscopedepth] == false{
                     if let Some(result) = self.executesubscope(&line,&formattedblock, block){
                         block.ifdown();
-                        if result.name == "return" {
+                        if result.name == "return".into() {
                             return Some(result);
                         }
                     }
@@ -1417,7 +1409,7 @@ impl  Nscript{
     fn execute_elseline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         if block.ifscopes[block.ifscopedepth] == false{
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
-                if result.name == "return" {
+                if result.name == "return".into() {
                     return Some(result);
                 }
             }
@@ -1459,7 +1451,7 @@ impl  Nscript{
             iteratevar.stringdata = index.to_string();
             block.setvar(&line[4], iteratevar.clone());
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
-                if result.name == "return"{
+                if result.name == "return".into(){
                     vecvar.stringvec.push(result.stringdata.to_string());
                 }
             }
@@ -1479,7 +1471,7 @@ impl  Nscript{
         for index in start..iteratevar.stringdata.parse::<usize>().unwrap_or(0)+1 {
             block.setstring(&splitfrom[0], index.to_string());
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
-                if result.name == "return"{
+                if result.name == "return".into(){
                     vecvar.stringvec.push(result.stringdata.to_string());
                 }
             }
@@ -1496,7 +1488,7 @@ impl  Nscript{
             iteratevar.stringdata = index.to_string();
             block.setvar(&line[4], iteratevar.clone());
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
-                if result.name == "return"{
+                if result.name == "return".into(){
                     createstring = createstring + &result.stringdata;
                 }
             }
@@ -1518,7 +1510,7 @@ impl  Nscript{
         for index in start..iteratevar.stringdata.parse::<usize>().unwrap_or(0)+1 {
             block.setstring(&splitfrom[0], index.to_string());
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
-                if result.name == "return"{
+                if result.name == "return".into(){
                     createstring = createstring + &result.stringdata;
                 }
             }
@@ -1534,7 +1526,7 @@ impl  Nscript{
             iteratevar.stringdata = index.to_string();
             block.setvarstring(&line[2], iteratevar.clone());
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
-                if result.name == "return" && result.name == "break"{
+                if result.name == "return".into() && result.name == "break".into(){
                     return Some(result);
                 }
             }
@@ -1552,7 +1544,7 @@ impl  Nscript{
          for index in start..iteratevar.stringdata.parse::<usize>().unwrap_or(0)+1 {
             block.setstring(&splitfrom[0],index.to_string());
             if let Some(result) = self.executesubscope(&line,&formattedblock, block){
-                if result.name == "return" && result.stringdata == "break"{
+                if result.name == "return".into() && result.stringdata == "break"{
                     return Some(result);
                 }
              }
@@ -1645,7 +1637,7 @@ impl  Nscript{
                         NscriptVar::new("error")
                     }
                 };
-                if received_message.name != "error"{
+                if received_message.name != "error".into(){
                     threadstruct.storage.setglobal("$received",received_message);
                     let ncfunc = "2threadreceive($received)";
                     let ncreturn = threadstruct.execute_ncfunction(&ncfunc,&mut threadcode);
@@ -1688,8 +1680,8 @@ impl  Nscript{
                     subfunction = format!("{}({})",&thisfnnamefix,&splitscope[0]);
                     let varname = format!("nestedfn_{}",&varcounter);
                     let mut tmpvar = self.executeword(&subfunction,&formattedblock, block);
-                    tmpvar.name = varname.to_string();
-                    packed = tmpvar.name.to_string();
+                    tmpvar.name = varname.to_string().into();
+                    packed = tmpvar.name.to_string().into();
                     block.setvar(&varname, tmpvar);
                     // here we evaluate the none function types.
                 } else {
@@ -1697,8 +1689,8 @@ impl  Nscript{
                     subfunction = splitscope[0].to_string(); //&splitstr[splitstr.len()-1];
                     let varname = format!("nestedfn_{}",&varcounter);
                     let mut tmpvar = self.storage.getvar(&subfunction, block);
-                    tmpvar.name = varname.to_string();
-                    packed = tmpvar.name.to_string();
+                    tmpvar.name = varname.to_string().into();
+                    packed = tmpvar.name.to_string().into();
                     block.setvar(&varname, tmpvar);
                 }
                     resultstring = Nstring::replace(&resultstring, &subfunction, &packed);
@@ -1817,7 +1809,7 @@ impl  Nscript{
                 return NscriptVar::newstring("s", block.staticstrings[Nstring::trimprefix(word).parse::<usize>().unwrap_or(0)].to_string());
             }
             NscriptWordTypes::Variable=>{
-                return block.getvar(word).clone();
+                return block.getvar(word);
             }
             NscriptWordTypes::Property=>{
                 let thisword = Nstring::trimprefix(&word);
@@ -1875,7 +1867,7 @@ impl  Nscript{
                 return NscriptVar::newstring("b", self.storage.getmacrostring(word).to_string());
             }
             NscriptWordTypes::Global => {
-                return self.storage.getglobal(&word).clone();
+                return self.storage.getglobal(&word);
             }
             NscriptWordTypes::Arraydeclaration => {
                 let mut thisarrayvar = NscriptVar::new("array");
@@ -1933,7 +1925,7 @@ impl  Nscript{
                 }else{break;}
             }
             if let Some(resultvar) = self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock){
-                if resultvar.name == "return"{
+                if resultvar.name == "return".into(){
                     return resultvar;
                 }
             };
@@ -1978,7 +1970,7 @@ impl  Nscript{
                 }
             }
             if let Some(resultvar) = self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock){
-                if resultvar.name == "return"{
+                if resultvar.name == "return".into(){
                     return resultvar;
                 }
             };
@@ -2029,7 +2021,7 @@ impl  Nscript{
                     }
                 }
                 if let Some(resultvar) = self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock){
-                    if resultvar.name == "return"{
+                    if resultvar.name == "return".into(){
                         return resultvar;
                     }
                 };
@@ -2059,7 +2051,7 @@ impl  Nscript{
         for xarg in &givenargs{
             //if givenargs.len() > i{
                 let mut get = self.storage.getvar(&givenargs[i], block);
-                get.name = xarg.to_string();
+                get.name = xarg.to_string().into();
                 argvarvec.push(get);
             //}
             i +=1;

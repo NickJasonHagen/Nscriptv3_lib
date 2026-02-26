@@ -407,7 +407,7 @@ impl  Nscript{
                             let nvar = self.parsecode(&subscope, &file_path);
 
                             let toremove = "<nscript>".to_string() + &subscope + "</nscript>";
-                            if nvar.name == "return"{
+                            if nvar.name == "return".into(){
                                 scriptcode = Nstring::replace(&scriptcode, &toremove, &nvar.stringdata);
                             }
                             else{
@@ -540,11 +540,11 @@ impl Nscript{
             else{
                 tosend = self.parsefile(&scrpath);
             }
-            tosend.name = "close".to_string();
+            tosend.name = "close".to_string().into();
         }
 
         if let Some(thishandle) = self.httpposthandles.get_mut(&threadname.to_string()){
-            if tosend.name == "close"{
+            if tosend.name == "close".into(){
                 thishandle.resultscript = tosend.clone();
                 thishandle.parsed = true;
             }
@@ -553,17 +553,17 @@ impl Nscript{
             }
             if thishandle.status == "exit"{
                 tosend = thishandle.resultscript.clone();
-                tosend.name = "close".to_string();
+                tosend.name = "close".to_string().into();
             }
             match thishandle.httppostthreadssenders.send(tosend.clone()){
                 Ok(_)=>{
                     let _msg: NscriptVar = match thishandle.httppostthreadsreceiver.try_recv(){
                         Ok(m) =>{
-                            if m.name == "close"{
+                            if m.name == "close".into(){
                                 thishandle.status = "exit".to_string();
                                 return;
                             }
-                            if m.name == "some"{
+                            if m.name == "some".into(){
                                 if thishandle.parsed{// when its some but its already handled ,send
                                     // exit signal
                                     thishandle.status = "exit".to_string();
@@ -656,7 +656,7 @@ impl Nscript{
                 };
 
                 // when alls handled, mainthread signals close
-                    if validreceivedvar.name == "close" || timedout{// when alls handled, mainthread signals close
+                    if validreceivedvar.name == "close".into() || timedout{// when alls handled, mainthread signals close
                     if timedout ||validreceivedvar.stringdata == "" {
                         validreceivedvar.stringdata = "{\"result\":\"Done\"}".to_string();
                     }
@@ -672,7 +672,7 @@ impl Nscript{
                     break;
                 }
 
-                if validreceivedvar.name == "check"{
+                if validreceivedvar.name == "check".into(){
                     if streamready{
                         match sender.send(NscriptVar::newstring("some",postdata.to_string())){
                             Ok(_)=>{

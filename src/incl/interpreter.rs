@@ -838,13 +838,13 @@ impl NscriptStorage{
                     let  cname:Box<str>;// = wordsplit[0].trim().into();
                     let  pname :Box<str>;//= wordsplit[1].trim().into();
                     if Nstring::prefix(&wordsplit[0]) ==  "*" {
-                        cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block).into();
+                        cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block);
                     }
                     else{
                         cname = wordsplit[0].trim().into();
                     }
                     if Nstring::prefix(&wordsplit[1]) ==  "*" {
-                        pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block).into() ;
+                        pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block) ;
                     }
                     else{
                         pname = wordsplit[1].trim().into();
@@ -903,13 +903,13 @@ impl NscriptStorage{
                     let  cname:Box<str>;
                     let  pname :Box<str>;
                     if Nstring::prefix(&wordsplit[0]) ==  "*" {
-                        cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block).into();
+                        cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block);
                     }
                     else{
                         cname = wordsplit[0].trim().into();
                     }
                     if Nstring::prefix(&wordsplit[1]) ==  "*" {
-                        pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block).into() ;
+                        pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block) ;
                     }
                     else{
                         pname = wordsplit[1].trim().into();
@@ -945,13 +945,13 @@ impl NscriptStorage{
                 let  cname:Box<str>;
                 let  pname :Box<str>;
                 if Nstring::prefix(&wordsplit[0]) ==  "*" {
-                    cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block).into();
+                    cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block);
                 }
                 else{
                     cname = wordsplit[0].trim().into();
                 }
                 if Nstring::prefix(&wordsplit[1]) ==  "*" {
-                    pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block).into() ;
+                    pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block) ;
                 }
                 else{
                     pname = wordsplit[1].trim().into();

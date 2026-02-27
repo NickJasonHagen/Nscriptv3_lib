@@ -937,7 +937,7 @@ impl NscriptStorage{
     pub fn getvar(&mut self,word:&str,block: &mut NscriptCodeBlock) -> NscriptVar{
         match self.argtype(word){
             NscriptWordTypes::Variable=>{
-                return NscriptVar::newvar(&word, block.getstring(word),block.getstringvec(word));
+                return block.getvar(&word);
             }
             NscriptWordTypes::Property=>{
                 let thisword = Nstring::trimprefix(word);

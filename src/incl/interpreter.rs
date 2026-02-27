@@ -608,7 +608,7 @@ impl NscriptStorage{
             NscriptWordTypes::Property => {
                 let thisword = Nstring::trimprefix(&word);
                 let splitword = split(&thisword,".");
-                if splitword.len() > 1{
+                //if splitword.len() > 1{
                     let classname:String; // = splitword[0].to_string();
                     if Nstring::prefix(&splitword[0]) == "*" {
                         classname = self.getargstring(&Nstring::trimprefix(&splitword[0]),block);
@@ -631,7 +631,7 @@ impl NscriptStorage{
                         newclass.setprop(&propname, equalsfrom);
                         self.classes.insert(classname.into(),newclass);
                     }
-                }
+                //}
             }
             NscriptWordTypes::Global => {
                 self.setglobal(&word, equalsfrom);

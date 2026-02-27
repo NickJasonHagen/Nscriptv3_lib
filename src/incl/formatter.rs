@@ -968,11 +968,7 @@ impl  Nscript{
         //print(&line.join(" "),"y");
         match line[0].as_ref(){
             "S" =>{ // scope
-                if let Some(ret) = self.executesubscope(&line,&formattedblock,block){
-                    return Some(ret);
-                };
-                return None;
- //               return NscriptVar::new("line");
+                return self.executesubscope(&line,&formattedblock,block);
             }
             "NFN" =>{
                 self.execute_nestedfunction(&line[1], formattedblock, block);
@@ -1114,13 +1110,11 @@ impl  Nscript{
                 }
                 self.setdefiningword(&line[1], retvar, &formattedblock,block);
             }
-            "SC" =>{
+            "SC" =>{// set class : class
                 self.execute_setclassfromclass(&line[1],&line[3],&formattedblock, block);
-
-                //return NscriptVar::new("line");
             }
-            "L" =>{
-                self.execute_spawnloop(&line,&formattedblock,block);
+            "L" =>{// Line loop{}
+                return self.execute_spawnloop(&line,&formattedblock,block);
             }
             "vi" =>{
                 let get = self.execute_vecloopsin(&line,&formattedblock, block);
@@ -1240,7 +1234,7 @@ impl  Nscript{
                     self.execute_prerustfunction(&line[x],&line[x+1], block);
                 }
             }
-            "AA" =>{ // add se;f
+            "AA" =>{ // add self
                 let mut onvar = self.storage.getvar(&line[1], block);
                 let mut total = onvar.getfloat32();
                 let linelen =line.len();
@@ -1297,7 +1291,6 @@ impl  Nscript{
             }
             "TCO"=>{
                 let time = self.executeword(&line[3], formattedblock, block).stringdata;
-                //println!("timedr {}",&time);
                 self.execute_spawncoroutine(
                     &line,true,
                     Nstring::i64(&time),
@@ -1312,9 +1305,8 @@ impl  Nscript{
             _ =>{}
         }
         return None;
-        //return NscriptVar::new("line");
     }
-    fn execute_spawnloop(&mut self ,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->NscriptVar{
+    fn execute_spawnloop(&mut self ,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         block.inloop +=1;
         block.breakloop[block.inloop] = false;
         loop {
@@ -1327,7 +1319,7 @@ impl  Nscript{
                     }
                     else{
                         block.inloop -=1;
-                        return result;
+                        return Some(result);
                     }
                 }
             }
@@ -1337,7 +1329,8 @@ impl  Nscript{
                 break;
             }
         }
-        return NscriptVar::new("loop");
+        None
+        //return NscriptVar::new("loop");
     }
     fn execute_spawncoroutine(&mut self,line:&Vec<Box<str>>,timed:bool,time:i64,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock){
         let coname = "coroutine_".to_string() + &self.getwordstring(&line[1],&formattedblock, block);

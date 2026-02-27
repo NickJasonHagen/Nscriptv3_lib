@@ -1678,21 +1678,18 @@ impl  Nscript{
                     // messes up the syntax so we split using comma
                     let splitargus = split(&splitstr[len - 2], ",");
                     // here we set thisfnname to the last part of the comma split
-                    let thisfnnamefix = splitargus[splitargus.len() - 1]; // make sure the function
-                    subfunction = format!("{}({})",&thisfnnamefix,&splitscope[0]);
+                    subfunction = format!("{}({})",&splitargus[splitargus.len() - 1],&splitscope[0]);
                     let varname = format!("nestedfn_{}",&varcounter);
-                    let mut tmpvar = self.executeword(&subfunction,&formattedblock, block);
-                    tmpvar.name = varname.to_string().into();
-                    packed = tmpvar.name.to_string().into();
+                    let tmpvar = self.executeword(&subfunction,&formattedblock, block);
+                    packed = varname.to_string().into();
                     block.setvar(&varname, tmpvar);
                     // here we evaluate the none function types.
                 } else {
                     // this also evaluates variables macros strings etc
                     subfunction = splitscope[0].to_string(); //&splitstr[splitstr.len()-1];
                     let varname = format!("nestedfn_{}",&varcounter);
-                    let mut tmpvar = self.storage.getvar(&subfunction, block);
-                    tmpvar.name = varname.to_string().into();
-                    packed = tmpvar.name.to_string().into();
+                    let tmpvar = self.storage.getvar(&subfunction, block);
+                    packed = varname.to_string().into();
                     block.setvar(&varname, tmpvar);
                 }
                     resultstring = Nstring::replace(&resultstring, &subfunction, &packed);
@@ -2059,15 +2056,13 @@ impl  Nscript{
 
         let funcname = Nstring::trimprefix(&funcname);
         let givenargs = split(&getargs,",");
-        let mut i = 0;
+        //let mut i = 0;
         let mut argvarvec :Vec<NscriptVar> = Vec::new();
-        for xarg in &givenargs{
-            //if givenargs.len() > i{
-                let mut get = self.storage.getvar(&givenargs[i], block);
-                get.name = xarg.to_string().into();
+        for i in 0..givenargs.len(){
+                let get = self.storage.getvar(&givenargs[i], block);
+                //get.name = xarg.to_string().into();
                 argvarvec.push(get);
-            //}
-            i +=1;
+            //i +=1;
         }
         let splitstruct = split(&funcname,"::");
         // check for special functions which require self. for class refs etc.

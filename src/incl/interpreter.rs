@@ -942,20 +942,17 @@ impl NscriptStorage{
             NscriptWordTypes::Property=>{
                 let thisword = Nstring::trimprefix(word);
                 let wordsplit = split(&thisword,".");
-                let  cname:Box<str>;
-                let  pname :Box<str>;
-                if Nstring::prefix(&wordsplit[0]) ==  "*" {
-                    cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block);
+                let mut cname:Box<str> = wordsplit[0].trim().into();
+                let mut pname :Box<str> = wordsplit[1].trim().into();
+                if thisword.contains("*"){
+                    if Nstring::prefix(&wordsplit[0]) ==  "*" {
+                        cname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block);
+                    }
+                    if Nstring::prefix(&wordsplit[1]) ==  "*" {
+                        pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block);
+                    }
                 }
-                else{
-                    cname = wordsplit[0].trim().into();
-                }
-                if Nstring::prefix(&wordsplit[1]) ==  "*" {
-                    pname = self.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block) ;
-                }
-                else{
-                    pname = wordsplit[1].trim().into();
-                }
+
                 if let Some(thisclass) = self.getclassref(&cname){
                     return thisclass.getprop(&pname);
                 }else{

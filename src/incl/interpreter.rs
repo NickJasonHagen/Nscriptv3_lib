@@ -299,7 +299,7 @@ impl  Nscript{
         }
     }
     pub fn insertclass(&mut self,name:&str,class:NscriptClass){
-        self.storage.classes.insert(name.trim().to_string(),class);
+        self.storage.classes.insert(name.trim().to_string().into(),class);
     }
     pub fn getclass(&mut self,name:&str)->NscriptClass{
         if let Some(thisclass) = self.storage.classes.get_mut(name){
@@ -452,7 +452,7 @@ impl  Nscript{
                     }
                 }
             }
-            self.storage.classes.insert(objectname.to_string(),class);
+            self.storage.classes.insert(objectname.to_string().into(),class);
         }
     }
     pub fn njh_objecttofile(&mut self,objectname:&str,filepath:&str){
@@ -573,7 +573,7 @@ impl NscriptData{
 pub struct NscriptStorage{
     pub globalvars:HashMap<String,NscriptVar>,
     pub codeblocks:HashMap<Box<str>,NscriptCodeBlock>,
-    pub classes:HashMap<String,NscriptClass>,
+    pub classes:HashMap<Box<str>,NscriptClass>,
     pub functions:HashMap<String,NscriptFunc>,
     pub tcp: NscriptTcp,
     pub udp: NscriptUDP,
@@ -629,7 +629,7 @@ impl NscriptStorage{
                     else{
                         let mut newclass = NscriptClass::new(&classname);
                         newclass.setprop(&propname, equalsfrom);
-                        self.classes.insert(classname,newclass);
+                        self.classes.insert(classname.into(),newclass);
                     }
                 }
             }
@@ -683,7 +683,7 @@ impl NscriptStorage{
     /// used for rust made functions , this is used on storage to fastly get object properties
     /// (objectname, Propertyname ) -> NscriptVar
     pub fn objectgetprop(&mut self,name:&str,prop:&str) ->NscriptVar{
-        if let Some(thisclass) = self.classes.get_mut(&name.to_string()){
+        if let Some(thisclass) = self.classes.get_mut(name){
             return thisclass.getprop(&prop);
         }
 
@@ -695,7 +695,7 @@ impl NscriptStorage{
     /// used for rust made functions , this is used on storage to fastly set object properties
     /// (objectname, Propertyname ) -> NscriptVar
     pub fn objectsetprop(&mut self,name:&str,prop:&str,var:NscriptVar){
-        if let Some(thisclass) = self.classes.get_mut(&name.to_string()){
+        if let Some(thisclass) = self.classes.get_mut(name){
             thisclass.setprop(&prop, var);
         }
     }
@@ -714,13 +714,13 @@ impl NscriptStorage{
         else{
             pname = prop.trim().into();
         }
-        if let Some(thisclass) = self.classes.get_mut(&cname.to_string()){
+        if let Some(thisclass) = self.classes.get_mut(&cname){
             thisclass.setprop(&pname, var);
         }
         else{
             let mut newclass = NscriptClass::new(&cname);
             newclass.setprop(&pname, var);
-            self.classes.insert(cname.to_string(),newclass);
+            self.classes.insert(cname,newclass);
         }
     }
     /// used for simplerustfn and interpreter know variables(non nc functions nor word function

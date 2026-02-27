@@ -1620,7 +1620,7 @@ impl  Nscript{
             }
 
             for xclass in classvec{
-                threadstruct.storage.classes.insert(xclass.name.to_string(), xclass.clone());
+                threadstruct.storage.classes.insert(xclass.name.clone().into(), xclass.clone());
             }
             threadstruct.parsecodewithvars(&rawcode,&threadname,varsvec);
             loop {
@@ -2151,11 +2151,11 @@ impl  Nscript{
                     }
                     "delete" =>{
                         self.execute_classfunction(&format!("2{}.destruct()",&argvarvec[0].stringdata), block);
-                        self.storage.classes.remove(&argvarvec[0].stringdata);
+                        self.storage.classes.remove(argvarvec[0].stringdata.as_str());
                     }
                     "deleteproperty" =>{
                         //self.execute_classfunction(&format!("2{}.destruct()",&argvarvec[0].stringdata), block);
-                        if let Some(class) = self.storage.classes.get_mut(&argvarvec[0].stringdata){
+                        if let Some(class) = self.storage.classes.get_mut(argvarvec[0].stringdata.as_str()){
                             class.removeprop(&argvarvec[1].stringdata);
                         }
                     }

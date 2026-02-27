@@ -8,7 +8,7 @@ pub fn nscriptfn_split(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
     //let mut thisvar = NscriptVar::new("var");
         let mut delim = "".to_string();
         if  args.len() > 1{
-            delim = storage.getargstring(&args[1], block).to_string();
+            delim = storage.getargstr(&args[1], block).to_string();
         }
         let mut var = storage.getvar(&args[0], block);
         var.stringvec = Nstring::split(&var.stringdata,&delim);
@@ -52,7 +52,7 @@ pub fn nscriptfn_instring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
         nvar.stringdata = "false".to_string();
     }
     else{
-        if Nstring::instring(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block)) {
+        if Nstring::instring(&storage.getargstr(&args[0], block), &storage.getargstr(&args[1], block)) {
             nvar.stringdata = "true".to_string();
         }
         else{
@@ -716,7 +716,7 @@ pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
 pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = storage.getvar(&args[0],block);
     for xcat in 1..args.len(){
-        var.stringdata = var.stringdata + &storage.getargstring(&args[xcat], block);
+        var.stringdata = var.stringdata + &storage.getargstr(&args[xcat], block);
     }
     return var;
 }

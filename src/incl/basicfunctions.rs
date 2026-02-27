@@ -67,7 +67,7 @@ pub fn nscriptfn_stringbetween(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
         nvar.stringdata = "".to_string();
     }
     else{
-        nvar.stringdata = Nstring::stringbetween(&nvar.stringdata, &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block))
+        nvar.stringdata = Nstring::stringbetween(&nvar.stringdata, &storage.getargstr(&args[1], block), &storage.getargstr(&args[2], block))
 
     }
    nvar

@@ -984,8 +984,7 @@ impl NscriptStorage{
             }
             NscriptWordTypes::Reflection =>{
                 let toreflect = Nstring::trimprefix(word);
-                let evaluated = self.getvar(&toreflect, block);
-                return evaluated;
+                return self.getvar(&toreflect, block);
             }
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);

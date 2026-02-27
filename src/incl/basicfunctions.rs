@@ -90,9 +90,9 @@ pub fn nscriptfn_contains(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
 pub fn nscriptfn_join(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut nvar = NscriptVar::new("result");
     if args.len() > 0{
-        let mut tojoin = "".to_string();
+        let mut tojoin = "".into();
         if args.len() > 1 {
-            tojoin = storage.getargstring(&args[1], block);
+            tojoin = storage.getargstr(&args[1], block);
         }
         nvar.stringdata = storage.getargstringvec(&args[0], block).join(&tojoin);
     }

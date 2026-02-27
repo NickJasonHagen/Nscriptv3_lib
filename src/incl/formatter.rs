@@ -1356,7 +1356,7 @@ impl  Nscript{
             thisco.timer = Ntimer::init();
         }
         self.addcoroutine(&coname,thisco);
-        self.storage.codeblocks.insert(coname,coroutineblock );
+        self.storage.codeblocks.insert(coname.into(),coroutineblock );
     }
      fn execute_ifline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         let statementresult = self.parse_and_check_statements(&line, &formattedblock,block);
@@ -1801,7 +1801,6 @@ impl  Nscript{
                     return var;
                 }
                 return NscriptVar::newstring("r","".to_owned());
-                //return self.execute_ncfunction(&word, block);
             }
             NscriptWordTypes::RustFunction => {
                 return self.execute_rustfunction(&word, block);
@@ -1954,7 +1953,6 @@ impl  Nscript{
                     return var;
                 }
                 return NscriptVar::newstring("r","".to_owned());
-                //return self.execute_ncfunction(wordr, block);
             }
             NscriptWordTypes::Classfunc =>{
                 return self.execute_classfunction(wordr, block);
@@ -2374,7 +2372,7 @@ impl  Nscript{
                     let mut formattedcodeblock = NscriptFormattedCodeBlock::new(&thisname);
                     formattedcodeblock.setcode(subblockraw.clone());
                     let entreename = "thread_".to_string() + &thisname;
-                    self.storage.codeblocks.insert(entreename.to_string(), codeblock);
+                    self.storage.codeblocks.insert(entreename.to_string().into(), codeblock);
                     self.formattedblocks.insert(entreename.to_string(), formattedcodeblock);
                     let toreplace = "thread".to_owned() + &namepart + &subblockraw;
                     if Nstring::instring(&toreplace, "{") && Nstring::instring(&toreplace, "}") {
@@ -2430,7 +2428,7 @@ impl  Nscript{
                     if classname.len() > 1 {
                         self.execute_classfunction(&format!("2{}.construct()",&classname[0]),&mut codeblock);
                     }
-                    self.storage.codeblocks.insert("class_".to_string() + &thisclassname, codeblock);
+                    self.storage.codeblocks.insert(("class_".to_string() + &thisclassname).into(), codeblock);
                     self.formattedblocks.insert("class_".to_string() + &thisclassname, formattedcodeblock);
                     let toreplace = "class".to_owned() + &classnamepart + &subblockraw;
                     if Nstring::instring(&toreplace, "{") && Nstring::instring(&toreplace, "}") {

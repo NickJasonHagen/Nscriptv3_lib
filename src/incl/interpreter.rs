@@ -572,7 +572,7 @@ impl NscriptData{
 }
 pub struct NscriptStorage{
     pub globalvars:HashMap<String,NscriptVar>,
-    pub codeblocks:HashMap<String,NscriptCodeBlock>,
+    pub codeblocks:HashMap<Box<str>,NscriptCodeBlock>,
     pub classes:HashMap<String,NscriptClass>,
     pub functions:HashMap<String,NscriptFunc>,
     pub tcp: NscriptTcp,

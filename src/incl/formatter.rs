@@ -1640,12 +1640,14 @@ impl  Nscript{
                 if received_message.name != "error".into(){
                     threadstruct.storage.setglobal("$received",received_message);
                     let ncfunc = "2threadreceive($received)";
-                    let ncreturn = threadstruct.execute_ncfunction(&ncfunc,&mut threadcode);
+                    if let Some(ncreturn) = threadstruct.execute_ncfunction(&ncfunc,&mut threadcode){
                     match sender.send(ncreturn){
                         Ok(_)=>{},
                         Err(_)=>{},
                     };
                     threadstruct.storage.setglobal("$received", NscriptVar::new("$received"));
+                    };
+
                 }
             }
         });
@@ -1740,7 +1742,11 @@ impl  Nscript{
                 return thisword.to_owned();
             }
             NscriptWordTypes::Function => {
-                return self.execute_ncfunction(word, block).stringdata;
+                if let Some(var) = self.execute_ncfunction(word, block){
+                    return var.stringdata;
+                }
+                return "".to_owned();
+                //return self.execute_ncfunction(word, block).stringdata;
             }
             NscriptWordTypes::RustFunction => {
                 return self.execute_rustfunction(word, block).stringdata;
@@ -1791,7 +1797,11 @@ impl  Nscript{
     pub fn evaluateword(&mut self,word:&str,vartype:&NscriptWordTypes,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock)-> NscriptVar{
        match vartype{
             NscriptWordTypes::Function => {
-                return self.execute_ncfunction(&word, block);
+                if let Some(var) = self.execute_ncfunction(&word, block){
+                    return var;
+                }
+                return NscriptVar::newstring("r","".to_owned());
+                //return self.execute_ncfunction(&word, block);
             }
             NscriptWordTypes::RustFunction => {
                 return self.execute_rustfunction(&word, block);
@@ -1910,7 +1920,7 @@ impl  Nscript{
     }
 
     /// executes a nsript function
-    pub fn execute_ncfunction(&mut self,word:&str,block:&mut NscriptCodeBlock) ->NscriptVar{
+    pub fn execute_ncfunction(&mut self,word:&str,block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         let word = Nstring::trimprefix(&word);
         let splitfunc = split(&word,"(");
         if let Some(func) = self.userfunctions.get(&splitfunc[0].to_string()){
@@ -1924,22 +1934,27 @@ impl  Nscript{
                     getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
                 }else{break;}
             }
-            if let Some(resultvar) = self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock){
-                if resultvar.name == "return".into(){
-                    return resultvar;
-                }
-            };
+            return self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock);
+            // if let Some(resultvar) = self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock){
+            //     if resultvar.name == "return".into(){
+            //         return resultvar;
+            //     }
+            // };
         }else{
             print(&format!("no ncfunctions found for [{}]",&splitfunc[0]),"r");
         }
-
-        return NscriptVar::new("ncfunc");
+        None
+        //return NscriptVar::new("ncfunc");
     }
     // this checks what kinda function it will be, using the first character of the givenword
     fn execute_function(&mut self,wordr:&str, block:&mut NscriptCodeBlock) ->NscriptVar{
         match self.checkwordtype(wordr){
             NscriptWordTypes::Function =>{
-                return self.execute_ncfunction(wordr, block);
+                if let Some(var) = self.execute_ncfunction(&wordr, block){
+                    return var;
+                }
+                return NscriptVar::newstring("r","".to_owned());
+                //return self.execute_ncfunction(wordr, block);
             }
             NscriptWordTypes::Classfunc =>{
                 return self.execute_classfunction(wordr, block);

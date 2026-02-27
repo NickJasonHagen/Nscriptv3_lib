@@ -79,7 +79,7 @@ pub fn nscriptfn_trim(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&m
 pub fn nscriptfn_contains(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut nvar = NscriptVar::new("result");
     if args.len() > 1{
-        let value = Nstring::instring(&storage.getargstring(&args[0],block), & storage.getargstring(&args[1],block) );
+        let value = Nstring::instring(&storage.getargstr(&args[0],block), & storage.getargstr(&args[1],block) );
         nvar.stringdata = value.to_string();
     }else{
         print("string::contains arguments missing, returing nothing","r");

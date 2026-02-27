@@ -700,20 +700,17 @@ impl NscriptStorage{
         }
     }
     pub fn setprop(&mut self,name:&str,prop:&str,var:NscriptVar,block:&mut NscriptCodeBlock){
-        let  cname:Box<str>;
-        let  pname :Box<str>;
-        if Nstring::prefix(&name) ==  "*" {
-            cname = self.getevaluatablewordstr(&Nstring::trimprefix(&name), block);
+        let  mut cname:Box<str> = name.trim().into();
+        let  mut pname :Box<str> = prop.trim().into();
+        if name.contains("*"){
+            if Nstring::prefix(&name) ==  "*" {
+                cname = self.getevaluatablewordstr(&Nstring::trimprefix(&name), block);
+            }
+            if Nstring::prefix(&name) ==  "*" {
+                pname = self.getevaluatablewordstr(&Nstring::trimprefix(&name),block) ;
+            }
         }
-        else{
-            cname = name.trim().into();
-        }
-        if Nstring::prefix(&name) ==  "*" {
-            pname = self.getevaluatablewordstr(&Nstring::trimprefix(&name),block) ;
-        }
-        else{
-            pname = prop.trim().into();
-        }
+
         if let Some(thisclass) = self.classes.get_mut(&cname){
             thisclass.setprop(&pname, var);
         }
@@ -834,7 +831,7 @@ impl NscriptStorage{
             NscriptWordTypes::Property=>{
                 let thisword = Nstring::trimprefix(word);
                 let wordsplit = split(&thisword,".");
-                if wordsplit.len() > 1{
+                //if wordsplit.len() > 1{
                     let  cname:Box<str>;// = wordsplit[0].trim().into();
                     let  pname :Box<str>;//= wordsplit[1].trim().into();
                     if Nstring::prefix(&wordsplit[0]) ==  "*" {
@@ -851,16 +848,16 @@ impl NscriptStorage{
                     }
                     if let Some(thisclass) = self.getclassref(&cname){
                         return thisclass.getpropstr(&pname).into();
-                    }else{
+                    }
+                    else{
 
                         if self.debugging {
                             print(&format!("nscript::getwordstring() block[{}] word [{}]is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
                         }
-                        return "".into();
+                        //return "".into();
                     }
-                }
+                //}
             }
-
             NscriptWordTypes::Global => {
                 return self.getglobal(&word).stringdata.into();
             }
@@ -899,7 +896,7 @@ impl NscriptStorage{
             NscriptWordTypes::Property=>{
                 let thisword = Nstring::trimprefix(&word);
                 let wordsplit = split(&thisword,".");
-                if wordsplit.len() > 1{
+                //if wordsplit.len() > 1{
                     let  cname:Box<str>;
                     let  pname :Box<str>;
                     if Nstring::prefix(&wordsplit[0]) ==  "*" {
@@ -922,7 +919,7 @@ impl NscriptStorage{
                             print(&format!(" getargstringvec() storage block:[{}]  word[{}] is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
                         }
                     }
-                }
+                //}
             }
             NscriptWordTypes::Global => {
                 return self.getglobal(&word).stringvec;

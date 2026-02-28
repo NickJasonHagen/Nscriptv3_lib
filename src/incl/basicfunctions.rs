@@ -29,7 +29,7 @@ pub fn nscriptfn_newvar(_args:&Vec<&str>,_block :&mut NscriptCodeBlock , _storag
 pub fn nscriptfn_replacebyref(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     if args.len() > 2{
         let mut refvar = storage.getvar(args[0], block);
-        let value = Nstring::replace(&storage.getargstring(&args[0], block), &storage.getargstring(&args[1], block), &storage.getargstring(&args[2], block));
+        let value = Nstring::replace(&storage.getargstr(&args[0], block), &storage.getargstr(&args[1], block), &storage.getargstr(&args[2], block));
         refvar.stringdata = value.to_string();
         storage.setdefiningword(args[0], refvar, block);
     }else{

@@ -39,7 +39,7 @@ pub fn nscriptfn_replacebyref(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     return NscriptVar::new("res");
 }
 pub fn nscriptfn_stringtoeval(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    NscriptVar::newstring("res",Nstring::stringtoeval(&storage.getargstring(&args[0], block)))
+    NscriptVar::newstring("res",Nstring::stringtoeval(&storage.getargstr(&args[0], block)))
 }
 pub fn nscriptfn_len(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     NscriptVar::newstring("len", storage.getargstringvec(&args[0],block).len().to_string())

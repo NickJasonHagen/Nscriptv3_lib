@@ -1458,7 +1458,7 @@ impl  Nscript{
         let splitfrom = split(&line[4],"=");
         let mut start = 0;
         if splitfrom.len() > 1{
-            start = self.getwordstring(&splitfrom[1],&formattedblock,block).parse::<usize>().unwrap_or(0);
+            start = self.getwordstr(&splitfrom[1],&formattedblock,block).parse::<usize>().unwrap_or(0);
         }
         let iteratevar = self.executeword(&line[6],&formattedblock, block);
         for index in start..iteratevar.stringdata.parse::<usize>().unwrap_or(0)+1 {
@@ -1496,7 +1496,7 @@ impl  Nscript{
         let splitfrom = split(&line[4],"=");
         let mut start = 0;
         if splitfrom.len() > 1{
-            start = self.getwordstring(&splitfrom[1],&formattedblock,block).parse::<usize>().unwrap_or(0);
+            start = self.getwordstr(&splitfrom[1],&formattedblock,block).parse::<usize>().unwrap_or(0);
         }
         let mut createstring = "".to_string();
         let iteratevar = self.executeword(&line[6], &formattedblock,block);

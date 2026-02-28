@@ -1609,19 +1609,19 @@ pub trait NscriptStructBinding {
 }
 /// Temp struct for executing scopes, disposes when done. ( garbage collector)
 pub struct NscriptScriptScope{
-    name: String,
+    name: Box<str>,
     pub  classrefs: Vec<String>,
 }
 
 impl NscriptScriptScope{
-    pub fn new(name:String)->NscriptScriptScope{
+    pub fn new(name:Box<str>)->NscriptScriptScope{
         NscriptScriptScope{
-            name: name,
+            name: name.into(),
             classrefs: Vec::new(),
         }
     }
-    pub fn name(&self) -> String{
-        return self.name.to_string();
+    pub fn name(&self) -> Box<str>{
+        return self.name.clone();
     }
 }
 #[derive(Clone)]

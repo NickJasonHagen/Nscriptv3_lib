@@ -10,10 +10,8 @@ pub fn nscriptfn_split(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
         if  args.len() > 1{
             delim = storage.getargstr(&args[1], block).to_string();
         }
-        let mut var = storage.getvar(&args[0], block);
-        var.stringvec = Nstring::split(&var.stringdata,&delim);
-        var.stringdata = "".to_string();
-        return var;
+
+    return NscriptVar::newvec("r", Nstring::split(&storage.getargstr(&args[0], block),&delim))
 }
 
 pub fn nscriptfn_replace(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{

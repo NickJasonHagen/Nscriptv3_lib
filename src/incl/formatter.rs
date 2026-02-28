@@ -51,7 +51,7 @@ impl  Nscript{
         self.storage.getvar(varname, block)
     }
     fn formatcode(&mut self,code:&str,name:&str)-> String{
-        let mut thiscodescope = NscriptScriptScope::new(name.to_string());
+        let mut thiscodescope = NscriptScriptScope::new(name.into());
 
         let mut filedata = self.raw_scopeextract(&code);
         filedata = "\n".to_string() + &Nstring::replace(&filedata,"\"{","\" {");
@@ -2753,7 +2753,7 @@ impl  Nscript{
                     for xcheck in 0..lines.len() - 3{
                         if lines[xcheck] != "|".into() && lines[xcheck] != "".into() {
                             //let thisvar = self.getwordstring(&lines[xcheck], &formattedblock,block);
-                            if &self.getwordstring(&lines[xcheck], &formattedblock,block) == tomatch && &tomatch.to_string() != ""{
+                            if self.getwordstr(&lines[xcheck], &formattedblock,block) == tomatch.into() && &tomatch.to_string() != ""{
                                 return self.executesubscope(&lines, &formattedblock,block);
                             }
                             if lines[xcheck] == "_".into(){

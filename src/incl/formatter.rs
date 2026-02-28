@@ -1692,6 +1692,97 @@ impl  Nscript{
         }
         return self.executeword(&resultstring,&formattedblock, block);
     }
+    pub fn getwordstr(&mut self,word:&str,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) -> Box<str>{
+
+         match self.checkwordtype(word){
+            NscriptWordTypes::Static =>{
+                return block.staticstrings[Nstring::trimprefix(word).parse::<usize>().unwrap_or(0)].clone();
+            }
+            NscriptWordTypes::Variable=>{
+                return block.getstr(word).into();
+            }
+            NscriptWordTypes::Property=>{
+                let thisword = Nstring::trimprefix(word);
+                let wordsplit = split(&thisword,".");
+                let cname:Box<str>;
+                let pname :Box<str>;
+                if Nstring::prefix(&wordsplit[0]) ==  "*" {
+                    cname = self.storage.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[0]), block);
+                }else{
+                    cname = wordsplit[0].into();
+                }
+                if Nstring::prefix(&wordsplit[1]) ==  "*" {
+                    pname = self.storage.getevaluatablewordstr(&Nstring::trimprefix(&wordsplit[1]),block) ;
+                }
+                else{
+                    pname = wordsplit[1].into();
+                }
+                if let Some(thisclass) = self.getclassref(&cname){
+                    return thisclass.getprop(&pname).stringdata.into();
+                }else{
+                    if self.debugging {
+                        print(&format!("nscript::getwordstring() block[{}] word [{}]is a prop but theres no class on cname [{}] pname[{}]",&block.name,&word,&cname,&pname),"r");
+                    }
+                    return "".into();
+                }
+            }
+            NscriptWordTypes::Number  =>{
+                let thisword = Nstring::trimprefix(word);
+                return thisword.into();
+            }
+            NscriptWordTypes::Function => {
+                if let Some(var) = self.execute_ncfunction(word, block){
+                    return var.stringdata.into();
+                }
+                return "".into();
+                //return self.execute_ncfunction(word, block).stringdata;
+            }
+            NscriptWordTypes::RustFunction => {
+                return self.execute_rustfunction(word, block).stringdata.into();
+            }
+            NscriptWordTypes::Classfunc => {
+                return self.execute_classfunction(word, block).stringdata.into();
+            }
+            NscriptWordTypes::Nestedfunc => {
+                return self.execute_nestedfunction(word,formattedblock,  block).stringdata.into();
+            }
+            NscriptWordTypes::Macro =>{
+                return self.storage.getmacrostring(word).into();
+            }
+            NscriptWordTypes::Global => {
+                return self.storage.getglobal(&word).stringdata.into();
+            }
+            NscriptWordTypes::Bool => {
+                return Nstring::trimprefix(&word).into();
+            }
+            NscriptWordTypes::Structfn => {
+                return self.execute_ruststructfn(word,&formattedblock, block).stringdata.into();
+            }
+            NscriptWordTypes::Reflection =>{
+                let toreflect = Nstring::trimprefix(word);
+                let evaluated = self.storage.getargstr(&toreflect, block);
+                return evaluated;
+            }
+            NscriptWordTypes::Array =>{
+                let thisword = Nstring::trimprefix(&word);
+                let arrays = split(&thisword,"[");
+                    let thisvar = self.storage.getvar(arrays[0], block);
+                    let index = self.getwordstring(&Nstring::trimsuffix(&arrays[1]),&formattedblock,block).parse::<usize>().unwrap_or(0);
+                    if thisvar.stringvec.len() > index{
+                        return thisvar.stringvec[index].clone().into();
+                    }else{
+
+                    if self.debugging {
+                        print(&format!("nscript::getwordstring() block[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&block.name,&arrays[0],&index,&thisvar.stringvec.len()),"r");
+                    }
+                }
+                return "".into();
+            }
+            _ => {
+                return self.evaluateword(word,&NscriptWordTypes::Variable,&formattedblock, block).stringdata.into();
+            }
+        };
+    }
     // returns a variables string value
     pub fn getwordstring(&mut self,word:&str,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) -> String{
 
@@ -1851,7 +1942,7 @@ impl  Nscript{
                 let thisword = Nstring::trimprefix(&word);
                 let arrays = split(&thisword,"[");
                 let thisvar = self.executeword(arrays[0],&formattedblock, block);
-                let index = self.storage.getargstring(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
+                let index = self.storage.getargstr(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
                 if thisvar.stringvec.len() > index{
                     returnvar.stringdata = thisvar.stringvec[index].to_string();
                 }else{
@@ -2590,8 +2681,8 @@ impl  Nscript{
         //----------------------------------------
 
         let mut index = indexpars; // begin after var =
-        let a =f64(&self.getwordstring(&splitline[index],&formattedblock,block));
-        let b =f64(&self.getwordstring(&splitline[index+2],&formattedblock,block));
+        let a =f64(&self.getwordstr(&splitline[index],&formattedblock,block));
+        let b =f64(&self.getwordstr(&splitline[index+2],&formattedblock,block));
         let mut result = self.math(
             &a,
             &splitline[index + 1],
@@ -2600,7 +2691,7 @@ impl  Nscript{
         );
         index += 2;
         while index < splitline.len() - 1 {
-        let b =f64(&self.getwordstring(&splitline[index+2],&formattedblock,block));
+        let b =f64(&self.getwordstr(&splitline[index+2],&formattedblock,block));
             result = self.math(&result, &splitline[index + 1], &b);
             index += 2;
         }
@@ -2614,38 +2705,38 @@ impl  Nscript{
         // ---------------------------------------------------------------
         match b {
             "=" => {
-                if &self.getwordstring(&a,&formattedblock,block).to_lowercase() == &self.getwordstring(&c,&formattedblock,block).to_lowercase(){
+                if &self.getwordstr(&a,&formattedblock,block).to_lowercase() == &self.getwordstr(&c,&formattedblock,block).to_lowercase(){
                     return true;
                 }
             }
             "==" => {
-                if &self.getwordstring(&a,&formattedblock,block) == &self.getwordstring(&c,&formattedblock,block){
+                if &self.getwordstr(&a,&formattedblock,block) == &self.getwordstr(&c,&formattedblock,block){
                     return true;
                 }
             }
             "!=" | "<>" => {
-                if &self.getwordstring(&a,&formattedblock,block) != &self.getwordstring(&c,&formattedblock,block)  {
+                if &self.getwordstr(&a,&formattedblock,block) != &self.getwordstr(&c,&formattedblock,block)  {
                     return true;
                 }
             }
             ">" => {
-                if f64(&self.getwordstring(&a,&formattedblock,block)) > f64(&self.getwordstring(&c,&formattedblock,block)) {
+                if f64(&self.getwordstr(&a,&formattedblock,block)) > f64(&self.getwordstr(&c,&formattedblock,block)) {
                     return true;
                 }
             }
             ">=" => {
-                if f64(&self.getwordstring(&a,&formattedblock,block)) >= f64(&self.getwordstring(&c,&formattedblock,block)) {
+                if f64(&self.getwordstr(&a,&formattedblock,block)) >= f64(&self.getwordstr(&c,&formattedblock,block)) {
 
                     return true;
                 }
             }
             "<=" => {
-                if f64(&self.getwordstring(&a,&formattedblock,block)) <= f64(&self.getwordstring(&c,&formattedblock,block)) {
+                if f64(&self.getwordstr(&a,&formattedblock,block)) <= f64(&self.getwordstr(&c,&formattedblock,block)) {
                     return true;
                 }
             }
             "<" => {
-                if f64(&self.getwordstring(&a,&formattedblock,block)) < f64(&self.getwordstring(&c,&formattedblock,block)) {
+                if f64(&self.getwordstr(&a,&formattedblock,block)) < f64(&self.getwordstr(&c,&formattedblock,block)) {
                     return true;
                 }
             }

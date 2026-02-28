@@ -317,7 +317,7 @@ pub fn nscriptfn_timerinit(_var:&Vec<&str>,_block:&mut NscriptCodeBlock , _stora
     NscriptVar::newstring("timer", Ntimer::init().to_string())
 }
 pub fn nscriptfn_timerdiff(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    NscriptVar::newstring("timer", Ntimer::diff(storage.getargstring(&args[0], block).parse::<i64>().unwrap_or(0)).to_string())
+    NscriptVar::newstring("timer", Ntimer::diff(storage.getargstr(&args[0], block).parse::<i64>().unwrap_or(0)).to_string())
 }
 impl Ntimer {
     pub fn init() -> i64 {

@@ -1150,7 +1150,7 @@ impl  Nscript{
             "1" => {
                 let mut onvar = NscriptVar::new(&line[1]);
                 for xadd in 4..line.len(){
-                    onvar.stringdata += &self.getwordstring(&line[xadd],&formattedblock,block);
+                    onvar.stringdata += &self.getwordstr(&line[xadd],&formattedblock,block);
                 }
                 self.setdefiningword(&line[1], onvar,&formattedblock,block);
             }
@@ -1181,7 +1181,7 @@ impl  Nscript{
                 self.setdefiningword(&line[1], onvar,&formattedblock, block);
             }
             "SM" =>{
-                let tomatch = self.getwordstring(&line[4], &formattedblock,block);
+                let tomatch = self.getwordstr(&line[4], &formattedblock,block);
                 if let  Some(mut onvar) = self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(1)-1, &formattedblock,block){
                     onvar.name = line[1].to_string().into();
                     self.setdefiningword(&line[1], onvar,&formattedblock, block);
@@ -1201,7 +1201,7 @@ impl  Nscript{
                 return self.execute_elseline(&line,&formattedblock,block);
             }
             "BC" =>{
-                let tobreak = self.storage.getargstring(&line[2],block);
+                let tobreak = self.storage.getargstr(&line[2],block);
                 self.removecoroutine(&tobreak);
             }
             "ST" => {
@@ -1216,7 +1216,7 @@ impl  Nscript{
             "CC" =>{//concate self
                 let mut equalsfrom = self.storage.getvar(&line[1],block);
                 for xadd in 3..line.len(){
-                    equalsfrom.stringdata = equalsfrom.stringdata + &self.executeword(&(line[xadd].to_string()),&formattedblock,block).stringdata.to_string();
+                    equalsfrom.stringdata = equalsfrom.stringdata + &self.executeword(&line[xadd],&formattedblock,block).stringdata.to_string();
                 }
                 self.setdefiningword(&line[1], equalsfrom, &formattedblock,block);
             }
@@ -1257,12 +1257,12 @@ impl  Nscript{
                 }
             }
             "iI" =>{//optimized localvar > number
-                if f64(&block.getstring(&line[1])) > f64(&line[3]){
+                if f64(&block.getstr(&line[1])) > f64(&line[3]){
                     return self.execute_ifscopeup(true,line,formattedblock,block);
                 }
             }
             "i" => {
-                let script = self.getwordstring(&line[1],&formattedblock, block);
+                let script = self.getwordstr(&line[1],&formattedblock, block);
                 return Some(self.parsefile(&script));
             }
             "d" =>{
@@ -1333,7 +1333,7 @@ impl  Nscript{
         //return NscriptVar::new("loop");
     }
     fn execute_spawncoroutine(&mut self,line:&Vec<Box<str>>,timed:bool,time:i64,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock){
-        let coname = "coroutine_".to_string() + &self.getwordstring(&line[1],&formattedblock, block);
+        let coname = "coroutine_".to_string() + &self.getwordstr(&line[1],&formattedblock, block);
         let mut coroutineblock = NscriptCodeBlock::new(&coname);//NscriptCodeBlock::new(&coname);
         coroutineblock.name = coname.to_string();
         let mut executablecode = formattedblock.clone();//self.getexecutableblock(&block.name);
@@ -1411,17 +1411,17 @@ impl  Nscript{
     }
     /// used for inherenting to other classes
     fn execute_setclassfromclass(&mut self,classto:&str,classfrom:&str,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock){
-        let mut thisclass = classto.to_string();
+        let mut thisclass :Box<str> = classto.into();
         match self.checkwordtype(&classto){
             NscriptWordTypes::Reflection => {
-                thisclass = self.getwordstring(&classto, &formattedblock,block);
+                thisclass = self.getwordstr(&classto, &formattedblock,block);
             }
             _ =>{}
         }
-        let mut fromclass = classfrom.to_string();
+        let mut fromclass : Box<str> = classfrom.into();
         match self.checkwordtype(&classfrom){
             NscriptWordTypes::Reflection => {
-                fromclass = self.getwordstring(&classfrom, &formattedblock,block);
+                fromclass = self.getwordstr(&classfrom, &formattedblock,block);
             }
             _ =>{}
         }

@@ -1177,14 +1177,15 @@ pub fn nscriptfn_stringtobase64(args:&Vec<&str>,block :&mut NscriptCodeBlock , s
 
 //
 pub fn nscriptfn_tcplistener(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("tcplisten");
+
+    let mut var = storage.getvar(&args[0], block);
     if args.len() < 2 {
         print!("wrong arguments for  tcplistener (ip , port)");
         return var;
     }
-    let ip = storage.getargstring(&args[0], block);
+
     let port = storage.getargstring(&args[1], block);
-    var.stringdata = storage.tcp.listener(&ip,&port);
+    var.stringdata = storage.tcp.listener(&var.stringdata,&port);
     return var;
 }
 

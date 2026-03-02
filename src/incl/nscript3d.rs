@@ -503,12 +503,19 @@ pub fn nscriptfn_castray(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
     let mut var = NscriptVar::new("ray");
     let rayid = storage.getargstring(args[0], block);
     let pos_a = storage.getargstringvec(&args[1],block);
-    let pos1 = (Nstring::f32(&pos_a[0]),Nstring::f32(&pos_a[1]),Nstring::f32(&pos_a[2]));
 
     let pos_b = storage.getargstringvec(&args[2],block);
-    let pos2 = (Nstring::f32(&pos_b[0]),Nstring::f32(&pos_b[1]),Nstring::f32(&pos_b[2]));
-    let step = Nstring::f32(&storage.getargstring(args[3], block));
-    var.stringdata = storage.nscript3d.castray(&rayid,pos1,pos2,step).to_string();
+    if pos_a.len() > 2 && pos_b.len() >2{
+        let pos1 = (Nstring::f32(&pos_a[0]),Nstring::f32(&pos_a[1]),Nstring::f32(&pos_a[2]));
+
+        let pos2 = (Nstring::f32(&pos_b[0]),Nstring::f32(&pos_b[1]),Nstring::f32(&pos_b[2]));
+        let step = Nstring::f32(&storage.getargstring(args[3], block));
+        var.stringdata = storage.nscript3d.castray(&rayid,pos1,pos2,step).to_string();
+    }
+    else{
+        println!("block {} word {} / {} are not vec[3]",&block.name,args[0],args[1]);
+    }
+
     return var;
 }
 pub fn nscriptfn_getraypoint(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

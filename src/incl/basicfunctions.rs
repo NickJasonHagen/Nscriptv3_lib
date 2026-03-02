@@ -721,8 +721,8 @@ pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mu
 
 pub fn nscriptfn_vec(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut vec = NscriptVar::new("v");
-    for xcat in 1..args.len(){
-        vec.stringvec.push(storage.getargstring(&args[xcat], block));
+    for xcat in args{
+        vec.stringvec.push(storage.getargstring(&xcat, block));
     }
     return vec;
 }
@@ -1139,24 +1139,23 @@ pub fn nscriptfn_base64tofile(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
     return var;
 }
 pub fn nscriptfn_filetobase64(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut var = NscriptVar::new("base64tostring");
-    let floc = storage.getargstring(&args[0], block);
+    let mut var = storage.getvar(&args[0],block);
 
-        let mut file = match File::open(floc) {
-            Ok(file) => file,
-            Err(_) => {
-print("cant find file","r");
-              return var // Return empty string on error
-            }
-        };
-        let mut contents: Vec<u8> = Vec::new();
-        if let Err(_) = file.read_to_end(&mut contents) {
+    let mut file = match File::open(&var.stringdata) {
+        Ok(file) => file,
+        Err(_) => {
+            print("cant find file","r");
+            return var // Return empty string on error
+        }
+    };
+    let mut contents: Vec<u8> = Vec::new();
+    if let Err(_) = file.read_to_end(&mut contents) {
 
         print("cant read file","r");
-            return var; // Return empty string on error
-        }
-        var.stringdata = BASE64_STANDARD.encode(contents);
-        return var;
+        return var; // Return empty string on error
+    }
+    var.stringdata = BASE64_STANDARD.encode(contents);
+    return var;
 
 }
 pub fn nscriptfn_base64tostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{

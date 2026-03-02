@@ -2004,15 +2004,19 @@ impl  Nscript{
         let word = Nstring::trimprefix(&word);
         let splitfunc = split(&word,"(");
         if let Some(func) = self.userfunctions.get(&splitfunc[0].to_string()){
-            let givenargs = split(&Nstring::trimsuffix(&splitfunc[1]),",");
+            let givenargs = split(Nstring::trimsuffix(&splitfunc[1]),",");
             let mut getblock = func.codeblock.clone();
             let formattedblockfunc = self.getexecutableblock(&getblock.name);//func.formattedcodeblock.clone();
             //let len = func.args.len();
-            let len2 = givenargs.len();
-            for xarg in 0..func.args.len(){
-                if len2 > xarg{
-                    getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
-                }else{break;}
+            // let len2 = givenargs.len();
+            // for xarg in 0..func.args.len(){
+            //     if len2 > xarg{
+            //         getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
+            //     }else{break;}
+            // }
+            //let len2 = givenargs.len();
+            for xarg in 0..givenargs.len(){
+               getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
             }
             return self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock);
             // if let Some(resultvar) = self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock){
@@ -2627,16 +2631,12 @@ impl  Nscript{
 
         let conditions = &words[3..linelen - 2];
         while index + 4 < conditions.len() + 1 {
-            let operator = conditions[index].to_owned();//.to_string();
-            let a = &conditions[index + 1];
-            let b = &conditions[index + 2];
-            let c = &conditions[index + 3];
-            if operator == "and".into() || operator == "&&".into() {
-                result = result && self.check_statement(&a, &b, &c,&formattedblock,block);
-            } else if operator == "or".into() || operator == "||".into() {
-                result = result || self.check_statement(&a, &b, &c,&formattedblock,block);
-            }  else if operator == "xor".into() {
-                result = result ^ self.check_statement(&a, &b, &c,&formattedblock,block);
+            if conditions[index] == "and".into() || conditions[index] == "&&".into() {
+                result = result && self.check_statement(&conditions[index + 1], &conditions[index + 2], &conditions[index + 3],&formattedblock,block);
+            } else if conditions[index] == "or".into() || conditions[index] == "||".into() {
+                result = result || self.check_statement(&conditions[index + 1], &conditions[index + 2], &conditions[index + 3],&formattedblock,block);
+            }  else if conditions[index] == "xor".into() {
+                result = result ^ self.check_statement(&conditions[index + 1], &conditions[index + 2], &conditions[index + 3],&formattedblock,block);
             }else {
 
                 if self.debugging {

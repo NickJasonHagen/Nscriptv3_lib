@@ -1206,17 +1206,16 @@ pub fn nscriptfn_tcpaccept(args:&Vec<&str>,block :&mut NscriptCodeBlock , storag
 }
 
 pub fn nscriptfn_tcpdisconnect(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("tcpdisconnect");
-    let socket = storage.getargstring(&args[0], block);
-    var.stringdata = storage.tcp.disconnect(&socket);
+    let mut var = storage.getvar(&args[0], block);
+    var.stringdata = storage.tcp.disconnect(&var.stringdata);
     return var;
 }
 
 
 pub fn nscriptfn_tcpreceive(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("tcpreceive");
-    let socket = storage.getargstring(&args[0], block);
-    var.stringdata = storage.tcp.receive(&socket);
+
+    let mut var = storage.getvar(&args[0], block);
+    var.stringdata = storage.tcp.receive(&var.stringdata);
     return var;
 }
 pub fn nscriptfn_tcpsend(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

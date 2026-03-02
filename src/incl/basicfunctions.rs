@@ -1159,8 +1159,9 @@ pub fn nscriptfn_filetobase64(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
 
 }
 pub fn nscriptfn_base64tostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut var = NscriptVar::new("base64tostring");
-    if let Ok(basethis) = BASE64_STANDARD.decode(&storage.getargstring(&args[0], block)){
+
+    let mut var = storage.getvar(&args[0],block);
+    if let Ok(basethis) = BASE64_STANDARD.decode(&var.stringdata){
         var.stringdata = String::from_utf8(basethis).unwrap();
         return var;
     }

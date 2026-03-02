@@ -1190,14 +1190,14 @@ pub fn nscriptfn_tcplistener(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
 }
 
 pub fn nscriptfn_tcpconnect(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("tcplisten");
+
+    let mut var = storage.getvar(&args[0], block);
     if args.len() < 2 {
         print!("wrong arguments for tcpconnect (ip , port)");
         return var;
     }
-    let ip = storage.getargstring(&args[0], block);
     let port = storage.getargstring(&args[1], block);
-    var.stringdata = storage.tcp.connect(&ip,&port);
+    var.stringdata = storage.tcp.connect(&var.stringdata,&port);
     return var;
 }
 

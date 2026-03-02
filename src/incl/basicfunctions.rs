@@ -1177,7 +1177,6 @@ pub fn nscriptfn_stringtobase64(args:&Vec<&str>,block :&mut NscriptCodeBlock , s
 
 //
 pub fn nscriptfn_tcplistener(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-
     let mut var = storage.getvar(&args[0], block);
     if args.len() < 2 {
         print!("wrong arguments for  tcplistener (ip , port)");
@@ -1190,7 +1189,6 @@ pub fn nscriptfn_tcplistener(args:&Vec<&str>,block :&mut NscriptCodeBlock , stor
 }
 
 pub fn nscriptfn_tcpconnect(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-
     let mut var = storage.getvar(&args[0], block);
     if args.len() < 2 {
         print!("wrong arguments for tcpconnect (ip , port)");
@@ -1202,9 +1200,8 @@ pub fn nscriptfn_tcpconnect(args:&Vec<&str>,block :&mut NscriptCodeBlock , stora
 }
 
 pub fn nscriptfn_tcpaccept(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("tcpaccept");
-    let socket = storage.getargstring(&args[0], block);
-    var.stringdata = storage.tcp.accept(&socket);
+    let mut var = storage.getvar(&args[0], block);
+    var.stringdata = storage.tcp.accept(&var.stringdata);
     return var;
 }
 

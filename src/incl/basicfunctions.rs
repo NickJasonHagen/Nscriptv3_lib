@@ -1213,20 +1213,19 @@ pub fn nscriptfn_tcpdisconnect(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
 
 
 pub fn nscriptfn_tcpreceive(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-
     let mut var = storage.getvar(&args[0], block);
     var.stringdata = storage.tcp.receive(&var.stringdata);
     return var;
 }
 pub fn nscriptfn_tcpsend(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("tcpsend");
+
+    let mut var = storage.getvar(&args[0], block);
     if args.len() < 2 {
         print!("wrong arguments for tcpsend (socket , msg)");
         return var;
     }
-    let socket = storage.getargstring(&args[0], block);
     let msg = storage.getargstring(&args[1], block);
-    var.stringdata = storage.tcp.send(&socket,&msg);
+    var.stringdata = storage.tcp.send(&var.stringdata,&msg);
     return var;
 }
 pub fn nscriptfn_add(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

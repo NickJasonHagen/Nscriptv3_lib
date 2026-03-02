@@ -1238,12 +1238,12 @@ pub fn nscriptfn_add(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mu
     return var;
 }
 pub fn nscriptfn_subtract(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("subtract");
+    let mut var = storage.getvar(&args[0], block);
     if args.len() < 2 {
         print!("wrong arguments for subtract (number , tosubtract)");
         return var;
     }
-    var.stringdata = (Nstring::f64(&storage.getargstring(&args[0], block)) - Nstring::f64(&storage.getargstring(&args[1], block))).to_string();
+    var.stringdata = (Nstring::f64(&var.stringdata) - Nstring::f64(&storage.getargstring(&args[1], block))).to_string();
     return var;
 }
 pub fn nscriptfn_multiply(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

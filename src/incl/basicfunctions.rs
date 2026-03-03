@@ -1246,12 +1246,12 @@ pub fn nscriptfn_subtract(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
     return var;
 }
 pub fn nscriptfn_multiply(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("multiply");
+    let mut var = storage.getvar(&args[0], block);
     if args.len() < 2 {
         print!("wrong arguments for multiply (number , multiplyby)");
         return var;
     }
-    var.stringdata = (Nstring::f64(&storage.getargstring(&args[0], block)) * Nstring::f64(&storage.getargstring(&args[1], block))).to_string();
+    var.stringdata = (Nstring::f64(&var.stringdata) * Nstring::f64(&storage.getargstring(&args[1], block))).to_string();
     return var;
 }
 pub fn nscriptfn_devide(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {

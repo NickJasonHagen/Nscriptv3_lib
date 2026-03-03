@@ -1402,8 +1402,9 @@ pub fn nscriptfn_prefix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :
     var
 }
 pub fn nscriptfn_suffix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let  var = storage.getargstring(args[0], block);
-    NscriptVar::newstring("str",Nstring::postfix(&var).to_string())
+    let  mut var = storage.getvar(args[0], block);
+    var.stringdata = Nstring::postfix(&var.stringdata).to_string();
+    var
 }
 pub fn nscriptfn_percentage(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     //let  given = storage.getargstring(args[0], block);

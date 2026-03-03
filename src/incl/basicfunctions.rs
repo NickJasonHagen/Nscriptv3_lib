@@ -1228,7 +1228,6 @@ pub fn nscriptfn_tcpsend(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage 
     return var;
 }
 pub fn nscriptfn_add(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-
     let mut var = storage.getvar(&args[0], block);
     if args.len() < 2 {
         print!("wrong arguments for add(number , toadd)");
@@ -1398,8 +1397,9 @@ pub fn nscriptfn_panic(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
 // }
 
 pub fn nscriptfn_prefix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let  var = storage.getargstring(args[0], block);
-    NscriptVar::newstring("str",Nstring::prefix(&var).to_string())
+    let mut var = storage.getvar(args[0], block);
+    var.stringdata = Nstring::prefix(&var.stringdata).to_string();
+    var
 }
 pub fn nscriptfn_suffix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
     let  var = storage.getargstring(args[0], block);

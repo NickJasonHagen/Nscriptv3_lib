@@ -436,8 +436,9 @@ pub fn nscriptfn_printpos(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
             1
         }
     };
-    Nterminal::print(&storage.getargstring(&args[0], block),&storage.getargstring(&args[1], block),x,y);
-    NscriptVar::new("r")
+    let var = storage.getvar(&args[0],block);
+    Nterminal::print(&var.stringdata,&storage.getargstring(&args[1], block),x,y);
+    var
 }
 pub fn nscriptfn_terminalkey(_args:&Vec<&str>,_block :&mut NscriptCodeBlock , _storage :&mut NscriptStorage) -> NscriptVar  {
     NscriptVar::newstring("r",Nterminal::terminalkey())

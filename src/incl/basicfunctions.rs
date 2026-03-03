@@ -1255,12 +1255,12 @@ pub fn nscriptfn_multiply(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage
     return var;
 }
 pub fn nscriptfn_devide(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    let mut var = NscriptVar::new("devide");
+    let mut var = storage.getvar(&args[0], block);
     if args.len() < 2 {
         print!("wrong arguments for devide (number , devideby)");
         return var;
     }
-    var.stringdata = (Nstring::f64(&storage.getargstring(&args[0], block)) / Nstring::f64(&storage.getargstring(&args[1], block))).to_string();
+    var.stringdata = (Nstring::f64(&var.stringdata) / Nstring::f64(&storage.getargstring(&args[1], block))).to_string();
     return var;
 }
 pub fn nscriptfn_cos(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
@@ -1407,8 +1407,6 @@ pub fn nscriptfn_suffix(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :
     var
 }
 pub fn nscriptfn_percentage(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar  {
-    //let  given = storage.getargstring(args[0], block);
-    //let  total = storage.getargstring(args[1], block);
     let result = (Nstring::f32(&storage.getargstring(args[0], block)) * 100.0) / Nstring::f32(&storage.getargstring(args[1], block));
     NscriptVar::newstring("str",result.to_string())
 }

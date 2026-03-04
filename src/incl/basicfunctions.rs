@@ -818,6 +818,13 @@ pub fn nscriptfn_arraypush(args:&Vec<&str>,block :&mut NscriptCodeBlock , storag
     }
     return var;
 }
+pub fn nscriptfn_arraypickrandom(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let mut var = storage.getvar(&args[0], block);
+    let mut rng = rand::thread_rng();
+    let max_num = var.stringvec.len() - 1;
+    var.stringdata = var.stringvec[rng.gen_range(0..=max_num)].to_string();
+    return var;
+}
 pub fn nscriptfn_arraymerge(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = storage.getvar(&args[0], block);
     for x in args{

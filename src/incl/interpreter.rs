@@ -1132,6 +1132,12 @@ impl NscriptStorage{
 
         let time = chrono::Utc::now();
         let macrostring  = match word{
+            "@user" =>{
+                #[cfg(not(windows))]
+                return runcommand(vec!("whoami".to_string())).into();
+                #[cfg(windows)]
+                return runcommand(vec!("echo %username%".to_string())).into();
+            }
             "@nscriptversion" => String::from(NSCRIPT_VERSION),
             "@arrowright" => "→".to_string(),
             "@arrowleft" => "←".to_string(),

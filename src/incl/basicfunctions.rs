@@ -686,12 +686,7 @@ pub fn nscriptfn_round(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&
     var.stringdata = ((Nstring::f64(&var.stringdata) *increment).round() / increment).to_string();
     var
 }
-pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let mut var = NscriptVar::new("var");
-    let mut non_empty_args :Vec<String>= Vec::new();
-    for xarg in args{
-        non_empty_args.push(storage.getargstring(&xarg, block));
-    }
+pub fn runcommand(args:Vec<String>)->String{
     let mut output = if cfg!(target_os = "windows") {
         let mut output = Command::new("cmd");
         output.arg("/C");
@@ -703,12 +698,38 @@ pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , sto
 
         output
     };
-    for arg in non_empty_args {
+    for arg in args {
         output.arg(arg);
     }
     if let Ok(handle) = output.spawn(){
-        var.stringdata = format!("{:?}",handle);
+        return format!("{:?}",handle);
     };
+    return "".to_string();
+}
+pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let mut var = NscriptVar::new("var");
+    let mut non_empty_args :Vec<String>= Vec::new();
+    for xarg in args{
+        non_empty_args.push(storage.getargstring(&xarg, block));
+    }
+    // let mut output = if cfg!(target_os = "windows") {
+    //     let mut output = Command::new("cmd");
+    //     output.arg("/C");
+    //
+    //     output
+    // } else {
+    //     let mut output = Command::new("sh");
+    //     output.arg("-c");
+    //
+    //     output
+    // };
+    // for arg in non_empty_args {
+    //     output.arg(arg);
+    // }
+    // if let Ok(handle) = output.spawn(){
+    //     var.stringdata = format!("{:?}",handle);
+    // };
+    var.stringdata = runcommand(non_empty_args);
     var
 }
 pub fn nscriptfn_cat(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{

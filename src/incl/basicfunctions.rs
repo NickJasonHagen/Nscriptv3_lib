@@ -701,10 +701,17 @@ pub fn runcommand(args:Vec<String>)->String{
     for arg in args {
         output.arg(arg);
     }
-    if let Ok(handle) = output.spawn(){
-        return format!("{:?}",handle);
+    let output = output.output();
+      let result = match output {
+        Ok(output) => {
+            let stdout = String::from_utf8(output.stdout);
+            stdout.unwrap()
+        },
+        Err(err) => {
+            format!("Failed to execute program: {}", err)
+        }
     };
-    return "".to_string();
+    return result;
 }
 pub fn nscriptfn_call_program(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let mut var = NscriptVar::new("var");

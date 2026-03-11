@@ -1134,9 +1134,9 @@ impl NscriptStorage{
         let macrostring  = match word{
             "@user" =>{
                 #[cfg(not(windows))]
-                return runcommand(vec!("whoami".to_string())).into();
+                return runcommand(vec!("whoami".to_string())).trim().into();
                 #[cfg(windows)]
-                return runcommand(vec!("echo %username%".to_string())).into();
+                return runcommand(vec!("echo %username%".to_string())).trim().into();
             }
             "@nscriptversion" => String::from(NSCRIPT_VERSION),
             "@arrowright" => "→".to_string(),

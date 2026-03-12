@@ -925,10 +925,6 @@ impl  Nscript{
                                                                 }
 
                                                             }
-                                                            // NscriptWordTypes::Bool =>{
-                                                            //     xline.insert(0,"SETB".to_string());
-                                                            //     preprocessedvec.push(xline.to_owned());
-                                                            // }
                                                             NscriptWordTypes::Variable | NscriptWordTypes::Global | NscriptWordTypes::Property |NscriptWordTypes::Bool|
 
                                                             NscriptWordTypes::Macro |NscriptWordTypes::Array=>{
@@ -962,10 +958,6 @@ impl  Nscript{
     }
 
     fn executepreproccessedline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
-
-        //print("here","br");
-        //:w
-        //print(&line.join(" "),"y");
         match line[0].as_ref(){
             "S" =>{ // scope
                 return self.executesubscope(&line,&formattedblock,block);
@@ -1016,10 +1008,6 @@ impl  Nscript{
                 let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
                 block.setvar(&line[1], onvar);
             }
-            // "SETB" =>{
-            //     //let  onvar = self.storage.getvar(&line[3],block);
-            //     self.setdefiningword(&line[1], NscriptVar::newstring("b",Nstring::trimleft(&line[3],1)), &formattedblock,block);
-            // }
             "SETV" =>{
                 let  onvar = self.storage.getvar(&line[3],block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);

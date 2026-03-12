@@ -72,3 +72,11 @@ export NSCRIPT_PATH="/home/user/.nscript/"
 ```
 this will be set to the nscript macro
 @nscriptpath
+
+
+# Full development shell setup (mint/ubuntu/debian installer)
+for other distros see the setup.sh and adjust it
+check out the full source of the shell on my github
+```bash
+git clone https://github.com/NickJasonHagen/nc_shell && cd nc_shell && sh setup.sh```
+

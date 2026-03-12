@@ -8,19 +8,12 @@ impl  Nscript{
     }
     pub fn parsecode(&mut self,code:&str,name:&str) -> NscriptVar{
         let mut initblock = NscriptCodeBlock::new(&name);
-
         let filedata = self.formatcode(code, name);
         let mut formattedblock = NscriptFormattedCodeBlock::new(name);
         formattedblock.setcode(filedata);
-        //print(&format!("->"),"bm");
         formattedblock.formatblock(&mut initblock);
-        //print(&format!("->"),"br");
         self.preproccessblock(&mut formattedblock);
         self.formattedblocks.insert(name.to_string(), formattedblock.clone());
-        //let formattedblock = initblock.formattedcode.clone();
-        //print(&formattedblock.code.len().to_string(),"g");
-        //self.compiledblocks[0] = NscriptCompiledCodeBlock::compileblock(&initblock.codeblockvector,&initblock.subblockmap);
-
         let executableblock = self.getexecutableblock(&formattedblock.name);
         if let Some(ret) = self.executescope(&executableblock.boxedcode[0],&executableblock,&mut initblock){
             return ret.clone();
@@ -129,8 +122,6 @@ impl  Nscript{
 
             returnstring = returnstring + "\n" + &thisline +"\n";
         }
-        //print("done with batching","g");
-        //print(&returnstring,"bg");
         returnstring
     }
     fn checkbatchedfnbuffer(mut thisline:String,xline:&str,mut returnstring: String) ->(String,String){
@@ -365,15 +356,7 @@ impl  Nscript{
     }
     /// entree point for executing a new block
     pub fn executeblock(&mut self,block:&mut NscriptCodeBlock,formattedblock: &NscriptExecutableCodeBlock) -> Option<NscriptVar>{
-        //let formattedblock = block.formattedcode.clone();
         return self.executescope(&formattedblock.boxedcode[0],&formattedblock, block);
-        // if let Some(returnvar) = self.executescope(&formattedblock.boxedcode[0],&formattedblock, block){
-        //     if &returnvar.name == "return" {
-        //         return Some(returnvar);
-        //     }
-        // }
-        // return None;
-        // //NscriptVar::new("blockend")
     }
 
     fn executescope(&mut self, blockvec:&Vec<Vec<Box<str>>>, formattedblock: &NscriptExecutableCodeBlock, block: &mut NscriptCodeBlock) -> Option<NscriptVar> {
@@ -464,7 +447,6 @@ impl  Nscript{
                                     NscriptWordTypes::Classfunc =>{
                                         let getfirst = split(&xline[0],"(")[0];
                                         let selfname = split(&getfirst,".")[0];
-                                        //let toparse = split(&xline[0],&(selfname.to_string()+"."))[1];
                                         if Nstring::instring(&xline[0], ").") {
                                             let mut newwordvec:Vec<String> = Vec::new();
                                             newwordvec.push("CH".to_string());
@@ -792,7 +774,6 @@ impl  Nscript{
                                                     if Nstring::instring(&xline[2],").") {
                                                         let getfirst = split(&xline[2],"(")[0];
                                                         let selfname = split(&getfirst,".")[0];
-                                                        //let toparse = split(&xline[0],&(selfname.to_string()+"."))[1];
                                                         let mut newwordvec:Vec<String> = Vec::new();
                                                         newwordvec.push("sCH".to_string());
                                                         newwordvec.push(xline[0].to_string());

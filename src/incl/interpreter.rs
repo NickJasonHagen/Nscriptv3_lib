@@ -7,7 +7,6 @@ pub type NscriptSimpleFunctions = fn(&Vec<&str>,block:&mut NscriptCodeBlock, &mu
 pub struct Nscript{
     // for user created structs
     pub ruststructsowned: HashMap<Box<str>,Box<dyn NscriptStructBinding>>, // map for all the rust fn bindings.
-    //pub ruststructs: HashMap<&'a str, &'a mut dyn NscriptStructBinding>, // map for all the rust fn bindings.
     pub ruststructsindex: Vec<String>, // map for all the rust fn bindings.
     pub rustfunctions: HashMap<Box<str>, NscriptSimpleFunctions>, // map for all the rust fn bindings.
     pub rustfunctionsindex: Vec<String>, // map for all the rust fn bindings.
@@ -21,13 +20,10 @@ pub struct Nscript{
     pub storage: NscriptStorage,
     pub formattedblocks: HashMap<String,NscriptFormattedCodeBlock>,
     pub executableblocks: HashMap<Box<str>,NscriptExecutableCodeBlock>,
-    //pub codestorage: CodeStorage,
     pub userfunctions: HashMap<String,NscriptFunc>,
     pub emptyexecutableblock: NscriptExecutableCodeBlock,// <- so we can send back a ref
     pub debugging: bool,// <- so we can send back a ref
     pub httpposthandles: HashMap<String, NscriptPostHandle>,
-    // pub httppostthreadsreceiver: HashMap<String, mpsc::Receiver<NscriptVar>>,
-    // pub httppostthreadssenders: HashMap<String, mpsc::Sender<NscriptVar>>,
 }
 //ok
 
@@ -35,7 +31,6 @@ impl  Nscript{
     fn setclean() ->Nscript{
         Nscript {
             ruststructsowned: HashMap::new(),
-            //ruststructs: HashMap::new(),
             ruststructsindex: Vec::new(),
             rustfunctions: HashMap::new(),
             rustfunctionsindex: Vec::new(),
@@ -49,14 +44,10 @@ impl  Nscript{
             storage:NscriptStorage::new(),
             formattedblocks:HashMap::new(),
             executableblocks:HashMap::new(),
-            //asyncs:Vec::new(),
-            //codestorage: CodeStorage::new(),
             userfunctions:HashMap::new(),
             emptyexecutableblock:NscriptExecutableCodeBlock::new(),
             debugging:false,
             httpposthandles:HashMap::new(),
-            // httppostthreadssenders:HashMap::new(),
-            // httppostthreadsreceiver:HashMap::new(),
 
 
         }
@@ -196,7 +187,6 @@ impl  Nscript{
             self.insertfn("decrypt", nscriptfn_decrypt,"(datastring,passwordstring) // returns a decrypted string, created by encrypt(str,pss)");
             self.insertfn("arraynew", nscriptfn_arraynew,"() // returns a new array");
             self.insertfn("arraynewsized", nscriptfn_arraynewsized,"(size) // returns a new array with empty strings by the given size");
-            //self.insertfn("createqrcode", nscriptfn_createqrcode,"(url,filepathimage) // creates a qrcode link imagefile  ");
             self.insertfn("prefix", nscriptfn_prefix,"(string) // returns the first character");
             self.insertfn("suffix", nscriptfn_suffix,"(string) // returns the last character");
             self.insertfn("castray", nscriptfn_castray,"(rayid,vec:pos_a,vec:pos_b,f32:steps) // returns vec lenght creates a buffer vector , use with getraypoint(rayid,vecid)");
@@ -1677,9 +1667,9 @@ impl NscriptVar{
     pub fn getnumber(&mut self) -> u64{
         return self.stringdata.parse::<u64>().unwrap_or(0);
     }
-    pub fn getfloat32(&mut self) -> f32{
-         return self.stringdata.parse::<f32>().unwrap_or(0.0);
-    }
+    // pub fn getfloat32(&mut self) -> f32{
+    //      return self.stringdata.parse::<f32>().unwrap_or(0.0);
+    // }
     // pub fn getfloat64(&mut self) -> f64{
     //     return self.stringdata.parse::<f64>().unwrap_or(0.0);
     // }
@@ -1784,7 +1774,6 @@ impl NscriptClass{
         self.properties.remove(name);
     }
     pub fn removefunc(&mut self,name:&str){
-        //self.functionindex.retain(| x:Box<str>| x.into() != name);
         self.functionindex.retain(|x| x.to_owned().into_string() != name);
         self.functions.remove(name);
     }

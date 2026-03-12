@@ -1222,9 +1222,9 @@ impl  Nscript{
             }
             "SS" =>{// subtract self
                 let mut onvar = self.storage.getvar(&line[1], block);
-                let mut total = onvar.getfloat32();
+                let mut total = Nstring::f32(&onvar.stringdata);
                 for x in 3..line.len(){
-                    total -= self.executeword(&line[x],&formattedblock, block).getfloat32();
+                    total -= Nstring::f32(&self.executeword(&line[x],&formattedblock, block).stringdata);
                 }
                 onvar.stringdata = total.to_string();
                  self.setdefiningword(&line[1], onvar, &formattedblock,block);
@@ -1236,19 +1236,17 @@ impl  Nscript{
             }
             "AA" =>{ // add self
                 let mut onvar = self.storage.getvar(&line[1], block);
-                let mut total = onvar.getfloat32();
+                let mut total = Nstring::f32(&onvar.stringdata);
                 let linelen =line.len();
                 if linelen == 3 {
-                    onvar.stringdata = (total +self.executeword(&line[3], &formattedblock,block).getfloat32()).to_string();
+                    onvar.stringdata = (total +Nstring::f32(&self.executeword(&line[3], &formattedblock,block).stringdata)).to_string();
 
                 }else{
                     for x in 3..linelen{
-                        total += self.executeword(&line[x], &formattedblock,block).getfloat32();
+                        total += Nstring::f32(&self.executeword(&line[x], &formattedblock,block).stringdata);
                     }
                     onvar.stringdata = total.to_string();
                 }
-               // println!("AA:{}",line.join(" "));
-
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
             "tI" =>{//optimized timerchecks

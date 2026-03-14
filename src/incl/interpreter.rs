@@ -1667,12 +1667,6 @@ impl NscriptVar{
     pub fn getnumber(&mut self) -> u64{
         return self.stringdata.parse::<u64>().unwrap_or(0);
     }
-    // pub fn getfloat32(&mut self) -> f32{
-    //      return self.stringdata.parse::<f32>().unwrap_or(0.0);
-    // }
-    // pub fn getfloat64(&mut self) -> f64{
-    //     return self.stringdata.parse::<f64>().unwrap_or(0.0);
-    // }
     pub fn setstring(&mut self,newstring:&str){
         self.stringdata = newstring.to_string()
     }

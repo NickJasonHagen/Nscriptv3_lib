@@ -1640,7 +1640,8 @@ impl  Nscript{
                     // here we set thisfnname to the last part of the comma split
                     subfunction = format!("{}({})",&splitargus[splitargus.len() - 1],&splitscope[0]);
                     let varname = format!("nestedfn_{}",&varcounter);
-                    let tmpvar = self.executeword(&subfunction,&formattedblock, block);
+                    //let tmpvar = self.executeword(&subfunction,&formattedblock, block);
+                    let tmpvar = self.execute_function(&subfunction, block);
                     packed = varname.to_string().into();
                     block.setvar(&varname, tmpvar);
                     // here we evaluate the none function types.
@@ -1974,28 +1975,15 @@ impl  Nscript{
             let givenargs = split(Nstring::trimsuffix(&splitfunc[1]),",");
             let mut getblock = func.codeblock.clone();
             let formattedblockfunc = self.getexecutableblock(&getblock.name);//func.formattedcodeblock.clone();
-            //let len = func.args.len();
-            // let len2 = givenargs.len();
-            // for xarg in 0..func.args.len(){
-            //     if len2 > xarg{
-            //         getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
-            //     }else{break;}
-            // }
-            //let len2 = givenargs.len();
+
             for xarg in 0..givenargs.len(){
                getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
             }
             return self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock);
-            // if let Some(resultvar) = self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock){
-            //     if resultvar.name == "return".into(){
-            //         return resultvar;
-            //     }
-            // };
         }else{
             print(&format!("no ncfunctions found for [{}]",&splitfunc[0]),"r");
         }
         None
-        //return NscriptVar::new("ncfunc");
     }
     // this checks what kinda function it will be, using the first character of the givenword
     fn execute_function(&mut self,wordr:&str, block:&mut NscriptCodeBlock) ->NscriptVar{

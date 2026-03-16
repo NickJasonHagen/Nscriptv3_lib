@@ -1535,8 +1535,14 @@ impl  Nscript{
                 let splitword = split(&line[xmove],":");
                 match splitword[0]{
                     "c" =>{
-                        let asref = self.storage.getargstring(&splitword[1], block);
-                        classvec.push(self.getclass(&asref));
+
+                        if Nstring::prefix(&splitword[1]) == "*"{
+                            classvec.push(self.getclass(&splitword[1]));
+                        }
+                        else{
+                            let asref = self.storage.getargstring(&splitword[1], block);
+                            classvec.push(self.getclass(&asref));
+                        }
                     }
                     "f"=>{
                         if Nstring::prefix(&splitword[1]) == "*"{

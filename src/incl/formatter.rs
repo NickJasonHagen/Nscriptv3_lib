@@ -1535,27 +1535,26 @@ impl  Nscript{
                 let splitword = split(&line[xmove],":");
                 match splitword[0]{
                     "c" =>{
-
                         if Nstring::prefix(&splitword[1]) == "*"{
-                            classvec.push(self.getclass(&splitword[1]));
+                            classvec.push(self.getclass(&splitword[1].trim()));
                         }
                         else{
-                            let asref = self.storage.getargstring(&splitword[1], block);
+                            let asref = self.storage.getargstring(&splitword[1].trim(), block);
                             classvec.push(self.getclass(&asref));
                         }
                     }
                     "f"=>{
                         if Nstring::prefix(&splitword[1]) == "*"{
-                            let asref = self.storage.getargstring(&Nstring::trimleft(splitword[1], 1), block);
+                            let asref = self.storage.getargstring(&Nstring::trimleft(splitword[1].trim(), 1), block);
                             funcvec.push(self.getfunc(&asref));
                             funcvecexblocks.push(self.getexecutableblock(&asref));
                         }else{
-                            funcvecexblocks.push(self.getexecutableblock(&splitword[1]));
-                            funcvec.push(self.getfunc(&splitword[1]));
+                            funcvecexblocks.push(self.getexecutableblock(&splitword[1].trim()));
+                            funcvec.push(self.getfunc(&splitword[1].trim()));
                         }
                     }
                     "v"=>{
-                        varsvec.push(self.getvar(&splitword[1],block));
+                        varsvec.push(self.getvar(&splitword[1].trim(),block));
                     }
                     _ =>{}
                 }
@@ -1981,10 +1980,16 @@ impl  Nscript{
             let givenargs = split(Nstring::trimsuffix(&splitfunc[1]),",");
             let mut getblock = func.codeblock.clone();
             let formattedblockfunc = self.getexecutableblock(&getblock.name);//func.formattedcodeblock.clone();
-
-            for xarg in 0..givenargs.len(){
-               getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
+            let ln =givenargs.len();
+            let ln2 =func.args.len();
+            if ln != 0{
+                for xarg in 0..ln{
+                    if xarg < ln2{
+                        getblock.setvar(&func.args[xarg],self.storage.getvar(&givenargs[xarg],block));
+                    }
+                }
             }
+
             return self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock);
         }else{
             print(&format!("execute_function() no functions found for [{}] in block: [{}]",&splitfunc[0],&block.name),"r");

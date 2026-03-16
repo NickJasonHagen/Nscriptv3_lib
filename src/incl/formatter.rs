@@ -1981,7 +1981,7 @@ impl  Nscript{
             }
             return self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock);
         }else{
-            print(&format!("no ncfunctions found for [{}]",&splitfunc[0]),"r");
+            print(&format!("execute_function() no functions found for [{}] in block: [{}]",&splitfunc[0],&block.name),"r");
         }
         None
     }

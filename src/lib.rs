@@ -7,6 +7,7 @@ pub use colored::Colorize;
 mod incl {
     pub mod interpreter;
     pub mod formatter;
+    pub mod parser_functions;
     pub mod basicfunctions;
     pub mod httpnc;
     pub mod tcp;
@@ -18,6 +19,7 @@ mod incl {
 }
 pub use incl::interpreter::*;
 pub use incl::formatter::*;
+pub use incl::parser_functions::*;
 pub use incl::basicfunctions::*;
 pub use incl::httpnc::*;
 pub use incl::tcp::*;

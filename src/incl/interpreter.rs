@@ -24,6 +24,7 @@ pub struct Nscript{
     pub emptyexecutableblock: NscriptExecutableCodeBlock,// <- so we can send back a ref
     pub debugging: bool,// <- so we can send back a ref
     pub httpposthandles: HashMap<String, NscriptPostHandle>,
+    pub parsedfunctions:HashMap<Box<str>,NscriptExecutableFn>
 }
 //ok
 
@@ -48,6 +49,7 @@ impl  Nscript{
             emptyexecutableblock:NscriptExecutableCodeBlock::new(),
             debugging:false,
             httpposthandles:HashMap::new(),
+            parsedfunctions:HashMap::new(),
 
 
         }
@@ -489,6 +491,8 @@ pub enum NscriptDefinableTypes{
     Reflection,
     Global,
 }
+
+#[derive(Clone)]
 pub enum NscriptWordTypes {
     Variable,
     Property,
@@ -1342,6 +1346,9 @@ pub enum FormattedLineTypes{
     DbgY,
     End,
 }
+
+
+
 #[derive(Clone)]
 pub struct NscriptExecutableCodeBlock{
     pub boxedcode: Vec<Vec<Vec<Box<str>>>>,// all the subscopes, if else loop coroutines

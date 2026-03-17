@@ -2282,7 +2282,7 @@ impl  Nscript{
 
 
     /// used to check what a word / type is
-    fn checkwordtype(&mut self,word:&str) -> NscriptWordTypes{
+    pub fn checkwordtype(&mut self,word:&str) -> NscriptWordTypes{
         match Nstring::prefix(&word){
             "\\" =>{
                 return NscriptWordTypes::Classfunc;

@@ -162,7 +162,8 @@ impl  Nscript{
             for xline in xscope {
                 let mut boxedlinevec:Vec<Box<str>> = Vec::new();
                 for xword in xline{
-                    boxedlinevec.push(xword.to_string().into_boxed_str())
+                    boxedlinevec.push(xword.to_string().into_boxed_str());
+                    self.presplitfunction(&xword);
                 }
                 boxedscopevec.push(boxedlinevec);
             }
@@ -359,7 +360,7 @@ impl  Nscript{
         return self.executescope(&formattedblock.boxedcode[0],&formattedblock, block);
     }
 
-    fn executescope(&mut self, blockvec:&Vec<Vec<Box<str>>>, formattedblock: &NscriptExecutableCodeBlock, block: &mut NscriptCodeBlock) -> Option<NscriptVar> {
+    pub fn executescope(&mut self, blockvec:&Vec<Vec<Box<str>>>, formattedblock: &NscriptExecutableCodeBlock, block: &mut NscriptCodeBlock) -> Option<NscriptVar> {
         for x in blockvec{
             if let Some(res) = self.executepreproccessedline(x, formattedblock, block){
                 if res.name == "return".into(){
@@ -2100,7 +2101,7 @@ impl  Nscript{
         return NscriptVar::new("error");
     }
 
-    fn execute_ruststructfn(&mut self,word:&str,formattedblock:&NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
+    pub fn execute_ruststructfn(&mut self,word:&str,formattedblock:&NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
         let splitfunc = split(&word,"(");
         return self.execute_preruststructfn(&splitfunc[0], &Nstring::trimsuffix(&splitfunc[1]),&formattedblock, block);
     }

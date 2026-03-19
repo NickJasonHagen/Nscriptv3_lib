@@ -24,40 +24,46 @@ impl Nscript{
                 NscriptWordTypes::RustFunction =>{
                     let splitword = split(&word,"(");
                     let splitargs = boxsplit(&splitword[0],",");
-                    let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::RustFunction,fnname:vec!(splitword[0].into()),fnargs:splitargs};
+                    let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::RustFunction,fnname:vec!(Nstring::trimprefix(splitword[0]).into()),fnargs:splitargs};
                     self.parsedfunctions.insert(word.into(), thisfunc);
-                    //println!("presplit rustfn: [{}]",&word);
+print(&format!("presplit rustfn: [{}]",&word),"y");
                 }
                 NscriptWordTypes::Function =>{
 
-                    //println!("presplit func: [{}]",&word);
+
+print(&format!("presplit ncfn: [{}]",&word),"y");
+
                     let splitword = split(&word,"(");
                     let splitargs = boxsplit(&splitword[0],",");
-                    let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::Function,fnname:vec!(splitword[0].into()),fnargs:splitargs};
+                    let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::Function,fnname:vec!(Nstring::trimprefix(splitword[0]).into()),fnargs:splitargs};
                     self.parsedfunctions.insert(word.into(), thisfunc);
                 }
                 NscriptWordTypes::Classfunc =>{
 
-                    //println!("presplit classfunc: [{}]",&word);
+print(&format!("presplit Classfn: [{}]",&word),"y");
+
                     let splitword = split(&word,"(");
                     let splitname = split(&splitword[0],".");
                     let splitargs = boxsplit(&splitword[0],",");
-                    let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::Function,fnname:vec!(Nstring::trimprefix(splitname[0]).into(),splitname[1].into()),fnargs:splitargs};
+                    let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::Classfunc,fnname:vec!(Nstring::trimprefix(splitname[0]).into(),splitname[1].into()),fnargs:splitargs};
                     self.parsedfunctions.insert(word.into(), thisfunc);
                 }
                 NscriptWordTypes::Nestedfunc =>{
 
                 }
                 NscriptWordTypes::Structfn =>{
+
+                    print(&format!("presplit structfn: [{}]",&word),"y");
                     let splitword = split(&word,"(");
                     let splitname = split(&splitword[0],"::");
                     let splitargs = boxsplit(&splitword[0],",");
-                    let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::Function,fnname:vec!(splitname[0].into(),splitname[1].into()),fnargs:splitargs};
+                    let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::Structfn,fnname:vec!(Nstring::trimprefix(splitname[0]).into(),splitname[1].into()),fnargs:splitargs};
                     self.parsedfunctions.insert(word.into(), thisfunc);
 
                 }
                 _ =>{
 
+                    println!("nofunc: [{}]",&word);
                 }
             }
         }
@@ -83,7 +89,7 @@ impl Nscript{
                 return self.execute_ruststructfn(&wordr,&fblock, block);
             }
             _ =>{
-                print(&format!("execute_function() no functions found for [{}] in block: [{}]",&wordr,&block.name),"r");
+                print(&format!("execute_cachedfunction() no cached functions found for [{}] in block: [{}]",&wordr,&block.name),"r");
                 return NscriptVar::new("func");
             }
         }
@@ -96,14 +102,15 @@ impl Nscript{
             // set arguments from the cache and evaluate them into the blck
             let varvec: Vec<&str> = res.fnargs.iter().map(|s| s.as_ref()).collect();
 
-
-            if let Some(rustfn) = self.rustfunctions.get(&res.fnname[0].clone()){
+            //let nfn = Nstring::trimprefix(&res.fnname[0]);
+            if let Some(rustfn) = self.rustfunctions.get(&res.fnname[0]){
                 return rustfn(&varvec,block,&mut self.storage);
             }
+
         }
 
 
-        print(&format!("cant find func {}",&word),"r");
+        print(&format!("execute_cachedfunction() no cached rust functions found for [{}] in block: [{}]",&word,&block.name),"r");
         return NscriptVar::new("wont");
     }
     pub fn execute_cachedncfunction(&mut self,word:&Box<str>,block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
@@ -130,7 +137,7 @@ impl Nscript{
 
                 return self.executescope(&formattedblockfunc.boxedcode[0],&formattedblockfunc,&mut getblock);
             }else{
-                print(&format!("execute_function() no functions found for [{}] in block: [{}]",&funcname,&block.name),"r");
+                print(&format!("execute_cachedfunction() no cached nc functions found for [{}] in block: [{}]",res.fnname[0],&block.name),"r");
             }
         }
 

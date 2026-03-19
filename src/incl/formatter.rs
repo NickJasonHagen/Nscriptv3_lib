@@ -806,9 +806,14 @@ impl  Nscript{
                                                     else{
                                                         match self.checkwordtype(&xline[2]){
                                                             NscriptWordTypes::RustFunction | NscriptWordTypes::Function | NscriptWordTypes::Classfunc | NscriptWordTypes::Structfn=>{
-                                                                 let mut newline: Vec<String>  = Vec::new();
-                                                                 newline.push("F=".to_string());
-                                                                 newline.push(xline[0].to_string());
+                                                                let mut newline: Vec<String>  = Vec::new();
+                                                                if self.checkwordtype(&xline[0]) == NscriptWordTypes::Variable{
+                                                                    newline.push("F=l".to_string());
+                                                                }
+                                                                else{
+                                                                    newline.push("F=".to_string());
+                                                                }
+                                                                newline.push(xline[0].to_string());
                                                                 newline.push(xline[2].to_string());
                                                                 preprocessedvec.push(newline.to_owned());
 
@@ -966,12 +971,18 @@ impl  Nscript{
     fn executepreproccessedline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         match line[0].as_ref(){
             "rF" =>{
-let mut var = self.execute_cachedfunction(&line[1], block);
-                var.name = "return".into();
+                let mut var = self.execute_cachedfunction(&line[1], block);
+                if var.stringdata != ""{
+                    var.name = "return".into();
+                }
                 return Some(var);
             }
             "F" =>{
                 self.execute_cachedfunction(&line[1], block);
+            }
+            "F=l" =>{
+                let  onvar = self.execute_cachedfunction(&line[2], block);
+                block.setvar(&line[1], onvar);
             }
             "F=" =>{
                 let  onvar = self.execute_cachedfunction(&line[2], block);
@@ -984,27 +995,27 @@ let mut var = self.execute_cachedfunction(&line[1], block);
                 self.execute_nestedfunction(&line[1], formattedblock, block);
 
             }
-            "SFN" =>{
-                  return Some(self.execute_ruststructfn(&line[1],&formattedblock, block)) ;
-            }
-            "FN" =>{
-                 self.execute_prencfunction(&line[3],&line, block) ;
-            }
-            "CFN" =>{
-                 self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block) ;
-            }
-            "xF" =>{
-                let  onvar = self.execute_cachedfunction(&line[3], block);
-                self.storage.setdefiningword(&line[1], onvar, block);
-            }
-            "xVF" =>{
-                let  onvar = self.execute_prencfunction(&line[3],&line,block);
-                block.setvar(&line[1], onvar);
-            }
-            "xRFN" =>{
-                let  onvar = self.execute_prerustfunction(&line[3],&line[4], block);
-                block.setvar(&line[1], onvar);
-            }
+            // "SFN" =>{
+            //       return Some(self.execute_ruststructfn(&line[1],&formattedblock, block)) ;
+            // }
+            // "FN" =>{
+            //      self.execute_prencfunction(&line[3],&line, block) ;
+            // }
+            // "CFN" =>{
+            //      self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block) ;
+            // }
+            // "xF" =>{
+            //     let  onvar = self.execute_cachedfunction(&line[3], block);
+            //     self.storage.setdefiningword(&line[1], onvar, block);
+            // }
+            // "xVF" =>{
+            //     let  onvar = self.execute_prencfunction(&line[3],&line,block);
+            //     block.setvar(&line[1], onvar);
+            // }
+            // "xRFN" =>{
+            //     let  onvar = self.execute_prerustfunction(&line[3],&line[4], block);
+            //     block.setvar(&line[1], onvar);
+            // }
             "xNF" =>{
                 let var = self.execute_nestedfunction(&line[3], formattedblock, block);
                 self.setdefiningword(&line[1], var,&formattedblock, block);
@@ -1014,18 +1025,18 @@ let mut var = self.execute_cachedfunction(&line[1], block);
                 block.setvar(&line[1],var);
             }
 
-            "xSF" =>{
-                let onvar = self.execute_ruststructfn(&line[3],&formattedblock, block);
-                self.setdefiningword(&line[1], onvar, &formattedblock,block);
-            }
-            "xCF" =>{
-                let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
-                self.storage.setdefiningword(&line[1], onvar,block);
-            }
-            "xVCF" =>{
-                let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
-                block.setvar(&line[1], onvar);
-            }
+            // "xSF" =>{
+            //     let onvar = self.execute_ruststructfn(&line[3],&formattedblock, block);
+            //     self.setdefiningword(&line[1], onvar, &formattedblock,block);
+            // }
+            // "xCF" =>{
+            //     let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
+            //     self.storage.setdefiningword(&line[1], onvar,block);
+            // }
+            // "xVCF" =>{
+            //     let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
+            //     block.setvar(&line[1], onvar);
+            // }
             "SETV" =>{
                 let  onvar = self.storage.getvar(&line[3],block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
@@ -1066,24 +1077,24 @@ let mut var = self.execute_cachedfunction(&line[1], block);
                 return Some(retvar);
 
             }
-            "R_FN" =>{
-                let mut retvar = self.execute_prencfunction(&line[3],&line, block);
-                retvar.name = "return".into();
-                return Some(retvar);
-
-            }
-            "R_RFN" =>{
-                let mut retvar = self.execute_prerustfunction(&line[2],&line[2], block);
-                retvar.name = "return".into();
-                return Some(retvar);
-
-            }
-            "R_CFN" =>{
-                let mut retvar = self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block);
-                retvar.name = "return".into();
-                return Some(retvar);
-
-            }
+            // "R_FN" =>{
+            //     let mut retvar = self.execute_prencfunction(&line[3],&line, block);
+            //     retvar.name = "return".into();
+            //     return Some(retvar);
+            //
+            // }
+            // "R_RFN" =>{
+            //     let mut retvar = self.execute_prerustfunction(&line[2],&line[2], block);
+            //     retvar.name = "return".into();
+            //     return Some(retvar);
+            //
+            // }
+            // "R_CFN" =>{
+            //     let mut retvar = self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block);
+            //     retvar.name = "return".into();
+            //     return Some(retvar);
+            //
+            // }
             "R_NFN" =>{
                 let mut retvar = self.execute_nestedfunction(&line[2],&formattedblock, block);
                 retvar.name = "return".into();

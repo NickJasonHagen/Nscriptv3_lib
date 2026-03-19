@@ -807,11 +807,14 @@ impl  Nscript{
                                                         match self.checkwordtype(&xline[2]){
                                                             NscriptWordTypes::RustFunction | NscriptWordTypes::Function | NscriptWordTypes::Classfunc | NscriptWordTypes::Structfn=>{
                                                                 let mut newline: Vec<String>  = Vec::new();
-                                                                if self.checkwordtype(&xline[0]) == NscriptWordTypes::Variable{
-                                                                    newline.push("F=l".to_string());
-                                                                }
-                                                                else{
-                                                                    newline.push("F=".to_string());
+                                                                match self.checkwordtype(&xline[0]){
+
+                                                                    NscriptWordTypes::Variable =>{
+                                                                        newline.push("F=l".to_string());
+                                                                    }
+                                                                    _ =>{
+                                                                        newline.push("F=".to_string());
+                                                                    }
                                                                 }
                                                                 newline.push(xline[0].to_string());
                                                                 newline.push(xline[2].to_string());

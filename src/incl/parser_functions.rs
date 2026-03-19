@@ -23,7 +23,7 @@ impl Nscript{
             match self.checkwordtype(word){
                 NscriptWordTypes::RustFunction =>{
                     let splitword = split(&word,"(");
-                    let splitargs = boxsplit(&splitword[0],",");
+                    let splitargs = boxsplit(&Nstring::trimsuffix(splitword[1]),",");
                     let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::RustFunction,fnname:vec!(Nstring::trimprefix(splitword[0]).into()),fnargs:splitargs};
                     self.parsedfunctions.insert(word.into(), thisfunc);
 print(&format!("presplit rustfn: [{}]",&word),"y");
@@ -31,20 +31,20 @@ print(&format!("presplit rustfn: [{}]",&word),"y");
                 NscriptWordTypes::Function =>{
 
 
-print(&format!("presplit ncfn: [{}]",&word),"y");
+print(&format!("presplit ncfn: [{}]",&word),"bg");
 
                     let splitword = split(&word,"(");
-                    let splitargs = boxsplit(&splitword[0],",");
+                    let splitargs = boxsplit(&Nstring::trimsuffix(splitword[1]),",");
                     let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::Function,fnname:vec!(Nstring::trimprefix(splitword[0]).into()),fnargs:splitargs};
                     self.parsedfunctions.insert(word.into(), thisfunc);
                 }
                 NscriptWordTypes::Classfunc =>{
 
-print(&format!("presplit Classfn: [{}]",&word),"y");
+print(&format!("presplit Classfn: [{}]",&word),"orange");
 
                     let splitword = split(&word,"(");
                     let splitname = split(&splitword[0],".");
-                    let splitargs = boxsplit(&splitword[0],",");
+                    let splitargs = boxsplit(&Nstring::trimsuffix(splitword[1]),",");
                     let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::Classfunc,fnname:vec!(Nstring::trimprefix(splitname[0]).into(),splitname[1].into()),fnargs:splitargs};
                     self.parsedfunctions.insert(word.into(), thisfunc);
                 }
@@ -53,10 +53,10 @@ print(&format!("presplit Classfn: [{}]",&word),"y");
                 }
                 NscriptWordTypes::Structfn =>{
 
-                    print(&format!("presplit structfn: [{}]",&word),"y");
+                    print(&format!("presplit structfn: [{}]",&word),"p");
                     let splitword = split(&word,"(");
                     let splitname = split(&splitword[0],"::");
-                    let splitargs = boxsplit(&splitword[0],",");
+                    let splitargs = boxsplit(&Nstring::trimsuffix(splitword[1]),",");
                     let thisfunc = NscriptExecutableFn{fntype:NscriptWordTypes::Structfn,fnname:vec!(Nstring::trimprefix(splitname[0]).into(),splitname[1].into()),fnargs:splitargs};
                     self.parsedfunctions.insert(word.into(), thisfunc);
 
@@ -88,6 +88,10 @@ print(&format!("presplit Classfn: [{}]",&word),"y");
                 let fblock =self.getexecutableblock(&block.name);
                 return self.execute_ruststructfn(&wordr,&fblock, block);
             }
+
+//             NscriptWordTypes::Nestedfunc =>{
+// execute_nestedfunction
+//             }
             _ =>{
                 print(&format!("execute_cachedfunction() no cached functions found for [{}] in block: [{}]",&wordr,&block.name),"r");
                 return NscriptVar::new("func");

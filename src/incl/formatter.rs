@@ -617,8 +617,8 @@ impl  Nscript{
                     _ =>{
                         match xline[0].as_str(){
                             "BRF" =>{
-                                let mut newline :Vec<String> = Vec::new();
-                                newline.push("BRF".to_string());
+                                //let mut newline :Vec<String> = Vec::new();
+                                //xline.push("BRF".to_string());
                                 // for x in xline{
                                 //     if x != "BRF"{
                                 //         let splitwords = split(Nstring::trimsuffix(&x),"(");
@@ -626,7 +626,7 @@ impl  Nscript{
                                 //         newline.push(splitwords[1].to_string());
                                 //     }
                                 // }
-                                preprocessedvec.push(newline.to_owned());
+                                preprocessedvec.push(xline.to_owned());
                             }
                             "if" =>{
                                 if xline.len() < 6 {
@@ -806,11 +806,11 @@ impl  Nscript{
                                                     else{
                                                         match self.checkwordtype(&xline[2]){
                                                             NscriptWordTypes::RustFunction | NscriptWordTypes::Function | NscriptWordTypes::Classfunc | NscriptWordTypes::Structfn=>{
-                                                                // let mut newline: Vec<String>  = Vec::new();
-                                                                // newline.push("F=".to_string());
-                                                                // newline.push(xline[0].to_string());
-                                                                xline.insert(0,"F=".to_string());
-                                                                preprocessedvec.push(xline.to_owned());
+                                                                 let mut newline: Vec<String>  = Vec::new();
+                                                                 newline.push("F=".to_string());
+                                                                 newline.push(xline[0].to_string());
+                                                                newline.push(xline[2].to_string());
+                                                                preprocessedvec.push(newline.to_owned());
 
                                                             }
 
@@ -966,13 +966,15 @@ impl  Nscript{
     fn executepreproccessedline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         match line[0].as_ref(){
             "rF" =>{
-                return Some(self.execute_cachedfunction(&line[1], block));
+let mut var = self.execute_cachedfunction(&line[1], block);
+                var.name = "return".into();
+                return Some(var);
             }
             "F" =>{
                 self.execute_cachedfunction(&line[1], block);
             }
             "F=" =>{
-                let  onvar = self.execute_cachedfunction(&line[3], block);
+                let  onvar = self.execute_cachedfunction(&line[2], block);
                 self.storage.setdefiningword(&line[1], onvar, block);
             }
             "S" =>{ // scope
@@ -1257,7 +1259,7 @@ impl  Nscript{
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
             "tI" =>{//optimized timerchecks
-                if f64(&self.execute_rustfunction(&line[1], block).stringdata) > f64(&line[3]){
+                if f64(&self.execute_cachedrustfunction(&line[1], block).stringdata) > f64(&line[3]){
                     return self.execute_ifscopeup(true,line,formattedblock,block);
                 }
             }

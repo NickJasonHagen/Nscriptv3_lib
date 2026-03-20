@@ -166,7 +166,7 @@ impl  Nscript{
                     self.presplitfunction(&xword);
                 }
 
-                println!("{}",xline.join(" "));
+                //println!("{}",xline.join(" "));
                 boxedscopevec.push(boxedlinevec);
             }
             boxedvec.push(boxedscopevec);
@@ -995,7 +995,7 @@ impl  Nscript{
                 return self.executesubscope(&line,&formattedblock,block);
             }
             "NFN" =>{
-                self.execute_nestedfunction(&line[1], formattedblock, block);
+                self.execute_nestedfunction(&line[1], block);
 
             }
             // "SFN" =>{
@@ -1020,11 +1020,11 @@ impl  Nscript{
             //     block.setvar(&line[1], onvar);
             // }
             "xNF" =>{
-                let var = self.execute_nestedfunction(&line[3], formattedblock, block);
+                let var = self.execute_nestedfunction(&line[3],  block);
                 self.setdefiningword(&line[1], var,&formattedblock, block);
             }
             "xVNF" =>{
-                let var = self.execute_nestedfunction(&line[3], formattedblock, block);
+                let var = self.execute_nestedfunction(&line[3], block);
                 block.setvar(&line[1],var);
             }
 
@@ -1048,9 +1048,9 @@ impl  Nscript{
                 let  onvar = self.executeword(&line[3],&formattedblock,block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
-            "RFN" =>{
-                return Some(self.execute_prerustfunction(&line[1],&line[2], block));
-            }
+            // "RFN" =>{
+            //     return Some(self.execute_prerustfunction(&line[1],&line[2], block));
+            // }
             "M" =>{
                 let tomatch = self.getwordstring(&line[1],&formattedblock, block);
                 return self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(0)-1,&formattedblock, block);
@@ -1099,7 +1099,7 @@ impl  Nscript{
             //
             // }
             "R_NFN" =>{
-                let mut retvar = self.execute_nestedfunction(&line[2],&formattedblock, block);
+                let mut retvar = self.execute_nestedfunction(&line[2], block);
                 retvar.name = "return".into();
                 return Some(retvar);
 
@@ -1109,7 +1109,7 @@ impl  Nscript{
                 let max = line.len();
                 while index < max{
                     if Nstring::prefix(&line[index]) == "3"{
-                        self.execute_nestedfunction(&line[index],&formattedblock, block) ;
+                        self.execute_nestedfunction(&line[index], block) ;
                         index +=1;
                     }
                     else{
@@ -1122,7 +1122,7 @@ impl  Nscript{
                 let mut retvar= NscriptVar::new("ch");
                 for x in 3..line.len(){
                     if Nstring::prefix(&line[x]) == "3"{
-                        retvar = self.execute_nestedfunction(&line[x],&formattedblock, block);
+                        retvar = self.execute_nestedfunction(&line[x], block);
                     }
                     else{
                         retvar = self.execute_classfunction(&line[x], block) ;
@@ -1677,7 +1677,7 @@ impl  Nscript{
         self.storage.setdefiningword(word, equalsfrom, block);
     }
     // this parses and runs a nested function word
-    fn execute_nestedfunction(&mut self,word:&str,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
+    pub fn execute_nestedfunction(&mut self,word:&str,block:&mut NscriptCodeBlock) ->NscriptVar{
         let word = Nstring::trimprefix(&word);
         let mut resultstring = word.to_string();
         let mut packed: String;
@@ -1717,7 +1717,8 @@ impl  Nscript{
                 break;
             }
         }
-        return self.executeword(&resultstring,&formattedblock, block);
+        return self.execute_function(&resultstring,block);
+        //return self.executeword(&resultstring,&formattedblock, block);
     }
     pub fn getwordstr(&mut self,word:&str,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) -> Box<str>{
 
@@ -1758,20 +1759,20 @@ impl  Nscript{
                 return thisword.into();
             }
             NscriptWordTypes::Function => {
-                if let Some(var) = self.execute_ncfunction(word, block){
+                if let Some(var) = self.execute_cachedncfunction(&word.into(), block){
                     return var.stringdata.into();
                 }
                 return "".into();
                 //return self.execute_ncfunction(word, block).stringdata;
             }
             NscriptWordTypes::RustFunction => {
-                return self.execute_rustfunction(word, block).stringdata.into();
+                return self.execute_cachedrustfunction(&word.into(), block).stringdata.into();
             }
             NscriptWordTypes::Classfunc => {
                 return self.execute_classfunction(word, block).stringdata.into();
             }
             NscriptWordTypes::Nestedfunc => {
-                return self.execute_nestedfunction(word,formattedblock,  block).stringdata.into();
+                return self.execute_nestedfunction(word,  block).stringdata.into();
             }
             NscriptWordTypes::Macro =>{
                 return self.storage.getmacrostring(word).into();
@@ -1863,7 +1864,7 @@ impl  Nscript{
                 return self.execute_classfunction(word, block).stringdata;
             }
             NscriptWordTypes::Nestedfunc => {
-                return self.execute_nestedfunction(word,formattedblock,  block).stringdata;
+                return self.execute_nestedfunction(word,  block).stringdata;
             }
             NscriptWordTypes::Macro =>{
                 return self.storage.getmacrostring(word).to_string();
@@ -1917,7 +1918,7 @@ impl  Nscript{
                 return self.execute_ruststructfn(word,&formattedblock, block);
             }
             NscriptWordTypes::Nestedfunc =>{
-                return self.execute_nestedfunction(word,&formattedblock, block);
+                return self.execute_nestedfunction(word, block);
             }
             NscriptWordTypes::Classfunc =>{
                 return self.execute_classfunction(word, block);
@@ -2051,7 +2052,7 @@ impl  Nscript{
         None
     }
     // this checks what kinda function it will be, using the first character of the givenword
-    fn execute_function(&mut self,wordr:&str, block:&mut NscriptCodeBlock) ->NscriptVar{
+   pub  fn execute_function(&mut self,wordr:&str, block:&mut NscriptCodeBlock) ->NscriptVar{
         match self.checkwordtype(wordr){
             NscriptWordTypes::Function =>{
                 if let Some(var) = self.execute_ncfunction(&wordr, block){

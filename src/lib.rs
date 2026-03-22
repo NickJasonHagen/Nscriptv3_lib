@@ -7,7 +7,6 @@ pub use colored::Colorize;
 mod incl {
     pub mod interpreter;
     pub mod formatter;
-    pub mod parser_functions;
     pub mod basicfunctions;
     pub mod httpnc;
     pub mod tcp;
@@ -19,7 +18,6 @@ mod incl {
 }
 pub use incl::interpreter::*;
 pub use incl::formatter::*;
-pub use incl::parser_functions::*;
 pub use incl::basicfunctions::*;
 pub use incl::httpnc::*;
 pub use incl::tcp::*;
@@ -46,7 +44,7 @@ extern crate fs_extra;
 pub use fs_extra::dir::get_size;
 pub const NC_PROGRAM_DIR: &str = env!("CARGO_MANIFEST_DIR");
 pub const EMPTYSTR: &'static str  = "";
-pub const NSCRIPT_VERSION: &'static str = "3.6.108";
+pub const NSCRIPT_VERSION: &'static str = "3.5.104";
 #[cfg(windows)]
 const MACRO_OS: &'static str = "Windows";
 #[cfg(not(windows))]

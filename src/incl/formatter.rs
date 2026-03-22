@@ -162,11 +162,8 @@ impl  Nscript{
             for xline in xscope {
                 let mut boxedlinevec:Vec<Box<str>> = Vec::new();
                 for xword in xline{
-                    boxedlinevec.push(xword.to_string().into_boxed_str());
-                    self.presplitfunction(&xword);
+                    boxedlinevec.push(xword.to_string().into_boxed_str())
                 }
-
-                //println!("{}",xline.join(" "));
                 boxedscopevec.push(boxedlinevec);
             }
             boxedvec.push(boxedscopevec);
@@ -362,7 +359,7 @@ impl  Nscript{
         return self.executescope(&formattedblock.boxedcode[0],&formattedblock, block);
     }
 
-    pub fn executescope(&mut self, blockvec:&Vec<Vec<Box<str>>>, formattedblock: &NscriptExecutableCodeBlock, block: &mut NscriptCodeBlock) -> Option<NscriptVar> {
+    fn executescope(&mut self, blockvec:&Vec<Vec<Box<str>>>, formattedblock: &NscriptExecutableCodeBlock, block: &mut NscriptCodeBlock) -> Option<NscriptVar> {
         for x in blockvec{
             if let Some(res) = self.executepreproccessedline(x, formattedblock, block){
                 if res.name == "return".into(){
@@ -418,72 +415,66 @@ impl  Nscript{
                                         preprocessedvec.push(xline.to_owned());
 
                                     }
-                                    NscriptWordTypes::Structfn | NscriptWordTypes::Classfunc | NscriptWordTypes::RustFunction | NscriptWordTypes::Function=>{
-                                        let mut newline: Vec<String>  = Vec::new();
-                                        newline.push("F".to_string());
-                                        newline.push(xline[0].to_string());
-                                        preprocessedvec.push(newline.to_owned());
+                                    NscriptWordTypes::Structfn =>{
+                                        xline.insert(0,"SFN".to_string());
+                                        preprocessedvec.push(xline.to_owned());
                                     }
-                                    // NscriptWordTypes::Structfn =>{
-                                    //     xline.insert(0,"SFN".to_string());
-                                    //     preprocessedvec.push(xline.to_owned());
-                                    // }
-                                    // NscriptWordTypes::RustFunction |NscriptWordTypes::Function =>{
-                                    //     if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[0],1),"(")[0]){
-                                    //         let mut insertvec:Vec<String> = Vec::new();
-                                    //         insertvec.push("RFN".to_string());
-                                    //         let splitfunc = split(&xline[0],"(")[0];
-                                    //         insertvec.push(splitfunc.to_string());
-                                    //         let getargs = Nstring::stringbetween(&xline[0],"(", ")");
-                                    //         insertvec.push(getargs);
-                                    //         preprocessedvec.push(insertvec.to_owned());
-                                    //     }
-                                    //     else{
-                                    //         let getargs = Nstring::stringbetween(&xline[0], "(", ")");
-                                    //         let givenargs = Nstring::split(&getargs,",");
-                                    //         let mut newline: Vec<String>  = Vec::new();
-                                    //         newline.push("FN".to_string());
-                                    //         newline.push(xline[0].to_string());
-                                    //         newline.push(" ".to_string());
-                                    //         newline.push(split(&xline[0],"(")[0].to_string());
-                                    //         for xword in givenargs{
-                                    //             newline.push(xword.to_string());
-                                    //
-                                    //         }
-                                    //         preprocessedvec.push(newline.to_owned());
-                                    //     }
-                                    // }
-                                    // NscriptWordTypes::Classfunc =>{
-                                    //     let getfirst = split(&xline[0],"(")[0];
-                                    //     let selfname = split(&getfirst,".")[0];
-                                    //     if Nstring::instring(&xline[0], ").") {
-                                    //         let mut newwordvec:Vec<String> = Vec::new();
-                                    //         newwordvec.push("CH".to_string());
-                                    //         for x in Nstring::split(&Nstring::replace(&xline[0],").",&format!(") {}.",&selfname))," "){
-                                    //             if split(&x,"(").len() > 2 {
-                                    //                 newwordvec.push(format!("3{}",x));
-                                    //             }else{
-                                    //                 let classname = split(&x,".")[0].to_string();
-                                    //                 let args = Nstring::trimsuffix(&split(&x,"(")[1]).to_string();
-                                    //                 let funcname = split(split(&x,".")[1],"(")[0].to_string();
-                                    //                 newwordvec.push(classname);
-                                    //                 newwordvec.push(funcname);
-                                    //                 newwordvec.push(args);
-                                    //             }
-                                    //         }
-                                    //         preprocessedvec.push(newwordvec.to_owned());
-                                    //     }
-                                    //     else{
-                                    //         let splitfunc = split(&split(&xline[0],"(")[0],".");
-                                    //         let getargs = Nstring::stringbetween(&xline[0], "(", ")");
-                                    //         let mut newline:Vec<String> = Vec::new();
-                                    //         newline.push("CFN".to_string());
-                                    //         newline.push(splitfunc[0].to_string());
-                                    //         newline.push(splitfunc[1].to_string());
-                                    //         newline.push(getargs.to_string());
-                                    //         preprocessedvec.push(newline.to_owned());
-                                    //     }
-                                    // }
+                                    NscriptWordTypes::RustFunction |NscriptWordTypes::Function =>{
+                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[0],1),"(")[0]){
+                                            let mut insertvec:Vec<String> = Vec::new();
+                                            insertvec.push("RFN".to_string());
+                                            let splitfunc = split(&xline[0],"(")[0];
+                                            insertvec.push(splitfunc.to_string());
+                                            let getargs = Nstring::stringbetween(&xline[0],"(", ")");
+                                            insertvec.push(getargs);
+                                            preprocessedvec.push(insertvec.to_owned());
+                                        }
+                                        else{
+                                            let getargs = Nstring::stringbetween(&xline[0], "(", ")");
+                                            let givenargs = Nstring::split(&getargs,",");
+                                            let mut newline: Vec<String>  = Vec::new();
+                                            newline.push("FN".to_string());
+                                            newline.push(xline[0].to_string());
+                                            newline.push(" ".to_string());
+                                            newline.push(split(&xline[0],"(")[0].to_string());
+                                            for xword in givenargs{
+                                                newline.push(xword.to_string());
+
+                                            }
+                                            preprocessedvec.push(newline.to_owned());
+                                        }
+                                    }
+                                    NscriptWordTypes::Classfunc =>{
+                                        let getfirst = split(&xline[0],"(")[0];
+                                        let selfname = split(&getfirst,".")[0];
+                                        if Nstring::instring(&xline[0], ").") {
+                                            let mut newwordvec:Vec<String> = Vec::new();
+                                            newwordvec.push("CH".to_string());
+                                            for x in Nstring::split(&Nstring::replace(&xline[0],").",&format!(") {}.",&selfname))," "){
+                                                if split(&x,"(").len() > 2 {
+                                                    newwordvec.push(format!("3{}",x));
+                                                }else{
+                                                    let classname = split(&x,".")[0].to_string();
+                                                    let args = Nstring::trimsuffix(&split(&x,"(")[1]).to_string();
+                                                    let funcname = split(split(&x,".")[1],"(")[0].to_string();
+                                                    newwordvec.push(classname);
+                                                    newwordvec.push(funcname);
+                                                    newwordvec.push(args);
+                                                }
+                                            }
+                                            preprocessedvec.push(newwordvec.to_owned());
+                                        }
+                                        else{
+                                            let splitfunc = split(&split(&xline[0],"(")[0],".");
+                                            let getargs = Nstring::stringbetween(&xline[0], "(", ")");
+                                            let mut newline:Vec<String> = Vec::new();
+                                            newline.push("CFN".to_string());
+                                            newline.push(splitfunc[0].to_string());
+                                            newline.push(splitfunc[1].to_string());
+                                            newline.push(getargs.to_string());
+                                            preprocessedvec.push(newline.to_owned());
+                                        }
+                                    }
                                     NscriptWordTypes::Nestedfunc =>{
                                         xline.insert(0,"NFN".to_string());
                                         preprocessedvec.push(xline.clone());
@@ -497,50 +488,43 @@ impl  Nscript{
                     match xline[0].as_str(){
                         "return" => {
                                 match self.checkwordtype(&xline[1]){
-                                    NscriptWordTypes::RustFunction |NscriptWordTypes::Function | NscriptWordTypes::Classfunc | NscriptWordTypes::Structfn=>{
-
-                                        let mut newline: Vec<String>  = Vec::new();
-                                        newline.push("rF".to_string());
-                                        newline.push(xline[1].to_string());
-                                        preprocessedvec.push(newline.to_owned());
-                                        //
-                                        //
-                                        //     let getargs = Nstring::stringbetween(&xline[1], "(", ")");
-                                        //     let givenargs = Nstring::split(&getargs,",");
-                                        // if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[1],1),"(")[0]){
-                                        //     let mut newline: Vec<String>  = Vec::new();
-                                        //     let getargs = Nstring::stringbetween(&xline[1], "(", ")");
-                                        //     newline.push("R_RFN".to_string());
-                                        //     newline.push(xline[0].to_string());
-                                        //     newline.push(getargs);
-                                        //     preprocessedvec.push(xline.to_owned());
-                                        // }
-                                        // else{
-                                        //     let mut newline: Vec<String>  = Vec::new();
-                                        //     newline.push("R_FN".to_string());
-                                        //     newline.push(xline[0].to_string());
-                                        //     newline.push(" ".to_string());
-                                        //     newline.push(split(&xline[1],"(")[0].to_string());
-                                        //     for xword in givenargs{
-                                        //         newline.push(xword.to_string());
-                                        //     }
-                                        //     preprocessedvec.push(newline.to_owned());
-                                        // }
+                                    NscriptWordTypes::RustFunction |NscriptWordTypes::Function =>{
+                                            let getargs = Nstring::stringbetween(&xline[1], "(", ")");
+                                            let givenargs = Nstring::split(&getargs,",");
+                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[1],1),"(")[0]){
+                                            let mut newline: Vec<String>  = Vec::new();
+                                            let getargs = Nstring::stringbetween(&xline[1], "(", ")");
+                                            newline.push("R_RFN".to_string());
+                                            newline.push(xline[0].to_string());
+                                            newline.push(getargs);
+                                            preprocessedvec.push(xline.to_owned());
+                                        }
+                                        else{
+                                            let mut newline: Vec<String>  = Vec::new();
+                                            newline.push("R_FN".to_string());
+                                            newline.push(xline[0].to_string());
+                                            newline.push(" ".to_string());
+                                            newline.push(split(&xline[1],"(")[0].to_string());
+                                            for xword in givenargs{
+                                                newline.push(xword.to_string());
+                                            }
+                                            preprocessedvec.push(newline.to_owned());
+                                        }
                                     }
                                     NscriptWordTypes::Nestedfunc =>{
                                         xline.insert(0,"R_NFN".to_string());
                                         preprocessedvec.push(xline.to_owned());
                                     }
-                                    // NscriptWordTypes::Classfunc =>{
-                                    //     let mut newline: Vec<String>  = Vec::new();
-                                    //     newline.insert(0,"R_CFN".to_string());
-                                    //     let splitfunc = split(&split(&xline[1],"(")[0],".");
-                                    //     let getargs = Nstring::stringbetween(&xline[1], "(", ")");
-                                    //     newline.push(splitfunc[0].to_string());
-                                    //     newline.push(splitfunc[1].to_string());
-                                    //     newline.push(getargs.to_string());
-                                    //     preprocessedvec.push(newline.to_owned());
-                                    // }
+                                    NscriptWordTypes::Classfunc =>{
+                                        let mut newline: Vec<String>  = Vec::new();
+                                        newline.insert(0,"R_CFN".to_string());
+                                        let splitfunc = split(&split(&xline[1],"(")[0],".");
+                                        let getargs = Nstring::stringbetween(&xline[1], "(", ")");
+                                        newline.push(splitfunc[0].to_string());
+                                        newline.push(splitfunc[1].to_string());
+                                        newline.push(getargs.to_string());
+                                        preprocessedvec.push(newline.to_owned());
+                                    }
                                     NscriptWordTypes::Variable =>{
                                         let mut newline: Vec<String>  = Vec::new();
                                         newline.insert(0,"RV".to_string());
@@ -617,16 +601,16 @@ impl  Nscript{
                     _ =>{
                         match xline[0].as_str(){
                             "BRF" =>{
-                                //let mut newline :Vec<String> = Vec::new();
-                                //xline.push("BRF".to_string());
-                                // for x in xline{
-                                //     if x != "BRF"{
-                                //         let splitwords = split(Nstring::trimsuffix(&x),"(");
-                                //         newline.push(splitwords[0].to_string());
-                                //         newline.push(splitwords[1].to_string());
-                                //     }
-                                // }
-                                preprocessedvec.push(xline.to_owned());
+                                let mut newline :Vec<String> = Vec::new();
+                                newline.push("BRF".to_string());
+                                for x in xline{
+                                    if x != "BRF"{
+                                        let splitwords = split(Nstring::trimsuffix(&x),"(");
+                                        newline.push(splitwords[0].to_string());
+                                        newline.push(splitwords[1].to_string());
+                                    }
+                                }
+                                preprocessedvec.push(newline.to_owned());
                             }
                             "if" =>{
                                 if xline.len() < 6 {
@@ -805,87 +789,70 @@ impl  Nscript{
                                                     }
                                                     else{
                                                         match self.checkwordtype(&xline[2]){
-                                                            NscriptWordTypes::RustFunction | NscriptWordTypes::Function | NscriptWordTypes::Classfunc | NscriptWordTypes::Structfn=>{
-                                                                let mut newline: Vec<String>  = Vec::new();
+                                                            NscriptWordTypes::RustFunction | NscriptWordTypes::Function=>{
                                                                 match self.checkwordtype(&xline[0]){
-
                                                                     NscriptWordTypes::Variable =>{
-                                                                        newline.push("F=l".to_string());
+                                                                        if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[2],1),"(")[0]){
+
+                                                                            let mut newline: Vec<String>  = Vec::new();
+                                                                            let funcname = split(&xline[2],"(")[0];
+                                                                            let getargs = Nstring::stringbetween(&xline[2], "(", ")");
+                                                                            //let givenargs = Nstring::split(&getargs,",");
+                                                                            newline.push("xRFN".to_string());
+                                                                            newline.push(xline[0].to_string()); // variable
+                                                                            newline.push(xline[1].to_string());// =
+                                                                            newline.push(funcname.to_string());// =
+                                                                            newline.push(getargs);
+                                                                            preprocessedvec.push(newline.to_owned());
+                                                                        }
+                                                                        else{
+                                                                            let getargs = Nstring::stringbetween(&xline[2], "(", ")");
+                                                                            let givenargs = Nstring::split(&getargs,",");
+                                                                            let mut newline: Vec<String>  = Vec::new();
+                                                                            newline.push("xVF".to_string());
+                                                                            newline.push(xline[0].to_string());
+                                                                            newline.push("=".to_string());
+                                                                            newline.push(split(&xline[2],"(")[0].to_string());
+                                                                            for xword in givenargs{
+                                                                                newline.push(xword.to_string());
+
+                                                                            }
+
+                                                                            preprocessedvec.push(newline.to_owned());
+                                                                        }
                                                                     }
                                                                     _ =>{
-                                                                        newline.push("F=".to_string());
+                                                                        xline.insert(0,"xF".to_string());
+
+                                                                        preprocessedvec.push(xline.to_owned());
                                                                     }
                                                                 }
-                                                                newline.push(xline[0].to_string());
-                                                                newline.push(xline[2].to_string());
-                                                                preprocessedvec.push(newline.to_owned());
-
                                                             }
+                                                            NscriptWordTypes::Classfunc =>{
 
-                                                            //     NscriptWordTypes::RustFunction | NscriptWordTypes::Function=>{
-                                                            //     match self.checkwordtype(&xline[0]){
-                                                            //         NscriptWordTypes::Variable =>{
-                                                            //             if let Some(_) = self.rustfunctions.get_mut(split(&Nstring::trimleft(&xline[2],1),"(")[0]){
-                                                            //
-                                                            //                 let mut newline: Vec<String>  = Vec::new();
-                                                            //                 let funcname = split(&xline[2],"(")[0];
-                                                            //                 let getargs = Nstring::stringbetween(&xline[2], "(", ")");
-                                                            //                 //let givenargs = Nstring::split(&getargs,",");
-                                                            //                 newline.push("xRFN".to_string());
-                                                            //                 newline.push(xline[0].to_string()); // variable
-                                                            //                 newline.push(xline[1].to_string());// =
-                                                            //                 newline.push(funcname.to_string());// =
-                                                            //                 newline.push(getargs);
-                                                            //                 preprocessedvec.push(newline.to_owned());
-                                                            //             }
-                                                            //             else{
-                                                            //                 let getargs = Nstring::stringbetween(&xline[2], "(", ")");
-                                                            //                 let givenargs = Nstring::split(&getargs,",");
-                                                            //                 let mut newline: Vec<String>  = Vec::new();
-                                                            //                 newline.push("xVF".to_string());
-                                                            //                 newline.push(xline[0].to_string());
-                                                            //                 newline.push("=".to_string());
-                                                            //                 newline.push(split(&xline[2],"(")[0].to_string());
-                                                            //                 for xword in givenargs{
-                                                            //                     newline.push(xword.to_string());
-                                                            //
-                                                            //                 }
-                                                            //
-                                                            //                 preprocessedvec.push(newline.to_owned());
-                                                            //             }
-                                                            //         }
-                                                            //         _ =>{
-                                                            //             xline.insert(0,"xF".to_string());
-                                                            //
-                                                            //             preprocessedvec.push(xline.to_owned());
-                                                            //         }
-                                                            //     }
-                                                            // }
-                                                            // NscriptWordTypes::Classfunc =>{
-                                                            //
-                                                            //     let mut newline:Vec<String> = Vec::new();
-                                                            //     match self.checkwordtype(&xline[0]){
-                                                            //         NscriptWordTypes::Variable =>{
-                                                            //             newline.insert(0,"xVCF".to_string());
-                                                            //         }
-                                                            //         _ =>{
-                                                            //             newline.insert(0,"xCF".to_string());
-                                                            //         }
-                                                            //     }
-                                                            //
-                                                            //     newline.push(xline[0].to_owned()); // variable to set nme
-                                                            //     let splitfunc = split(&split(&xline[2],"(")[0],".");
-                                                            //     let getargs = Nstring::stringbetween(&xline[2], "(", ")");
-                                                            //     newline.push(splitfunc[0].to_string());
-                                                            //     newline.push(splitfunc[1].to_string());
-                                                            //     newline.push(getargs.to_string());
-                                                            //     preprocessedvec.push(newline.to_owned());
-                                                            //     //preprocessedvec.push(xline.to_owned());
-                                                            // }
-                                                            // NscriptWordTypes::Structfn =>{
-                                                            //     xline.insert(0,"xSF".to_string());
-                                                            //     preprocessedvec.push(xline.to_owned());
-                                                            // }
+                                                                let mut newline:Vec<String> = Vec::new();
+                                                                match self.checkwordtype(&xline[0]){
+                                                                    NscriptWordTypes::Variable =>{
+                                                                        newline.insert(0,"xVCF".to_string());
+                                                                    }
+                                                                    _ =>{
+                                                                        newline.insert(0,"xCF".to_string());
+                                                                    }
+                                                                }
+
+                                                                newline.push(xline[0].to_owned()); // variable to set nme
+                                                                let splitfunc = split(&split(&xline[2],"(")[0],".");
+                                                                let getargs = Nstring::stringbetween(&xline[2], "(", ")");
+                                                                newline.push(splitfunc[0].to_string());
+                                                                newline.push(splitfunc[1].to_string());
+                                                                newline.push(getargs.to_string());
+                                                                preprocessedvec.push(newline.to_owned());
+                                                                //preprocessedvec.push(xline.to_owned());
+                                                            }
+                                                            NscriptWordTypes::Structfn =>{
+                                                                xline.insert(0,"xSF".to_string());
+                                                                preprocessedvec.push(xline.to_owned());
+                                                            }
                                                             NscriptWordTypes::Nestedfunc =>{
                                                                 //
                                                                 let mut newwordvec:Vec<String> = Vec::new();
@@ -973,73 +940,55 @@ impl  Nscript{
 
     fn executepreproccessedline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         match line[0].as_ref(){
-            "rF" =>{
-                let mut var = self.execute_cachedfunction(&line[1], block);
-                if var.stringdata != ""{
-                    var.name = "return".into();
-                }
-                return Some(var);
-            }
-            "F" =>{
-                self.execute_cachedfunction(&line[1], block);
-            }
-            "F=l" =>{
-                let  onvar = self.execute_cachedfunction(&line[2], block);
-                block.setvar(&line[1], onvar);
-            }
-            "F=" =>{
-                let  onvar = self.execute_cachedfunction(&line[2], block);
-                self.storage.setdefiningword(&line[1], onvar, block);
-            }
             "S" =>{ // scope
                 return self.executesubscope(&line,&formattedblock,block);
             }
             "NFN" =>{
-                self.execute_nestedfunction(&line[1], block);
+                self.execute_nestedfunction(&line[1], formattedblock, block);
 
             }
-            // "SFN" =>{
-            //       return Some(self.execute_ruststructfn(&line[1],&formattedblock, block)) ;
-            // }
-            // "FN" =>{
-            //      self.execute_prencfunction(&line[3],&line, block) ;
-            // }
-            // "CFN" =>{
-            //      self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block) ;
-            // }
-            // "xF" =>{
-            //     let  onvar = self.execute_cachedfunction(&line[3], block);
-            //     self.storage.setdefiningword(&line[1], onvar, block);
-            // }
-            // "xVF" =>{
-            //     let  onvar = self.execute_prencfunction(&line[3],&line,block);
-            //     block.setvar(&line[1], onvar);
-            // }
-            // "xRFN" =>{
-            //     let  onvar = self.execute_prerustfunction(&line[3],&line[4], block);
-            //     block.setvar(&line[1], onvar);
-            // }
+            "SFN" =>{
+                  return Some(self.execute_ruststructfn(&line[1],&formattedblock, block)) ;
+            }
+            "FN" =>{
+                 self.execute_prencfunction(&line[3],&line, block) ;
+            }
+            "CFN" =>{
+                 self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block) ;
+            }
+            "xF" =>{
+                let  onvar = self.execute_function(&line[3], block);
+                self.storage.setdefiningword(&line[1], onvar, block);
+            }
+            "xVF" =>{
+                let  onvar = self.execute_prencfunction(&line[3],&line,block);
+                block.setvar(&line[1], onvar);
+            }
+            "xRFN" =>{
+                let  onvar = self.execute_prerustfunction(&line[3],&line[4], block);
+                block.setvar(&line[1], onvar);
+            }
             "xNF" =>{
-                let var = self.execute_nestedfunction(&line[3],  block);
+                let var = self.execute_nestedfunction(&line[3], formattedblock, block);
                 self.setdefiningword(&line[1], var,&formattedblock, block);
             }
             "xVNF" =>{
-                let var = self.execute_nestedfunction(&line[3], block);
+                let var = self.execute_nestedfunction(&line[3], formattedblock, block);
                 block.setvar(&line[1],var);
             }
 
-            // "xSF" =>{
-            //     let onvar = self.execute_ruststructfn(&line[3],&formattedblock, block);
-            //     self.setdefiningword(&line[1], onvar, &formattedblock,block);
-            // }
-            // "xCF" =>{
-            //     let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
-            //     self.storage.setdefiningword(&line[1], onvar,block);
-            // }
-            // "xVCF" =>{
-            //     let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
-            //     block.setvar(&line[1], onvar);
-            // }
+            "xSF" =>{
+                let onvar = self.execute_ruststructfn(&line[3],&formattedblock, block);
+                self.setdefiningword(&line[1], onvar, &formattedblock,block);
+            }
+            "xCF" =>{
+                let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
+                self.storage.setdefiningword(&line[1], onvar,block);
+            }
+            "xVCF" =>{
+                let  onvar = self.execute_preformattedclassfunction(&line[2],&line[3],&line[4], block);
+                block.setvar(&line[1], onvar);
+            }
             "SETV" =>{
                 let  onvar = self.storage.getvar(&line[3],block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
@@ -1048,9 +997,9 @@ impl  Nscript{
                 let  onvar = self.executeword(&line[3],&formattedblock,block);
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
-            // "RFN" =>{
-            //     return Some(self.execute_prerustfunction(&line[1],&line[2], block));
-            // }
+            "RFN" =>{
+                return Some(self.execute_prerustfunction(&line[1],&line[2], block));
+            }
             "M" =>{
                 let tomatch = self.getwordstring(&line[1],&formattedblock, block);
                 return self.matchscope(&tomatch,line[line.len()-1].parse::<usize>().unwrap_or(0)-1,&formattedblock, block);
@@ -1080,26 +1029,26 @@ impl  Nscript{
                 return Some(retvar);
 
             }
-            // "R_FN" =>{
-            //     let mut retvar = self.execute_prencfunction(&line[3],&line, block);
-            //     retvar.name = "return".into();
-            //     return Some(retvar);
-            //
-            // }
-            // "R_RFN" =>{
-            //     let mut retvar = self.execute_prerustfunction(&line[2],&line[2], block);
-            //     retvar.name = "return".into();
-            //     return Some(retvar);
-            //
-            // }
-            // "R_CFN" =>{
-            //     let mut retvar = self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block);
-            //     retvar.name = "return".into();
-            //     return Some(retvar);
-            //
-            // }
+            "R_FN" =>{
+                let mut retvar = self.execute_prencfunction(&line[3],&line, block);
+                retvar.name = "return".into();
+                return Some(retvar);
+
+            }
+            "R_RFN" =>{
+                let mut retvar = self.execute_prerustfunction(&line[2],&line[2], block);
+                retvar.name = "return".into();
+                return Some(retvar);
+
+            }
+            "R_CFN" =>{
+                let mut retvar = self.execute_preformattedclassfunction(&line[1],&line[2],&line[3], block);
+                retvar.name = "return".into();
+                return Some(retvar);
+
+            }
             "R_NFN" =>{
-                let mut retvar = self.execute_nestedfunction(&line[2], block);
+                let mut retvar = self.execute_nestedfunction(&line[2],&formattedblock, block);
                 retvar.name = "return".into();
                 return Some(retvar);
 
@@ -1109,7 +1058,7 @@ impl  Nscript{
                 let max = line.len();
                 while index < max{
                     if Nstring::prefix(&line[index]) == "3"{
-                        self.execute_nestedfunction(&line[index], block) ;
+                        self.execute_nestedfunction(&line[index],&formattedblock, block) ;
                         index +=1;
                     }
                     else{
@@ -1122,7 +1071,7 @@ impl  Nscript{
                 let mut retvar= NscriptVar::new("ch");
                 for x in 3..line.len(){
                     if Nstring::prefix(&line[x]) == "3"{
-                        retvar = self.execute_nestedfunction(&line[x], block);
+                        retvar = self.execute_nestedfunction(&line[x],&formattedblock, block);
                     }
                     else{
                         retvar = self.execute_classfunction(&line[x], block) ;
@@ -1250,11 +1199,8 @@ impl  Nscript{
                  self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
             "BRF" =>{
-                // for x in (1..line.len()).step_by(2){
-                //     self.execute_prerustfunction(&line[x],&line[x+1], block);
-                // }
-                for x in 1..line.len(){
-                    self.execute_cachedfunction(&line[x], block);
+                for x in (1..line.len()).step_by(2){
+                    self.execute_prerustfunction(&line[x],&line[x+1], block);
                 }
             }
             "AA" =>{ // add self
@@ -1273,7 +1219,7 @@ impl  Nscript{
                 self.setdefiningword(&line[1], onvar, &formattedblock,block);
             }
             "tI" =>{//optimized timerchecks
-                if f64(&self.execute_cachedrustfunction(&line[1], block).stringdata) > f64(&line[3]){
+                if f64(&self.execute_rustfunction(&line[1], block).stringdata) > f64(&line[3]){
                     return self.execute_ifscopeup(true,line,formattedblock,block);
                 }
             }
@@ -1677,7 +1623,7 @@ impl  Nscript{
         self.storage.setdefiningword(word, equalsfrom, block);
     }
     // this parses and runs a nested function word
-    pub fn execute_nestedfunction(&mut self,word:&str,block:&mut NscriptCodeBlock) ->NscriptVar{
+    fn execute_nestedfunction(&mut self,word:&str,formattedblock: &NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
         let word = Nstring::trimprefix(&word);
         let mut resultstring = word.to_string();
         let mut packed: String;
@@ -1717,8 +1663,7 @@ impl  Nscript{
                 break;
             }
         }
-        return self.execute_function(&resultstring,block);
-        //return self.executeword(&resultstring,&formattedblock, block);
+        return self.executeword(&resultstring,&formattedblock, block);
     }
     pub fn getwordstr(&mut self,word:&str,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) -> Box<str>{
 
@@ -1759,20 +1704,20 @@ impl  Nscript{
                 return thisword.into();
             }
             NscriptWordTypes::Function => {
-                if let Some(var) = self.execute_cachedncfunction(&word.into(), block){
+                if let Some(var) = self.execute_ncfunction(word, block){
                     return var.stringdata.into();
                 }
                 return "".into();
                 //return self.execute_ncfunction(word, block).stringdata;
             }
             NscriptWordTypes::RustFunction => {
-                return self.execute_cachedrustfunction(&word.into(), block).stringdata.into();
+                return self.execute_rustfunction(word, block).stringdata.into();
             }
             NscriptWordTypes::Classfunc => {
                 return self.execute_classfunction(word, block).stringdata.into();
             }
             NscriptWordTypes::Nestedfunc => {
-                return self.execute_nestedfunction(word,  block).stringdata.into();
+                return self.execute_nestedfunction(word,formattedblock,  block).stringdata.into();
             }
             NscriptWordTypes::Macro =>{
                 return self.storage.getmacrostring(word).into();
@@ -1864,7 +1809,7 @@ impl  Nscript{
                 return self.execute_classfunction(word, block).stringdata;
             }
             NscriptWordTypes::Nestedfunc => {
-                return self.execute_nestedfunction(word,  block).stringdata;
+                return self.execute_nestedfunction(word,formattedblock,  block).stringdata;
             }
             NscriptWordTypes::Macro =>{
                 return self.storage.getmacrostring(word).to_string();
@@ -1918,7 +1863,7 @@ impl  Nscript{
                 return self.execute_ruststructfn(word,&formattedblock, block);
             }
             NscriptWordTypes::Nestedfunc =>{
-                return self.execute_nestedfunction(word, block);
+                return self.execute_nestedfunction(word,&formattedblock, block);
             }
             NscriptWordTypes::Classfunc =>{
                 return self.execute_classfunction(word, block);
@@ -2052,7 +1997,7 @@ impl  Nscript{
         None
     }
     // this checks what kinda function it will be, using the first character of the givenword
-   pub  fn execute_function(&mut self,wordr:&str, block:&mut NscriptCodeBlock) ->NscriptVar{
+    fn execute_function(&mut self,wordr:&str, block:&mut NscriptCodeBlock) ->NscriptVar{
         match self.checkwordtype(wordr){
             NscriptWordTypes::Function =>{
                 if let Some(var) = self.execute_ncfunction(&wordr, block){
@@ -2155,7 +2100,7 @@ impl  Nscript{
         return NscriptVar::new("error");
     }
 
-    pub fn execute_ruststructfn(&mut self,word:&str,formattedblock:&NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
+    fn execute_ruststructfn(&mut self,word:&str,formattedblock:&NscriptExecutableCodeBlock,block:&mut NscriptCodeBlock) ->NscriptVar{
         let splitfunc = split(&word,"(");
         return self.execute_preruststructfn(&splitfunc[0], &Nstring::trimsuffix(&splitfunc[1]),&formattedblock, block);
     }
@@ -2337,7 +2282,7 @@ impl  Nscript{
 
 
     /// used to check what a word / type is
-    pub fn checkwordtype(&mut self,word:&str) -> NscriptWordTypes{
+    fn checkwordtype(&mut self,word:&str) -> NscriptWordTypes{
         match Nstring::prefix(&word){
             "\\" =>{
                 return NscriptWordTypes::Classfunc;

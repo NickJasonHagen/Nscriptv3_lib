@@ -1545,7 +1545,7 @@ impl  Nscript{
                     }
                     "f"=>{
                         if Nstring::prefix(&splitword[1]) == "*"{
-                            let asref = self.storage.getargstring(&Nstring::trimleft(splitword[1].trim(), 1), block);
+                            let asref = self.storage.getargstring(&Nstring::trimprefix(splitword[1].trim()), block);
                             funcvec.push(self.getfunc(&asref));
                             funcvecexblocks.push(self.getexecutableblock(&asref));
                         }else{

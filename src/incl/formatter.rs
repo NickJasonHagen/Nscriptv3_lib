@@ -1554,7 +1554,9 @@ impl  Nscript{
                         }
                     }
                     "v"=>{
-                        varsvec.push(self.getvar(&splitword[1].trim(),block));
+                        let mut var = self.getvar(&splitword[1].trim(),block);
+                        var.name = splitword[1].into();
+                        varsvec.push(var);
                     }
                     _ =>{}
                 }

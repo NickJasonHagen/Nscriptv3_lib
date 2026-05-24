@@ -165,7 +165,7 @@ impl Nstring {
     }
     pub fn trimleft(s: &str, f: usize) -> String {
         let len = s.len();
-        if f < len+1 {
+        if f <= len {
             return String::from(&s[f..len]);
         }
         else {
@@ -1454,5 +1454,27 @@ pub fn nscriptfn_url(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mu
     }
 
     NscriptVar::newstring("url",result.to_string())
+}
+
+pub fn nscriptfn_isint(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    if let Ok(_) =  storage.getvar(var[0], block).stringdata.parse::<i64>(){
+        return NscriptVar::newstring("v", "true".to_string());
+    }
+    return NscriptVar::newstring("v", "false".to_string());
+}
+pub fn nscriptfn_isfloat(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    if let Ok(_) =  storage.getvar(var[0], block).stringdata.parse::<f64>(){
+        return NscriptVar::newstring("v", "true".to_string());
+    }
+    return NscriptVar::newstring("v", "false".to_string());
+}
+pub fn nscriptfn_isnumber(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    if let Ok(_) =  storage.getvar(var[0], block).stringdata.parse::<f64>(){
+        return NscriptVar::newstring("v", "true".to_string());
+    }
+    if let Ok(_) =  storage.getvar(var[0], block).stringdata.parse::<i64>(){
+        return NscriptVar::newstring("v", "true".to_string());
+    }
+    return NscriptVar::newstring("v", "false".to_string());
 }
 

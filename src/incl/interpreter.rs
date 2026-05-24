@@ -206,6 +206,9 @@ impl  Nscript{
             self.insertfn("udpreply",nscriptfn_udpreply,"udpreply(udpsocketid,clientsocketid,msgstring) //used for the listen() function to send to a clientsocket,  returns a error value=[ERROR] on failure");
             self.insertfn("socketaddress",nscriptfn_socketaddress,"socketaddress(ip,port) //returns a socketaddress string eg: 0.0.0.0:8080 usable for udpsend()");
             self.insertfn("arraypickrandom",nscriptfn_arraypickrandom,"arraypickrandom(vec) //returns a random entree from the given vector");
+            self.insertfn("isint",nscriptfn_isint,"isint(value) //returns true or false");
+            self.insertfn("isfloat",nscriptfn_isfloat,"isfloat(value) //returns true or false");
+            self.insertfn("isnumber",nscriptfn_isnumber,"isnumber(value) //returns true or false");
 
             #[cfg(not(windows))]
             if 1 == 1{

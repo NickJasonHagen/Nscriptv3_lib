@@ -1046,6 +1046,52 @@ pub fn nscriptfn_get_http_content(args:&Vec<&str>,block :&mut NscriptCodeBlock ,
     var.stringdata = string;
     var
 }
+/// mapped as httpget()
+pub fn nscriptfn_post_http_content(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
+    let mut var = NscriptVar::new("httpget");
+    if args.len() < 3 {
+        return var;
+    }
+    let hstring = storage.getargstring(&args[0], block);
+    let portstring = storage.getargstring(&args[1], block);
+    let pathstring = storage.getargstring(&args[2], block);
+    let data = storage.getargstring(&args[3], block);
+    let host = hstring.as_str();
+    let port = portstring.as_str().parse::<u16>().unwrap_or(0);
+    let path = &pathstring;
+    let mut stream : TcpStream;
+    if let Ok(streamtry) = TcpStream::connect((host, port)){
+        stream = streamtry;
+    }
+    else{
+        return var;
+    }
+    let request = format!(
+        "POST {} HTTP/1.1\r\nHost: {}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {}\r\n\r\n{}",
+        path,
+        host,
+        data.len(),
+        data
+    );
+    if let Err(_) = stream.write_all(request.as_bytes()){
+        return var;
+    };
+    let string: String;// "".to_string();
+    let mut response = Vec::new();
+    if let Err(_) = stream.read_to_end(&mut response){
+        return var;
+    };
+    // Find the position of the double CRLF (indicating the end of headers)
+    if let Some(index) = response.windows(4).position(|window| window == b"\r\n\r\n") {
+        // Skip the headers and extract the content
+        let content = response.split_off(index + 4);
+        string = String::from_utf8(content).unwrap_or("".to_string());
+    }else{
+        string = String::from_utf8(response).unwrap_or("".to_string());
+    }
+    var.stringdata = string;
+    var
+}
 fn nscript_usize(intasstr: &str)-> usize{
     let selected = match intasstr.parse::<usize>(){
         Ok(res) =>{

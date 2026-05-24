@@ -2756,7 +2756,6 @@ fn read_file_utf8(filename: &str) -> String {
     if let Err(_) = file.read_to_end(&mut contents) {
         return String::new();
     }
-
     let (decoded, _, _) = UTF_8.decode(&contents);
     decoded.into_owned()
 }

@@ -178,7 +178,9 @@ impl  Nscript{
         let trimmedreq: String;
         if request_parts.len() > 1 {
             if request_parts[1].contains("B blob data") {
-                println!("blobdatafound returning");
+                if self.debugging {
+                    println!("blobdatafound returning");
+                }
                 return; // Ignore blob data and return without processing
             }
             trimmedreq = Nstring::trimleft(&request_parts[1], 1);
@@ -240,7 +242,9 @@ impl  Nscript{
                         &Nstring::stringbetween(&request, "Content-Length: ", "Cache").trim(),
                     );
                     let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
-                    stream.write(response.as_bytes()).unwrap();
+                    if let Err(_) = stream.write(response.as_bytes()){
+                        // continue if errored
+                    };
                     if bsize > nscript_usize(&self.executeword("&server.POSTbytesmax",&formattedblock, &mut connectionblock).stringdata) {
                         let response = "SERVERERROR:PostSizeExceedsLimit";
                         thread::spawn(move || {
@@ -292,7 +296,9 @@ impl  Nscript{
                         response = self.parsecode(&Nfile::read(&file_path), &file_path).stringdata;
                     }
                     thread::spawn(move || {
-                        stream.write(response.as_bytes()).unwrap();
+                        if let Err(_) =stream.write(response.as_bytes()){
+
+                        };
                     });
                 }
             }
@@ -1046,50 +1052,77 @@ pub fn nscriptfn_get_http_content(args:&Vec<&str>,block :&mut NscriptCodeBlock ,
     var.stringdata = string;
     var
 }
-/// mapped as httpget()
+
 pub fn nscriptfn_post_http_content(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
-    let mut var = NscriptVar::new("httpget");
+    let mut var = NscriptVar::new("httppost");
     if args.len() < 3 {
         return var;
     }
-    let hstring = storage.getargstring(&args[0], block);
+    let host = storage.getargstring(&args[0], block);
     let portstring = storage.getargstring(&args[1], block);
     let pathstring = storage.getargstring(&args[2], block);
     let data = storage.getargstring(&args[3], block);
-    let host = hstring.as_str();
     let port = portstring.as_str().parse::<u16>().unwrap_or(0);
-    let path = &pathstring;
     let mut stream : TcpStream;
-    if let Ok(streamtry) = TcpStream::connect((host, port)){
+    if let Ok(streamtry) = TcpStream::connect((host.as_str(), port)){
         stream = streamtry;
     }
     else{
         return var;
     }
-    let request = format!(
-        "POST {} HTTP/1.1\r\nHost: {}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {}\r\n\r\n{}",
-        path,
-        host,
-        data.len(),
-        data
-    );
-    if let Err(_) = stream.write_all(request.as_bytes()){
+    let datalength = data.len();
+    if datalength  < 900 {
+        let request = format!(
+            "POST {} HTTP/1.1\r\nHost: {}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {}\r\n\r\n{}",
+            &pathstring,
+            &host,
+            datalength,
+            data
+        );
+        if let Err(_) = stream.write_all(request.as_bytes()){
+            return var;
+        };
+    }
+    else{
+        println!("msg exceeds 900 characters!");
+    //     let request = format!(
+    //         "POST {} HTTP/1.1\r\nHost: {}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {}\r\n\r\n{}",
+    //         &pathstring,
+    //         &host,
+    //         datalength,
+    //         Nstring::fromleft(&data,899)
+    //     );
+    //     if let Err(_) = stream.write(request.as_bytes()){
+    //         return var;
+    //     };
+    //     let mut response = Vec::new();// check continue
+    //     if let Err(_) = stream.read_to_end(&mut response){
+    //         return var;
+    //     };
+    //     if Nstring::instring(&String::from_utf8(response.clone()).unwrap_or("".to_string()), "200 OK") {
+    //         println!("{}",String::from_utf8(response.clone()).unwrap_or("error".to_string()));
+    //         let bytes = Nstring::trimleft(&data,899).as_bytes().to_owned();
+    //         for xbyte in 899..datalength{
+    //             if let Err(_) = stream.write(&bytes[xbyte..xbyte+1]){
+    //                 return var;
+    //             };
+    //         }
+    //
+    //     }
+    //
         return var;
-    };
-    let string: String;// "".to_string();
+     }
     let mut response = Vec::new();
     if let Err(_) = stream.read_to_end(&mut response){
         return var;
     };
-    // Find the position of the double CRLF (indicating the end of headers)
+
     if let Some(index) = response.windows(4).position(|window| window == b"\r\n\r\n") {
-        // Skip the headers and extract the content
         let content = response.split_off(index + 4);
-        string = String::from_utf8(content).unwrap_or("".to_string());
+        var.stringdata = String::from_utf8(content).unwrap_or("".to_string());
     }else{
-        string = String::from_utf8(response).unwrap_or("".to_string());
-    }
-    var.stringdata = string;
+        var.stringdata = String::from_utf8(response).unwrap_or("".to_string());
+     }
     var
 }
 fn nscript_usize(intasstr: &str)-> usize{

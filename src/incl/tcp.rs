@@ -28,7 +28,6 @@ impl NscriptTcp{
         #[cfg(windows)]
         listener.set_nonblocking(true).expect("Cannot set non-blocking");
         #[cfg(not(windows))]
-        //let newid = String::new();
         match listener.set_nonblocking(true){
             Ok(_) => {
                  self.listeneridcounter = self.listeneridcounter + 1;

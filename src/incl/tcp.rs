@@ -1,10 +1,8 @@
 use crate::*;
 pub struct NscriptTcp{
     pub streammap: HashMap<String,TcpStream>,
-
     pub listenermap: HashMap<String,TcpListener>,
     pub streamidcounter: u64,
-
     pub listeneridcounter: u64,
 }
 
@@ -20,11 +18,7 @@ impl NscriptTcp{
 
     pub fn listener(&mut self,ip:&str,port:&str) -> String{
         let  listener: TcpListener;
-
         listener = TcpListener::bind(format!("{}:{}", ip, port)).unwrap();
-        //println!("Server started at http://{}:{}",  ip, port);
-
-
         #[cfg(windows)]
         listener.set_nonblocking(true).expect("Cannot set non-blocking");
         #[cfg(not(windows))]
@@ -59,9 +53,8 @@ impl NscriptTcp{
                 self.streamidcounter = self.streamidcounter + 1;
                 let newid = "nc_stream_".to_owned() + &self.streamidcounter.to_string();
                 self.streammap.insert(newid.clone(), stream);
-                eprintln!("stream ok!");
+                //eprintln!("stream ok!");
                 return newid;
-
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
                 // No incoming connections yet,
@@ -73,24 +66,19 @@ impl NscriptTcp{
         return "".to_owned();
     }
     pub fn connect(&mut self,ip: &str,ports:&str)->String{
-        //let stream: TcpStream;
         let mut newid = String::new();
         let mut port: u16 = 8888;
         if let Ok(port) = ports.to_owned().parse::<u16>() {
             println!("Parsed port number: {}", port);
-            // Use the port number (port) here in your code
-        } else {
+        } else { // when the port number cannot be parsed.
             port = 8888;
             println!("Failed to parse port number: using port:8888");
-            // Handle the case when parsing fails
         }
         match TcpStream::connect((ip, port)){
             Ok(e) => {
                 self.streamidcounter = self.streamidcounter + 1;
                 newid = "nc_stream_".to_owned() + &self.streamidcounter.to_string();
                 self.streammap.insert(newid.clone(), e);
-
-
             }
             Err(r) => {
                 println!("Error:{}",r);

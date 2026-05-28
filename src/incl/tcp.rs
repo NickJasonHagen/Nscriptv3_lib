@@ -22,7 +22,7 @@ impl NscriptTcp{
         let  listener: TcpListener;
 
         listener = TcpListener::bind(format!("{}:{}", ip, port)).unwrap();
-        println!("Server started at http://{}:{}",  ip, port);
+        //println!("Server started at http://{}:{}",  ip, port);
 
 
         #[cfg(windows)]

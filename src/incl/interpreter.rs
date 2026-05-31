@@ -207,9 +207,9 @@ impl  Nscript{
             self.insertfn("udpreply",nscriptfn_udpreply,"udpreply(udpsocketid,clientsocketid,msgstring) //used for the listen() function to send to a clientsocket,  returns a error value=[ERROR] on failure");
             self.insertfn("socketaddress",nscriptfn_socketaddress,"socketaddress(ip,port) //returns a socketaddress string eg: 0.0.0.0:8080 usable for udpsend()");
             self.insertfn("arraypickrandom",nscriptfn_arraypickrandom,"arraypickrandom(vec) //returns a random entree from the given vector");
-            self.insertfn("isint",nscriptfn_isint,"isint(value) //returns true or false");
-            self.insertfn("isfloat",nscriptfn_isfloat,"isfloat(value) //returns true or false");
-            self.insertfn("isnumber",nscriptfn_isnumber,"isnumber(value) //returns true or false");
+            self.insertfn("is_int",nscriptfn_isint,"is_int(value) //returns true or false");
+            self.insertfn("is_float",nscriptfn_isfloat,"is_float(value) //returns true or false");
+            self.insertfn("is_number",nscriptfn_isnumber,"is_number(value) //returns true or false");
 
             #[cfg(not(windows))]
             if 1 == 1{
@@ -540,6 +540,9 @@ pub struct NscriptData{
     pub map_vec_string:HashMap<String,Vec<String>>,
     pub map_vec_vecstring:HashMap<String,Vec<Vec<String>>>,
     pub map_vec_vec3f64:HashMap<String,Vec<[f64;3]>>,
+    pub static_vec_var:Vec<NscriptVar>,
+    pub static_vec_vec_var:Vec<Vec<NscriptVar>>,
+    pub static_vec_vec_vec_var:Vec<Vec<Vec<NscriptVar>>>,
     pub static_vec_string:Vec<String>,
     pub static_vec_bool:Vec<bool>,
     pub static_vec_vec_string:Vec<Vec<String>>,
@@ -556,6 +559,9 @@ impl NscriptData{
             map_vec_float:HashMap::new(),
             map_vec_vecstring:HashMap::new(),
             map_vec_vec3f64:HashMap::new(),
+            static_vec_var:Vec::new(),
+            static_vec_vec_var:Vec::new(),
+            static_vec_vec_vec_var:Vec::new(),
             static_vec_string:Vec::new(),
             static_vec_bool:Vec::new(),
             static_vec_vec_string:Vec::new(),

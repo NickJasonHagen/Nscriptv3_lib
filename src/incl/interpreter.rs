@@ -13,6 +13,7 @@ pub struct Nscript{
     pub rustfunctionshelpindex: Vec<String>, // map for all the rust fn bindings.
     pub coroutinesindex: Vec<String>,// all nonclass functions
     pub coroutines: HashMap<Box<str>,NscriptCoroutine>,// all nonclass functions
+    pub events: HashMap<Box<str>,NscriptEvent>,// all nonclass functions
     pub emptyblock: NscriptCodeBlock,// all nonclass functions
     pub threadsreceiver: HashMap<String, mpsc::Receiver<NscriptVar>>,
     pub threadssenders: HashMap<String, mpsc::Sender<NscriptVar>>,
@@ -37,6 +38,7 @@ impl  Nscript{
             rustfunctionshelpindex: Vec::new(),
             coroutinesindex: Vec::new(),
             coroutines: HashMap::new(),
+            events: HashMap::new(),
             emptyblock: NscriptCodeBlock::new("emptyblock"),
             threadsreceiver:HashMap::new(),
             threadssenders:HashMap::new(),
@@ -293,6 +295,13 @@ impl  Nscript{
             self.coroutines.insert(name.into(),routine);
         }
     }
+    pub fn removeevent(&mut self,routine:&str){
+        //self.coroutinesindex.retain(|x| x != routine);
+        self.events.remove(routine);
+    }
+    pub fn addevent(&mut self,name:&str,routine:NscriptEvent){
+        self.events.insert(name.into(),routine);
+    }
     pub fn insertclass(&mut self,name:&str,class:NscriptClass){
         self.storage.classes.insert(name.trim().to_string().into(),class);
     }
@@ -532,7 +541,27 @@ impl NscriptCoroutine{
         }
     }
 }
-
+#[derive(Clone)]
+pub struct NscriptEvent{
+    pub name:Box<str>,
+    pub storageblock:NscriptCodeBlock,
+    pub executableblock:NscriptExecutableCodeBlock,
+    pub timedroutine:bool,
+    pub timed:i64,
+    pub timer:i64,
+}
+impl NscriptEvent{
+    pub fn new(name:&str,block:NscriptCodeBlock,executableblock:NscriptExecutableCodeBlock,timedroutine:bool,timed:i64)->NscriptEvent{
+        NscriptEvent{
+            name:name.into(),
+            storageblock:block,
+            executableblock:executableblock,
+            timedroutine:timedroutine,
+            timed:timed,
+            timer:Ntimer::init(),
+        }
+    }
+}
 /// contains customdata hashmaps can be used in rustfn
 pub struct NscriptData{
     pub map_vec_int:HashMap<String,Vec<i64>>,

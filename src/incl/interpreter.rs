@@ -13,6 +13,7 @@ pub struct Nscript{
     pub rustfunctionshelpindex: Vec<String>, // map for all the rust fn bindings.
     pub coroutinesindex: Vec<String>,// all nonclass functions
     pub coroutines: HashMap<Box<str>,NscriptCoroutine>,// all nonclass functions
+    pub eventsindex: Vec<String>,// all nonclass functions
     pub events: HashMap<Box<str>,NscriptEvent>,// all nonclass functions
     pub emptyblock: NscriptCodeBlock,// all nonclass functions
     pub threadsreceiver: HashMap<String, mpsc::Receiver<NscriptVar>>,
@@ -38,6 +39,7 @@ impl  Nscript{
             rustfunctionshelpindex: Vec::new(),
             coroutinesindex: Vec::new(),
             coroutines: HashMap::new(),
+            eventsindex: Vec::new(),
             events: HashMap::new(),
             emptyblock: NscriptCodeBlock::new("emptyblock"),
             threadsreceiver:HashMap::new(),
@@ -296,11 +298,15 @@ impl  Nscript{
         }
     }
     pub fn removeevent(&mut self,routine:&str){
-        //self.coroutinesindex.retain(|x| x != routine);
+        self.eventsindex.retain(|x| x != routine);
         self.events.remove(routine);
     }
     pub fn addevent(&mut self,name:&str,routine:NscriptEvent){
-        self.events.insert(name.into(),routine);
+        let string = name.to_string();
+        if self.eventsindex.contains(&string) != true {
+            self.eventsindex.push(string);
+            self.events.insert(name.into(),routine);
+        }
     }
     pub fn insertclass(&mut self,name:&str,class:NscriptClass){
         self.storage.classes.insert(name.trim().to_string().into(),class);

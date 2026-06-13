@@ -359,8 +359,8 @@ pub fn mainloop(&mut self){
     }
     pub fn executeevents(&mut self){
 
-        for (key,thisroutine) in self.events.clone(){
-            //if let Some(thisroutine) = self.events.get_mut(name.as_str()){
+        for key in self.eventsindex.clone(){
+            if let Some(thisroutine) = self.events.get_mut(key.as_str()){
                 if thisroutine.timedroutine == false{
                     let mut thisroutine = thisroutine.clone();
                     self.executeblock(&mut thisroutine.storageblock,&thisroutine.executableblock);
@@ -373,7 +373,7 @@ pub fn mainloop(&mut self){
                     self.removeevent(&key);
 
                 }
-            //};
+            };
         }
     }
     /// entree point for executing a new block

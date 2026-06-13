@@ -335,7 +335,10 @@ impl  Nscript{
         }
         return fixed;
     }
-
+pub fn mainloop(&mut self){
+    self.executecoroutines();
+    self.executeevents();
+}
     /// this keeps the coroutines running , after all routines are ran the code returns!
     pub fn executecoroutines(&mut self){
         for xid in self.coroutinesindex.clone(){
@@ -352,6 +355,25 @@ impl  Nscript{
                     self.coroutines.insert(thisroutine.name.clone(),thisroutine);
                 }
             };
+        }
+    }
+    pub fn executeevents(&mut self){
+
+        for (key,thisroutine) in self.events.clone(){
+            //if let Some(thisroutine) = self.events.get_mut(name.as_str()){
+                if thisroutine.timedroutine == false{
+                    let mut thisroutine = thisroutine.clone();
+                    self.executeblock(&mut thisroutine.storageblock,&thisroutine.executableblock);
+                    self.removeevent(&key);
+                }
+                else if Ntimer::diff(thisroutine.timer) > thisroutine.timed {
+                    let mut thisroutine = thisroutine.clone();
+                    thisroutine.timer = Ntimer::init();
+                    self.executeblock(&mut thisroutine.storageblock,&thisroutine.executableblock);
+                    self.removeevent(&key);
+
+                }
+            //};
         }
     }
     /// entree point for executing a new block
@@ -675,6 +697,19 @@ impl  Nscript{
                                 }
                                 else{
                                     xline[0] = "CO".to_string();
+                                    preprocessedvec.push(xline.to_owned());
+
+                                }
+                            }
+                            "event" =>{
+                                if xline.len() > 4 {
+                                    if xline[2] == ">" {
+                                        xline[0] = "TEVS".to_string();
+                                        preprocessedvec.push(xline.to_owned());
+                                    }
+                                }
+                                else{
+                                    xline[0] = "EVS".to_string();
                                     preprocessedvec.push(xline.to_owned());
 
                                 }
@@ -1265,6 +1300,18 @@ impl  Nscript{
                     block
                 );
             }
+            "EVS"=>{
+                self.execute_spawnevent(&line,false,0,&formattedblock,block);
+            }
+            "TEVS"=>{
+                let time = self.executeword(&line[3], formattedblock, block).stringdata;
+                self.execute_spawnevent(
+                    &line,true,
+                    Nstring::i64(&time),
+                    &formattedblock,
+                    block
+                );
+            }
             "X"=>{
                 //exit
                 process::exit(1);
@@ -1316,6 +1363,25 @@ impl  Nscript{
             thisco.timer = Ntimer::init();
         }
         self.addcoroutine(&coname,thisco);
+        self.storage.codeblocks.insert(coname.into(),coroutineblock );
+    }
+    fn execute_spawnevent(&mut self,line:&Vec<Box<str>>,timed:bool,time:i64,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock){
+        let coname = "event_".to_string() + &self.getwordstr(&line[1],&formattedblock, block);
+        let mut coroutineblock = NscriptCodeBlock::new(&coname);//NscriptCodeBlock::new(&coname);
+        coroutineblock.name = coname.to_string();
+        let mut executablecode = formattedblock.clone();//self.getexecutableblock(&block.name);
+        coroutineblock.variables = block.variables.clone();
+        let mut selfvar = NscriptVar::new("self");
+        selfvar.stringdata = coname.to_string();
+        coroutineblock.setvar("self", selfvar);
+        coroutineblock.staticstrings = block.staticstrings.clone();
+        let scopeid = Nstring::usize(&line[line.len()-1]);
+        executablecode.boxedcode[0] = formattedblock.boxedcode[scopeid-1].clone();
+        let mut thisco = NscriptEvent::new(&coname, coroutineblock.clone(), executablecode.clone(), timed, time);
+        if timed {
+            thisco.timer = Ntimer::init();
+        }
+        self.addevent(&coname,thisco);
         self.storage.codeblocks.insert(coname.into(),coroutineblock );
     }
      fn execute_ifline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{

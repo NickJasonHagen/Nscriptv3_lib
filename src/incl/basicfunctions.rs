@@ -945,7 +945,9 @@ pub fn nscriptfn_arrayroll(args:&Vec<&str>,block :&mut NscriptCodeBlock , storag
     return newvar
 }
 pub fn nscriptfn_dircreate(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    NscriptVar::newstring("r",  formatbytes(&get_size(&storage.getargstring(&args[0], block)).unwrap_or(0)))
+create_directory()
+    let var = storage.getargstring(&args[0], block);
+    NscriptVar::newstring("r",  formatbytes(&get_size(&var).unwrap_or(0)))
 }
 pub fn create_directory(dir_path: &str) -> String {
     match fs::create_dir(dir_path) {

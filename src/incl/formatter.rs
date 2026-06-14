@@ -1367,10 +1367,11 @@ pub fn mainloop(&mut self){
     }
     fn execute_spawnevent(&mut self,line:&Vec<Box<str>>,timed:bool,time:i64,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock){
         let coname = "event_".to_string() + &self.getwordstr(&line[1],&formattedblock, block);
-        let mut coroutineblock = NscriptCodeBlock::new(&coname);//NscriptCodeBlock::new(&coname);
+        //let mut coroutineblock = NscriptCodeBlock::new(&coname);//NscriptCodeBlock::new(&coname);
         let mut executablecode = formattedblock.clone();//self.getexecutableblock(&block.name);
-        coroutineblock.variables = block.variables.clone();
-        coroutineblock.staticstrings = block.staticstrings.clone();
+        //coroutineblock.variables = block.variables.clone();
+        //coroutineblock.staticstrings = block.staticstrings.clone();
+        let coroutineblock = block.clone();
         let scopeid = Nstring::usize(&line[line.len()-1]);
         executablecode.boxedcode[0] = formattedblock.boxedcode[scopeid-1].clone();
         let mut thisco = NscriptEvent::new(coroutineblock, executablecode, timed, time);

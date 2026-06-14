@@ -549,7 +549,6 @@ impl NscriptCoroutine{
 }
 #[derive(Clone)]
 pub struct NscriptEvent{
-    pub name:Box<str>,
     pub storageblock:NscriptCodeBlock,
     pub executableblock:NscriptExecutableCodeBlock,
     pub timedroutine:bool,
@@ -557,9 +556,8 @@ pub struct NscriptEvent{
     pub timer:i64,
 }
 impl NscriptEvent{
-    pub fn new(name:&str,block:NscriptCodeBlock,executableblock:NscriptExecutableCodeBlock,timedroutine:bool,timed:i64)->NscriptEvent{
+    pub fn new(block:NscriptCodeBlock,executableblock:NscriptExecutableCodeBlock,timedroutine:bool,timed:i64)->NscriptEvent{
         NscriptEvent{
-            name:name.into(),
             storageblock:block,
             executableblock:executableblock,
             timedroutine:timedroutine,

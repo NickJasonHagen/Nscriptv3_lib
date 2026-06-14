@@ -1368,21 +1368,17 @@ pub fn mainloop(&mut self){
     fn execute_spawnevent(&mut self,line:&Vec<Box<str>>,timed:bool,time:i64,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock){
         let coname = "event_".to_string() + &self.getwordstr(&line[1],&formattedblock, block);
         let mut coroutineblock = NscriptCodeBlock::new(&coname);//NscriptCodeBlock::new(&coname);
-        coroutineblock.name = coname.to_string();
         let mut executablecode = formattedblock.clone();//self.getexecutableblock(&block.name);
         coroutineblock.variables = block.variables.clone();
-        let mut selfvar = NscriptVar::new("self");
-        selfvar.stringdata = coname.to_string();
-        coroutineblock.setvar("self", selfvar);
         coroutineblock.staticstrings = block.staticstrings.clone();
         let scopeid = Nstring::usize(&line[line.len()-1]);
         executablecode.boxedcode[0] = formattedblock.boxedcode[scopeid-1].clone();
-        let mut thisco = NscriptEvent::new(&coname, coroutineblock.clone(), executablecode.clone(), timed, time);
+        let mut thisco = NscriptEvent::new(coroutineblock, executablecode, timed, time);
         if timed {
             thisco.timer = Ntimer::init();
         }
         self.addevent(&coname,thisco);
-        self.storage.codeblocks.insert(coname.into(),coroutineblock );
+        //self.storage.codeblocks.insert(coname.into(),coroutineblock );
     }
      fn execute_ifline(&mut self,line:&Vec<Box<str>>,formattedblock: &NscriptExecutableCodeBlock, block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         let statementresult = self.parse_and_check_statements(&line, &formattedblock,block);

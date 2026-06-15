@@ -484,7 +484,6 @@ impl  Nscript{
                     let mut var = NscriptVar::new("prop");
                     if Nstring::fromleft(splitprop[1],1) == "["{
                         let splitvecprop = Nstring::stringbetween(&splitprop[1],"[","]");
-                        println!("->{}",&splitvecprop);
                         var.name = Nstring::trimleft(&splitprop[0],1).into();
                         var.stringvec = vectorvec[Nstring::usize(&splitvecprop)].clone();
                         class.setprop(&Nstring::trimleft(&splitprop[0],1),var)

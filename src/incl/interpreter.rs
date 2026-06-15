@@ -432,8 +432,8 @@ impl  Nscript{
         let mut json = Nstring::trimright(&Nstring::trimleft(&Nstring::replace(&json,":\"",": \""), 1), 1); // strip {}
         // if it exists, extent it
         let mut vectorvec = Vec::new();
-        let mut i = 0;
         if Nstring::instring(&json,"[\"") && Nstring::instring(&json,"\"]"){
+            let mut i = 0;
             loop{
                 let part1 = split(&json,"[\"");
                 let len = part1.len();
@@ -442,8 +442,8 @@ impl  Nscript{
                 }
                 let vectorcontent = split(&part1[1],"\"]")[0];
                 vectorvec.push(Nstring::split(&vectorcontent,"\",\""));
-                json = Nstring::replace(&json,&format!("[\"{}\"]",&vectorcontent),&format!("\"[{}]\"",&i.to_string()));
-                i +=1;
+                json = Nstring::replace(&json,&format!("[\"{}\"]",&vectorcontent),&format!("\"[{}]\"",i));
+                i = i + 1;
             }
         }
         if let Some(class) = self.storage.getclassref(&objectname){
@@ -452,11 +452,10 @@ impl  Nscript{
                 if splitprop.len() > 1 {
                     let mut var = NscriptVar::new("prop");
                     // check for vectors
-                    if Nstring::fromleft(splitprop[1],2) == "\"["{
-                        let splitvecprop = split(&split(&splitprop[1], "\"[")[0],"]\"");
-                        //println!("{}",&splitvecprop[0]);
+                    if Nstring::fromleft(splitprop[1],1) == "["{
+                        let splitvecprop = Nstring::stringbetween(&splitprop[1],"[","]");
                         var.name = Nstring::trimleft(&splitprop[0],1).into();
-                        var.stringvec = vectorvec[Nstring::usize(&splitvecprop[0])].clone();
+                        var.stringvec = vectorvec[Nstring::usize(&splitvecprop)].clone();
                         class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
                     }
                     // do strings
@@ -483,15 +482,25 @@ impl  Nscript{
                 let splitprop = split(&each, "\": \"");
                 if splitprop.len() > 1 {
                     let mut var = NscriptVar::new("prop");
-                    if Nstring::fromright(splitprop[1],1) == "\"" {
+                    if Nstring::fromleft(splitprop[1],1) == "["{
+                        let splitvecprop = Nstring::stringbetween(&splitprop[1],"[","]");
+                        println!("->{}",&splitvecprop);
                         var.name = Nstring::trimleft(&splitprop[0],1).into();
-                        var.stringdata =Nstring::trimright(&splitprop[1],1);
+                        var.stringvec = vectorvec[Nstring::usize(&splitvecprop)].clone();
                         class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
                     }
+                    // do strings
                     else{
-                        var.name = Nstring::trimleft(&splitprop[0],1).into();
-                        var.stringdata =splitprop[1].to_string();
-                        class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
+                        if Nstring::fromright(splitprop[1],1) == "\"" {
+                            var.name = Nstring::trimleft(&splitprop[0],1).into();
+                            var.stringdata =Nstring::trimright(&splitprop[1],1);
+                            class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
+                        }
+                        else{
+                            var.name = Nstring::trimleft(&splitprop[0],1).into();
+                            var.stringdata =splitprop[1].to_string();
+                            class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
+                        }
                     }
                 }
             }

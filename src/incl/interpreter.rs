@@ -410,8 +410,14 @@ impl  Nscript{
         let mut jsonstring = String::from("{");
         if let Some(class) = self.storage.getclassref(&objectname){
             for propname in class.index.clone() {
-
-                jsonstring = jsonstring + "\"" + &propname + "\": \"" + &class.getprop(&propname).stringdata + "\",";
+                let propvar = class.getprop(&propname);
+                if propvar.stringvec.is_empty() == false{
+                    let stringvec = format!("[\"{}\"]",propvar.stringvec.join("\",\""));
+                    jsonstring = jsonstring + "\"" + &propname + "\": " + &stringvec+ ",";
+                }
+                else{
+                    jsonstring = jsonstring + "\"" + &propname + "\": \"" + &propvar.stringdata + "\",";
+                }
             }
             if Nstring::fromright(&jsonstring, 1) == "," {
                 jsonstring = Nstring::trimright(&jsonstring, 1);
@@ -423,23 +429,50 @@ impl  Nscript{
         var
     }
     pub fn object_from_json(&mut self,objectname:&str,json:&str){
-        let json = Nstring::trimright(&Nstring::trimleft(&Nstring::replace(&json,":\"",": \""), 1), 1); // strip {}
+        let mut json = Nstring::trimright(&Nstring::trimleft(&Nstring::replace(&json,":\"",": \""), 1), 1); // strip {}
         // if it exists, extent it
+        let mut vectorvec = Vec::new();
+        let mut i = 0;
+        if Nstring::instring(&json,"[\"") && Nstring::instring(&json,"\"]"){
+            loop{
+                let part1 = split(&json,"[\"");
+                let len = part1.len();
+                if len < 2 {
+                    break
+                }
+                let vectorcontent = split(&part1[1],"\"]")[0];
+                vectorvec.push(Nstring::split(&vectorcontent,"\",\""));
+                json = Nstring::replace(&json,&format!("[\"{}\"]",&vectorcontent),&format!("\"[{}]\"",&i.to_string()));
+                i +=1;
+            }
+        }
         if let Some(class) = self.storage.getclassref(&objectname){
             for each in split(&json, "\",") {
                 let splitprop = split(&each, "\": \"");
                 if splitprop.len() > 1 {
                     let mut var = NscriptVar::new("prop");
-                    if Nstring::postfix(splitprop[1]) == "\"" {
+                    // check for vectors
+                    if Nstring::fromleft(splitprop[1],2) == "\"["{
+                        let splitvecprop = split(&split(&splitprop[1], "\"[")[0],"]\"");
+                        //println!("{}",&splitvecprop[0]);
                         var.name = Nstring::trimleft(&splitprop[0],1).into();
-                        var.stringdata =Nstring::trimright(&splitprop[1],1);
+                        var.stringvec = vectorvec[Nstring::usize(&splitvecprop[0])].clone();
                         class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
                     }
+                    // do strings
                     else{
-                        var.name = Nstring::trimleft(&splitprop[0],1).into();
-                        var.stringdata =splitprop[1].to_string();
-                        class.setprop(&Nstring::trimprefix(&splitprop[0]),var)
+                        if Nstring::postfix(splitprop[1]) == "\"" {
+                            var.name = Nstring::trimleft(&splitprop[0],1).into();
+                            var.stringdata =Nstring::trimright(&splitprop[1],1);
+                            class.setprop(&Nstring::trimleft(&splitprop[0],1),var)
+                        }
+                        else{
+                            var.name = Nstring::trimleft(&splitprop[0],1).into();
+                            var.stringdata =splitprop[1].to_string();
+                            class.setprop(&Nstring::trimprefix(&splitprop[0]),var)
+                        }
                     }
+
                 }
             }
         }

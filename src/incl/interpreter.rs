@@ -214,6 +214,7 @@ impl  Nscript{
             self.insertfn("is_int",nscriptfn_isint,"is_int(value) //returns true or false");
             self.insertfn("is_float",nscriptfn_isfloat,"is_float(value) //returns true or false");
             self.insertfn("is_number",nscriptfn_isnumber,"is_number(value) //returns true or false");
+            self.insertfn("json_create",nscriptfn_jsoncreate,"json_create(key,value,key,value..) //returns a jsonstring, arguments go by 2 , 4 ,6 etc");
 
             #[cfg(not(windows))]
             if 1 == 1{

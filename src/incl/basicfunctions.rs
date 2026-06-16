@@ -1481,3 +1481,28 @@ pub fn nscriptfn_isnumber(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :
     return NscriptVar::newstring("v", "false".to_string());
 }
 
+pub fn nscriptfn_jsoncreate(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let  tomax = args.len()-1;
+    let mut xarg = 0;
+    let mut jsonstring = "{\"".to_string();
+        loop{
+            if xarg+1 <= tomax{
+                let key = storage.getvar(&args[xarg],block).stringdata;
+                let value = storage.getvar(&args[xarg+1],block);
+                let toset : String;
+                if value.stringvec.len() > 0{
+                    toset = "[\"".to_string() + &value.stringvec.join("\",\"")+ "\"]";
+                    jsonstring = jsonstring + &key +"\": " + &toset + ",\"";
+                }
+                else{
+                    toset = value.stringdata.to_string();
+                    jsonstring = jsonstring + &key +"\": \"" + &toset + "\",\"";
+                }
+            }
+            else{
+                break
+            }
+            xarg +=2;
+        }
+    NscriptVar::newstring("json",Nstring::trimright(&jsonstring,2)+"}")
+}

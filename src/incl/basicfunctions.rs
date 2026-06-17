@@ -1482,7 +1482,7 @@ pub fn nscriptfn_isnumber(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :
 }
 
 pub fn nscriptfn_jsoncreate(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
-    let  tomax = args.len()-1;
+    let tomax = args.len()-1;
     let mut xarg = 0;
     let mut jsonstring = "{\"".to_string();
         loop{

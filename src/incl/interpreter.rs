@@ -729,7 +729,8 @@ impl NscriptStorage{
                 self.setdefiningword(wordsplit[0], var, block);
             }
             NscriptWordTypes::Reflection =>{
-                self.setdefiningword(&Nstring::trimprefix(self.getargstring(&Nstring::trimprefix(&word),block)), equalsfrom,block);
+                let evalword = self.getargstring(&Nstring::trimprefix(&word),block);
+                self.setdefiningword(&evalword, equalsfrom,block);
             }
             _ =>{
 

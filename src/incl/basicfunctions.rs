@@ -586,6 +586,55 @@ pub fn nscriptfn_filesizebytes(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
     NscriptVar::newstring("r",Nfile::filesizebytes(&storage.getargstring(&args[0], block)).to_string())
 }
 impl Nfile {
+
+    #[cfg(windows)]
+       pub fn dirtolist(readpath: &str, fullpathnames: bool) -> Vec<String> {
+        let mut output = Vec::new();
+        // Windows returns `\`; scripts use `/`. Normalize so prefix stripping works cross-platform.
+        let readpath_norm = readpath.replace('\\', "/");
+        let readpath_trim = readpath_norm.trim_end_matches('/').to_string();
+        let paths = match fs::read_dir(readpath_trim.as_str()) {
+            Ok(paths) => paths,
+            Err(error) => {
+                // retry original in case caller passed a path that only works as-is
+                match fs::read_dir(readpath) {
+                    Ok(paths) => paths,
+                    Err(_) => {
+                        println!("<error>: Cannot read directory: {}", error);
+                        return Vec::new();
+                    }
+                }
+            }
+        };
+        for path in paths {
+            match path {
+                Ok(entry) => {
+                    let unwraped = entry.path().display().to_string().replace('\\', "/");
+                    if !unwraped.is_empty() {
+                        if !fullpathnames {
+                            let stripped = if let Some(s) = unwraped.strip_prefix(&format!("{}/", readpath_trim)) {
+                                s.to_string()
+                            } else if let Some(s) = unwraped.strip_prefix(&readpath_trim) {
+                                s.trim_start_matches('/').to_string()
+                            } else {
+                                // fallback: filename only
+                                entry.file_name().to_string_lossy().to_string()
+                            };
+                            output.push(stripped);
+                        } else {
+                            output.push(unwraped);
+                        }
+                    }
+                }
+                Err(error) => {
+                    println!("<error>: Cannot access directory entry: {}", error);
+                    return Vec::new();
+                }
+            }
+        }
+        output
+    }
+#[cfg(not(windows))]
     pub fn dirtolist(readpath: &str, fullpathnames: bool) -> Vec<String> {
         let mut output = Vec::new();
         let paths = match fs::read_dir(&Nstring::replace(&readpath,"\\","/")) {

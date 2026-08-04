@@ -256,10 +256,13 @@ impl  Nscript{
                             //if it is a property we add .
                             else if Nstring::instring(&arg, ".") && Nstring::postfix(&arg) != "(" {
                                 arg = "&".to_string() + &arg;
-                                wordvec.push(Nscript::preparser_checkvector(arg));
+                                let splitprop = split(&arg,".");
+                                let topush = format!("{}.{}",&Nscript::preparser_checkvector(splitprop[0].to_string()),&Nscript::preparser_checkvector(splitprop[1].to_string()));
+                                wordvec.push(Nscript::preparser_checkvector(topush.to_string()));
                             }
                             else{
                                 wordvec.push(Nscript::preparser_checkvector(arg));
+                                //wordvec.push(Nscript::preparser_checkvector(arg));
                             }
                         }
                         else{
@@ -299,7 +302,12 @@ impl  Nscript{
     }
     fn preparser_checkvector(mut arg:String) ->String{
         if Nstring::prefix(&arg) != "[" && Nstring::postfix(&arg) == "[" {
-            arg = "#".to_string() + &arg;
+            if Nstring::prefix(&arg) == "*"{
+                arg = "*#".to_string() + Nstring::trimprefix(arg);
+            }
+            else{
+                arg = "#".to_string() + &arg;
+            }
         }
         arg
     }
@@ -2036,7 +2044,6 @@ pub fn mainloop(&mut self){
         print(&format!("cant find func {}",funcname),"r");
         NscriptVar::new("wont")
     }
-
     /// executes a nsript function
     pub fn execute_ncfunction(&mut self,word:&str,block:&mut NscriptCodeBlock) ->Option<NscriptVar>{
         let word = Nstring::trimprefix(&word);
@@ -2047,6 +2054,7 @@ pub fn mainloop(&mut self){
             let formattedblockfunc = self.getexecutableblock(&getblock.name);//func.formattedcodeblock.clone();
             let ln =givenargs.len();
             let ln2 =func.args.len();
+
             if ln != 0{
                 for xarg in 0..ln{
                     if xarg < ln2{
@@ -2224,6 +2232,10 @@ pub fn mainloop(&mut self){
                         let isf = self.getwordstring(&givenargs[0], formattedblock, block);
                         return self.execute_function(&isf,block);
                     }
+                    // "args" =>{
+                    //     formattedblock.args
+                    //     return self.execute_function(&isf,block);
+                    // }
                     "debugger" =>{
 
                         let set = self.getvar(&givenargs[0], block);

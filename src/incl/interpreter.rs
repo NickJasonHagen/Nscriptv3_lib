@@ -715,7 +715,15 @@ impl NscriptStorage{
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);
                 let wordsplit = split(&thisword,"[");
-                let mut var = self.getvar(&wordsplit[0],block);
+
+                let  varname : String;
+                if Nstring::prefix(wordsplit[0]) == "*"{
+                    varname = self.getargstring(&Nstring::trimprefix(&word),block).clone();
+                }
+                else{
+                    varname = wordsplit[0].to_string();
+                }
+                let mut var = self.getvar(&varname,block);
                 let idvar = self.getargstring(&Nstring::trimsuffix(&wordsplit[1]),block).parse::<usize>().unwrap_or(0);
                 if idvar < var.stringvec.len(){
                     var.stringvec[idvar] = equalsfrom.stringdata;
@@ -723,10 +731,10 @@ impl NscriptStorage{
                 else {
 
                     if self.debugging {
-                        print(&format!("block [{}] array [{}] tries to set a index but its out of bounds",&block.name,&wordsplit[0]),"r");
+                        print(&format!("block [{}] array [{}] tries to set a index but its out of bounds",&block.name,&varname),"r");
                     }
                 }
-                self.setdefiningword(wordsplit[0], var, block);
+                self.setdefiningword(&varname, var, block);
             }
             NscriptWordTypes::Reflection =>{
                 let evalword = self.getargstring(&Nstring::trimprefix(&word),block);
@@ -856,15 +864,22 @@ impl NscriptStorage{
             }
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);
-                let arrays = split(&thisword,"[");
-                let thisvar = self.getargstringvec(arrays[0], block);
+                let  arrays = split(&thisword,"[");
+                let  varname : String;
+                if Nstring::prefix(arrays[0]) == "*"{
+                    varname = self.getargstring(&Nstring::trimprefix(&word),block).clone();
+                }
+                else{
+                    varname = arrays[0].to_string();
+                }
+                let thisvar = self.getargstringvec(&varname, block);
                 let index = self.getargstring(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
                 if thisvar.len() > index{
                     return thisvar[index].to_string();
                 }else{
 
                     if self.debugging {
-                        print(&format!("getargstring() storage block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&word,&block.name,&arrays[0],&index,&thisvar.len()),"r");
+                        print(&format!("getargstring() storage block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&word,&block.name,&varname,&index,&thisvar.len()),"r");
                     }
                 }
                 return "".to_owned();
@@ -937,7 +952,14 @@ impl NscriptStorage{
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);
                 let arrays = split(&thisword,"[");
-                let thisvar = self.getargstringvec(arrays[0], block);
+                let  varname : String;
+                if Nstring::prefix(arrays[0]) == "*"{
+                    varname = self.getargstring(&Nstring::trimprefix(&word),block).clone();
+                }
+                else{
+                    varname = arrays[0].to_string();
+                }
+                let thisvar = self.getargstringvec(&varname, block);
                 let index = self.getargstring(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
                 if thisvar.len() > index{
                     return thisvar[index].clone().into();
@@ -1016,7 +1038,21 @@ impl NscriptStorage{
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);
                 let arrays = split(&thisword,"[");
-                let thisvar = self.getvar(arrays[0], block);
+                // if arrays.len() < 2{
+                //     if self.debugging {
+                //         print(&format!("parsing beta bug block[{}] word:{}",&block.name,&word),"r");
+                //     }
+                //     return "".into();
+                // }
+
+                let  varname : String;
+                if Nstring::prefix(arrays[0]) == "*"{
+                    varname = self.getargstring(&Nstring::trimprefix(&word),block).clone();
+                }
+                else{
+                    varname = arrays[0].to_string();
+                }
+                let thisvar = self.getvar(&varname, block);
                 let index = self.getevaluatablewordstr(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
                 if thisvar.stringvec.len() > index{
                     return thisvar.stringvec[index].as_str().into();

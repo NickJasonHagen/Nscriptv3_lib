@@ -191,7 +191,7 @@ impl  Nscript{
                 let syntaxwords = ["BRF","SCOPE","return", "!true","!false", "true","false","cat","&=", "class","func","coroutine","thread",
                     "spawnthread","string","vec",",","!!","!",":","for" ,"if","else","elseif","math","match","=",
                     "+","-","/","*","loop","==","++","--","in","to","=>","!=",">","<","<=","=>","&&","||","and",
-                    "init","or","break","!","!!","]"];
+                    "init","or","break","!","!!"];
                 let mut proceed = true;
                 let max = syntaxwords.len();
                 let mut i = 0;
@@ -221,7 +221,7 @@ impl  Nscript{
                     for mut arg in Nstring::split(&xline[x]," "){
                         // if its a number we add %
                         proceed = true;
-                        if  arg == "" || arg == "," ||  arg == ")" ||  arg == ")." ||
+                        if  arg == "" || arg == "," ||   arg == "]" ||arg == ")" ||  arg == ")." ||
                         Nstring::fromleft(&arg, 1) == "!" || Nstring::fromleft(&arg, 1) == "@" ||
                         Nstring::fromleft(&arg, 1) == "^" || Nstring::fromleft(&arg, 1) == "~" || arg == "cat["  {
                             proceed = false;
@@ -255,21 +255,28 @@ impl  Nscript{
                             }
                             //if it is a property we add .
                             else if Nstring::instring(&arg, ".") && Nstring::postfix(&arg) != "(" {
-                                arg = "&".to_string() + &arg;
+                                //arg = "&".to_string() + &arg;
                                 let splitprop = split(&arg,".");
-                                let topush = format!("{}.{}",&Nscript::preparser_checkvector(splitprop[0].to_string()),&Nscript::preparser_checkvector(splitprop[1].to_string()));
-                                wordvec.push(Nscript::preparser_checkvector(topush.to_string()));
+                                let topush = format!("&{}.{}",&Nscript::preparser_checkvector(splitprop[0].to_string()),&Nscript::preparser_checkvector(splitprop[1].to_string()));
+                                wordvec.push(topush.to_string());
                             }
                             else{
-                                wordvec.push(Nscript::preparser_checkvector(arg));
+                                if arg != ""{
+                                    wordvec.push(Nscript::preparser_checkvector(arg));
+                                }
                                 //wordvec.push(Nscript::preparser_checkvector(arg));
                             }
+                            // if Nstring::prefix(&arg) == "*" && Nstring::postfix(arg) == "["{
+                            //
+                            // }
                         }
                         else{
                             if arg == "!!false" || arg == "!!true"{
                                 arg = Nstring::trimleft(&arg,1);
                             }
-                            wordvec.push(arg);
+                            if arg != ""{
+                                wordvec.push(arg);
+                            }
                         }
                     }
                     //print(&format!("word [{}] became [{}]",&xline[x],wordvec.join("")),"bg");
@@ -284,26 +291,33 @@ impl  Nscript{
 
                 }
             }
-            // let mut teststring = String::new();
-            // for x in &proccessedvec{
-            //    teststring = teststring + &x.join(" ") + "\n";
-            // }
-            //  print(&teststring,"bb");
+
             let wlen = xline.len();
             if wlen > 1 {
                 if xline[wlen-2] == "SCOPE" {
                     xline[wlen-1] = Nstring::trimleft(&xline[wlen-1], 1);
                 }
             }
-            proccessedvec.push(xline);
+           if xline.len() > 0 && xline[0] != ""{
+                proccessedvec.push(xline);
+            }
 
         }
-        return proccessedvec;
+        let mut cleaned:Vec<Vec<String>> = Vec::new();
+        for xline in proccessedvec{
+            if xline.len() > 0 && xline[0] != ""{
+                cleaned.push(xline.clone());
+
+                //debug !!!!!!!!!  debug formatted code!!!!!!!!!!
+                //print(&xline.join(" "),"bb");
+            }
+        }
+        return cleaned;
     }
     fn preparser_checkvector(mut arg:String) ->String{
         if Nstring::prefix(&arg) != "[" && Nstring::postfix(&arg) == "[" {
             if Nstring::prefix(&arg) == "*"{
-                arg = "*#".to_string() + Nstring::trimprefix(arg);
+                arg = "*#".to_string() + Nstring::trimprefix(&arg);
             }
             else{
                 arg = "#".to_string() + &arg;

@@ -2,7 +2,8 @@
 use crate::*;
 //pub type NscriptSimpleFunctions = fn(&Vec<NscriptVar>) -> NscriptVar;
 pub type NscriptSimpleFunctions = fn(&Vec<&str>,block:&mut NscriptCodeBlock, &mut NscriptStorage) -> NscriptVar;
-
+ // this is used for subthreads/projects so all usermods will load on all threads
+pub type NscriptStructLoader = fn(&mut Nscript);
 /// NscriptScript main struct
 pub struct Nscript{
     // for user created structs

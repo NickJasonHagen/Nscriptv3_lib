@@ -2,7 +2,8 @@
 use crate::*;
 //pub type NscriptSimpleFunctions = fn(&Vec<NscriptVar>) -> NscriptVar;
 pub type NscriptSimpleFunctions = fn(&Vec<&str>,block:&mut NscriptCodeBlock, &mut NscriptStorage) -> NscriptVar;
- // this is used for subthreads/projects so all usermods will load on all threads
+
+// this is used for subthreads/projects so all usermods will load on all threads
 pub type NscriptStructLoader = fn(&mut Nscript);
 /// NscriptScript main struct
 pub struct Nscript{
@@ -27,8 +28,8 @@ pub struct Nscript{
     pub emptyexecutableblock: NscriptExecutableCodeBlock,// <- so we can send back a ref
     pub debugging: bool,// <- so we can send back a ref
     pub httpposthandles: HashMap<String, NscriptPostHandle>,
+    pub structloaders: Vec<NscriptStructLoader>,
 }
-//ok
 
 impl  Nscript{
     fn setclean() ->Nscript{
@@ -53,6 +54,7 @@ impl  Nscript{
             emptyexecutableblock:NscriptExecutableCodeBlock::new(),
             debugging:false,
             httpposthandles:HashMap::new(),
+            structloaders:Vec::new(),
 
 
         }

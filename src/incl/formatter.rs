@@ -1656,9 +1656,14 @@ pub fn mainloop(&mut self){
                 builtinsvec.push(f.to_owned());
             };
         }
-
+        let structloadervec = self.structloaders.clone();
         thread::spawn(move || {
             let mut threadstruct = Nscript::thread();
+
+            // hotload the structs injected by the user for the threads.
+            for xstruct in structloadervec{
+                xstruct(&mut threadstruct);
+            }
             // insert all rustfunctions to the threadstruct
             let mut i = 0;
             for x in builtins{

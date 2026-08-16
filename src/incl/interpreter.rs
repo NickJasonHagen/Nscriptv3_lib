@@ -31,9 +31,13 @@ pub struct Nscript{
     pub structloaders: Vec<NscriptStructLoader>,
 }
 
+// default customstructs
+fn defaultstructinjections(nscript:&mut Nscript){
+
+}
 impl  Nscript{
     fn setclean() ->Nscript{
-        Nscript {
+        let mut nscript = Nscript {
             ruststructsowned: HashMap::new(),
             ruststructsindex: Vec::new(),
             rustfunctions: HashMap::new(),
@@ -55,13 +59,14 @@ impl  Nscript{
             debugging:false,
             httpposthandles:HashMap::new(),
             structloaders:Vec::new(),
-
-
-        }
+        };
+        defaultstructinjections(&mut nscript);
+        nscript
     }
     pub fn new() -> Nscript {
         let mut this = Nscript::setclean();
         this.setbasicfunctions();
+        defaultstructinjections(&mut this);
         this.setcmdarguments();
         this
     }
@@ -77,6 +82,7 @@ impl  Nscript{
                 this.insertfn(&xfn, fnr.clone(),"");
             }
         }
+        defaultstructinjections(&mut this);
         this.setcmdarguments();
         this
     }

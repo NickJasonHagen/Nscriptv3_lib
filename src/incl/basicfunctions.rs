@@ -2,6 +2,8 @@ use colored::{ColoredString, CustomColor};
 
 use crate::*;
 use std::{char, time::{SystemTime, UNIX_EPOCH}};
+
+
 pub struct Nstring {
 }
 pub fn nscriptfn_split(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
@@ -1555,3 +1557,4 @@ pub fn nscriptfn_jsoncreate(args:&Vec<&str>,block :&mut NscriptCodeBlock , stora
         }
     NscriptVar::newstring("json",Nstring::trimright(&jsonstring,2)+"}")
 }
+

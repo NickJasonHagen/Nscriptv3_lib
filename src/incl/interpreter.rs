@@ -32,7 +32,7 @@ pub struct Nscript{
 }
 
 // default customstructs
-fn defaultstructinjections(nscript:&mut Nscript){
+fn defaultstructinjections(_nscript:&mut Nscript){
 
 }
 impl  Nscript{
@@ -213,17 +213,17 @@ impl  Nscript{
             self.insertfn("url", nscriptfn_url,"(hostaddress,param,params..) // returns the the url string like http://site.com?parm1&param2&etc");
             self.insertfn("objectgetrangebetween", nscriptfn_objectgetrangebetween,"(object1,object2) // returns the range as a f32 using objects x y z propererties.");
             self.insertfn("objectgetsiderange",nscriptfn_objectgetsiderange,"objectgetrange(side,range) // returns a f32;3 with the position, sides up/down/left/right #object requires .yaw .pitch");
-            self.insertfn("panic",nscriptfn_panic,"panic(errormsg) // panics the program with a msg. Exits after");
-            self.insertfn("udpbind",nscriptfn_udpbind,"udpbind(ip,poort) // returns a socketID which can be used by udplisten(socketid) and udpsend(socketid,clientid,msg)");
-            self.insertfn("udplisten",nscriptfn_udplisten,"udplisten(udpsocketid) // returns a vec[0] for clientsocket and [1] for msgdata");
-            self.insertfn("udpsend",nscriptfn_udpsend,"udpsend(udpsocketid,clientsocketid,msgstring) // returns a error value=[ERROR] on failure");
-            self.insertfn("udpreply",nscriptfn_udpreply,"udpreply(udpsocketid,clientsocketid,msgstring) //used for the listen() function to send to a clientsocket,  returns a error value=[ERROR] on failure");
-            self.insertfn("socketaddress",nscriptfn_socketaddress,"socketaddress(ip,port) //returns a socketaddress string eg: 0.0.0.0:8080 usable for udpsend()");
-            self.insertfn("arraypickrandom",nscriptfn_arraypickrandom,"arraypickrandom(vec) //returns a random entree from the given vector");
-            self.insertfn("is_int",nscriptfn_isint,"is_int(value) //returns true or false");
-            self.insertfn("is_float",nscriptfn_isfloat,"is_float(value) //returns true or false");
-            self.insertfn("is_number",nscriptfn_isnumber,"is_number(value) //returns true or false");
-            self.insertfn("json_create",nscriptfn_jsoncreate,"json_create(key,value,key,value..) //returns a jsonstring, arguments go by 2 , 4 ,6 etc");
+            self.insertfn("panic",nscriptfn_panic,"(errormsg) // panics the program with a msg. Exits after");
+            self.insertfn("udpbind",nscriptfn_udpbind,"(ip,poort) // returns a socketID which can be used by udplisten(socketid) and udpsend(socketid,clientid,msg)");
+            self.insertfn("udplisten",nscriptfn_udplisten,"(udpsocketid) // returns a vec[0] for clientsocket and [1] for msgdata");
+            self.insertfn("udpsend",nscriptfn_udpsend,"(udpsocketid,clientsocketid,msgstring) // returns a error value=[ERROR] on failure");
+            self.insertfn("udpreply",nscriptfn_udpreply,"(udpsocketid,clientsocketid,msgstring) //used for the listen() function to send to a clientsocket,  returns a error value=[ERROR] on failure");
+            self.insertfn("socketaddress",nscriptfn_socketaddress,"(ip,port) //returns a socketaddress string eg: 0.0.0.0:8080 usable for udpsend()");
+            self.insertfn("arraypickrandom",nscriptfn_arraypickrandom,"(vec) //returns a random entree from the given vector");
+            self.insertfn("is_int",nscriptfn_isint,"(value) //returns true or false");
+            self.insertfn("is_float",nscriptfn_isfloat,"(value) //returns true or false");
+            self.insertfn("is_number",nscriptfn_isnumber,"(value) //returns true or false");
+            self.insertfn("json_create",nscriptfn_jsoncreate,"(key,value,key,value..) //returns a jsonstring, arguments go by 2 , 4 ,6 etc");
 
             #[cfg(not(windows))]
             if 1 == 1{
@@ -724,15 +724,7 @@ impl NscriptStorage{
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);
                 let wordsplit = split(&thisword,"[");
-
-                let  varname : String;
-                if Nstring::prefix(wordsplit[0]) == "*"{
-                    varname = self.getargstring(&Nstring::trimprefix(&word),block).clone();
-                }
-                else{
-                    varname = wordsplit[0].to_string();
-                }
-                let mut var = self.getvar(&varname,block);
+                let mut var = self.getvar(&wordsplit[0],block);
                 let idvar = self.getargstring(&Nstring::trimsuffix(&wordsplit[1]),block).parse::<usize>().unwrap_or(0);
                 if idvar < var.stringvec.len(){
                     var.stringvec[idvar] = equalsfrom.stringdata;
@@ -740,10 +732,10 @@ impl NscriptStorage{
                 else {
 
                     if self.debugging {
-                        print(&format!("block [{}] array [{}] tries to set a index but its out of bounds",&block.name,&varname),"r");
+                        print(&format!("block [{}] array [{}] tries to set a index but its out of bounds",&block.name,&wordsplit[0]),"r");
                     }
                 }
-                self.setdefiningword(&varname, var, block);
+                self.setdefiningword(wordsplit[0], var, block);
             }
             NscriptWordTypes::Reflection =>{
                 let evalword = self.getargstring(&Nstring::trimprefix(&word),block);
@@ -873,22 +865,15 @@ impl NscriptStorage{
             }
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);
-                let  arrays = split(&thisword,"[");
-                let  varname : String;
-                if Nstring::prefix(arrays[0]) == "*"{
-                    varname = self.getargstring(&Nstring::trimprefix(&word),block).clone();
-                }
-                else{
-                    varname = arrays[0].to_string();
-                }
-                let thisvar = self.getargstringvec(&varname, block);
+                let arrays = split(&thisword,"[");
+                let thisvar = self.getargstringvec(arrays[0], block);
                 let index = self.getargstring(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
                 if thisvar.len() > index{
                     return thisvar[index].to_string();
                 }else{
 
                     if self.debugging {
-                        print(&format!("getargstring() storage block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&word,&block.name,&varname,&index,&thisvar.len()),"r");
+                        print(&format!("getargstring() storage block:[{}] word:[{}] array:{} index out of bounds! returning emptyvar, [{}] requested but len = [{}]",&word,&block.name,&arrays[0],&index,&thisvar.len()),"r");
                     }
                 }
                 return "".to_owned();
@@ -961,14 +946,7 @@ impl NscriptStorage{
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);
                 let arrays = split(&thisword,"[");
-                let  varname : String;
-                if Nstring::prefix(arrays[0]) == "*"{
-                    varname = self.getargstring(&Nstring::trimprefix(&word),block).clone();
-                }
-                else{
-                    varname = arrays[0].to_string();
-                }
-                let thisvar = self.getargstringvec(&varname, block);
+                let thisvar = self.getargstringvec(arrays[0], block);
                 let index = self.getargstring(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
                 if thisvar.len() > index{
                     return thisvar[index].clone().into();
@@ -1047,21 +1025,7 @@ impl NscriptStorage{
             NscriptWordTypes::Array =>{
                 let thisword = Nstring::trimprefix(&word);
                 let arrays = split(&thisword,"[");
-                // if arrays.len() < 2{
-                //     if self.debugging {
-                //         print(&format!("parsing beta bug block[{}] word:{}",&block.name,&word),"r");
-                //     }
-                //     return "".into();
-                // }
-
-                let  varname : String;
-                if Nstring::prefix(arrays[0]) == "*"{
-                    varname = self.getargstring(&Nstring::trimprefix(&word),block).clone();
-                }
-                else{
-                    varname = arrays[0].to_string();
-                }
-                let thisvar = self.getvar(&varname, block);
+                let thisvar = self.getvar(arrays[0], block);
                 let index = self.getevaluatablewordstr(&Nstring::trimsuffix(&arrays[1]),block).parse::<usize>().unwrap_or(0);
                 if thisvar.stringvec.len() > index{
                     return thisvar.stringvec[index].as_str().into();

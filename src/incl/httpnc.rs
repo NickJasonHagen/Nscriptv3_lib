@@ -466,7 +466,25 @@ impl  Nscript{
                     );
 
                     if let Err(_) = stream.write(response.as_bytes()) {return;}
-                    if let Err(_) = stream.write(&contents) {return;}
+                    //if let Err(_) = stream.write(&contents) {return;}
+                    let maxbytes = contents.len();
+                    let mut currenti = 0;
+
+                    loop {
+                        let tomax = currenti + 4096;
+                        if tomax >= maxbytes{
+                            // write last part
+
+                            if let Err(_) = stream.write(&contents[currenti..maxbytes]) {};
+                            break;
+                        }
+                        else{
+                            if let Err(_) = stream.write(&contents[currenti..tomax]) {};
+                        }
+                        currenti += 4096;
+                    }
+                    //if let Err(_) = stream.write(&contents) {return;}
+
 
                 });
                 return;

@@ -23,6 +23,10 @@ crossterm = "0.27.0"
 #qrcode = "0.14.1"
 #image = "0.25.8"
 fs_extra = "1.2.0"
+# HTTPS / TLS for https::bind / https::listen
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+rustls-pemfile = "2"
+rcgen = "0.13"
 
 [target.'cfg(unix)'.dependencies]
 termion = "3.0.0"

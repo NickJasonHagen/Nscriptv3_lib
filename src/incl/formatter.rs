@@ -2195,8 +2195,14 @@ pub fn mainloop(&mut self){
                 let get = self.executeword(&givenargs[0],&formattedblock,block);
                 return self.threadsend(&thisthread.stringdata, get);
             }
+            // Built-in HTTP / HTTPS Nscript structs
+            // http::  = plain TCP
+            // https:: = TLS (rustls); bind(ip,port) auto self-signed, or bind(ip,port,cert.pem,key.pem)
             "http" =>{
-                return self.httpexec(splitstruct[1], &argvarvec);
+                return self.httpexec(false, splitstruct[1], &argvarvec);
+            }
+            "https" =>{
+                return self.httpexec(true, splitstruct[1], &argvarvec);
             }
             "nscript" =>{
                 match splitstruct[1]{

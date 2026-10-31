@@ -1,69 +1,246 @@
 use crate::*;
+use std::io::BufReader;
 
 impl  Nscript{
-    pub fn httpexec(&mut self, tocall:&str,args:&Vec<NscriptVar>) -> NscriptVar{
+    /// Nscript struct API:
+    ///   http::bind(ip, port)                         plain HTTP
+    ///   https::bind(ip, port)                        TLS + auto self-signed cert
+    ///   https::bind(ip, port, cert.pem, key.pem)     TLS + your PEMs
+    ///   http::listen(id) / https::listen(id)
+    ///   http::unbind(id) / https::active()
+    ///
+    /// SSR: `.nc` / `.wnc` under server.serverroot → return value = HTTP body.
+    pub fn httpexec(&mut self, use_tls: bool, tocall:&str, args:&Vec<NscriptVar>) -> NscriptVar{
         match tocall{
-            "bind" => {
-                if args.len() > 1{
+            "bind" | "listen_bind" | "server" => {
+                if use_tls {
+                    if args.len() >= 4 {
+                        return self.httpsbind(
+                            &args[0].stringdata,
+                            &args[1].stringdata,
+                            Some(&args[2].stringdata),
+                            Some(&args[3].stringdata),
+                        );
+                    } else if args.len() >= 2 {
+                        return self.httpsbind(&args[0].stringdata, &args[1].stringdata, None, None);
+                    } else if args.len() == 1 {
+                        return self.httpsbind("0.0.0.0", &args[0].stringdata, None, None);
+                    }
+                    print("https::bind(ip,port) or https::bind(ip,port,cert.pem,key.pem)","r");
+                } else if args.len() > 1 {
                     return self.httpbind(&args[0].stringdata, &args[1].stringdata);
-                }else{
-                    print("forgotten arguments for http::bind!","r");
+                } else if args.len() == 1 {
+                    return self.httpbind("0.0.0.0", &args[0].stringdata);
+                } else {
+                    print("forgotten arguments for http::bind(ip,port)!","r");
                 }
             }
-            "listen" =>{
-                self.handleconnections();// running post thread handler!
+            "listen" | "accept" | "poll" =>{
+                self.handleconnections();
+                if args.is_empty() || args[0].stringdata.is_empty() {
+                    print("http(s)::listen(bindid) requires the id returned by bind","r");
+                    return NscriptVar::newstring("httplisten", "error: missing bind id".to_string());
+                }
                 return self.httplisten(&args[0].stringdata);
             }
-
+            "unbind" | "close" | "stop" => {
+                if args.is_empty() {
+                    return NscriptVar::newstring("httpunbind", "false".to_string());
+                }
+                self.http_tls_configs.remove(&args[0].stringdata);
+                let removed = self.tcplisteners.remove(&args[0].stringdata).is_some();
+                return NscriptVar::newstring("httpunbind", removed.to_string());
+            }
+            "active" | "bindings" => {
+                let keys: Vec<String> = self.tcplisteners.keys().cloned().collect();
+                return NscriptVar::newvec("httpactive", keys);
+            }
+            "istls" => {
+                if args.is_empty() {
+                    return NscriptVar::newstring("istls", "false".to_string());
+                }
+                let is_tls = self.http_tls_configs.contains_key(&args[0].stringdata);
+                return NscriptVar::newstring("istls", is_tls.to_string());
+            }
+            "help" => {
+                return NscriptVar::newstring(
+                    "httphelp",
+                    "http::bind(ip,port) | https::bind(ip,port) [auto TLS] | https::bind(ip,port,cert.pem,key.pem) | listen(id) | unbind(id) | active() | istls(id) — SSR .nc/.wnc".to_string(),
+                );
+            }
             _ => {
-
+                print(&format!("unknown http/https method: {}", tocall), "r");
             }
         }
-        let var = NscriptVar::new("httpexec");
-        var
+        NscriptVar::new("httpexec")
     }
+
     pub fn httpbind(&mut self, ip:&str, port:&str) ->NscriptVar{
         let mut var = NscriptVar::new("httpbind");
-        // retrieve the prop's set for class server in nscript:server.nc
-        let server_addres_nc = ip.to_string();
-        let server_port_nc = port.to_string();
-        let name = server_addres_nc.to_string() + &port;
-        let listener: TcpListener;
-        if server_port_nc != "" && server_addres_nc != "" {
-            // when the server.nc is run class server.ip and server.port be checked!
-            listener = TcpListener::bind(format!("{}:{}", &server_addres_nc, &server_port_nc)).unwrap();
-            println!(
-                "Server started at http://{}:{}",
-                &server_addres_nc, &server_port_nc
-            );
-        } else {
-            // if missing serverclass or something, use the constants
-            listener = TcpListener::bind(format!("{}:{}", "0.0.0.0", 8080)).unwrap();
+        let server_addres_nc = if ip.trim().is_empty() { "0.0.0.0".to_string() } else { ip.to_string() };
+        let server_port_nc = if port.trim().is_empty() { "8080".to_string() } else { port.to_string() };
+        let name = format!("{}:{}", server_addres_nc, server_port_nc);
 
-        }
-        #[cfg(not(windows))]
-        if let Err(_) = listener.set_nonblocking(true){
-            print("error cant set http listener to nonblocking","r");
+        let listener = match TcpListener::bind(format!("{}:{}", &server_addres_nc, &server_port_nc)) {
+            Ok(l) => l,
+            Err(e) => {
+                print(&format!("http::bind failed on {}:{} -> {}", server_addres_nc, server_port_nc, e), "r");
+                var.stringdata = format!("error:{}", e);
+                return var;
+            }
         };
+
+        if let Err(e) = listener.set_nonblocking(true) {
+            print(&format!("error cant set http listener to nonblocking: {}", e), "r");
+        }
+
+        println!(
+            "Nscript HTTP  listening at http://{}:{}  (bind id: {})",
+            &server_addres_nc, &server_port_nc, &name
+        );
+        println!("  SSR: .nc files in server.serverroot — return \"html\" from the script");
         var.stringdata = name.to_string();
-        self.tcplisteners.insert(name,listener);
+        self.tcplisteners.insert(name, listener);
         var
+    }
+
+    /// TLS bind (real HTTPS via rustls).
+    /// If cert/key omitted → generate/reuse self-signed PEMs in ./nscript-https-cert.pem + key.
+    pub fn httpsbind(&mut self, ip:&str, port:&str, cert_path: Option<&str>, key_path: Option<&str>) -> NscriptVar {
+        let mut var = NscriptVar::new("httpsbind");
+        let server_addres_nc = if ip.trim().is_empty() { "0.0.0.0".to_string() } else { ip.to_string() };
+        let server_port_nc = if port.trim().is_empty() { "8443".to_string() } else { port.to_string() };
+        let name = format!("tls:{}:{}", server_addres_nc, server_port_nc);
+
+        let tls_config = match (cert_path, key_path) {
+            (Some(c), Some(k)) if !c.is_empty() && !k.is_empty() => {
+                match Self::load_tls_server_config(c, k) {
+                    Ok(cfg) => {
+                        println!("HTTPS using cert={} key={}", c, k);
+                        cfg
+                    }
+                    Err(e) => {
+                        print(&format!("https::bind cert load failed: {}", e), "r");
+                        var.stringdata = format!("error:{}", e);
+                        return var;
+                    }
+                }
+            }
+            _ => {
+                match Self::load_or_create_self_signed_tls() {
+                    Ok(cfg) => cfg,
+                    Err(e) => {
+                        print(&format!("https::bind self-signed failed: {}", e), "r");
+                        var.stringdata = format!("error:{}", e);
+                        return var;
+                    }
+                }
+            }
+        };
+
+        let listener = match TcpListener::bind(format!("{}:{}", &server_addres_nc, &server_port_nc)) {
+            Ok(l) => l,
+            Err(e) => {
+                print(&format!("https::bind failed on {}:{} -> {}", server_addres_nc, server_port_nc, e), "r");
+                var.stringdata = format!("error:{}", e);
+                return var;
+            }
+        };
+        if let Err(e) = listener.set_nonblocking(true) {
+            print(&format!("error cant set https listener to nonblocking: {}", e), "r");
+        }
+
+        println!(
+            "Nscript HTTPS listening at https://{}:{}  (bind id: {})",
+            &server_addres_nc, &server_port_nc, &name
+        );
+        println!("  TLS: rustls · SSR .nc works the same as http::");
+        println!("  Note: browsers warn on self-signed certs — click Advanced → Proceed for local dev");
+
+        self.http_tls_configs.insert(name.clone(), tls_config);
+        self.tcplisteners.insert(name.clone(), listener);
+        var.stringdata = name;
+        var
+    }
+
+    fn load_tls_server_config(cert_path: &str, key_path: &str) -> Result<Arc<ServerConfig>, String> {
+        let cert_file = fs::File::open(cert_path).map_err(|e| format!("open cert {}: {}", cert_path, e))?;
+        let mut cert_reader = BufReader::new(cert_file);
+        let certs: Vec<CertificateDer<'static>> = rustls_pemfile::certs(&mut cert_reader)
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("parse cert: {}", e))?;
+        if certs.is_empty() {
+            return Err("no certificates found in PEM".to_string());
+        }
+
+        let key_file = fs::File::open(key_path).map_err(|e| format!("open key {}: {}", key_path, e))?;
+        let mut key_reader = BufReader::new(key_file);
+        let key = rustls_pemfile::private_key(&mut key_reader)
+            .map_err(|e| format!("parse key: {}", e))?
+            .ok_or_else(|| "no private key found in PEM".to_string())?;
+
+        let config = ServerConfig::builder()
+            .with_no_client_auth()
+            .with_single_cert(certs, key)
+            .map_err(|e| format!("rustls config: {}", e))?;
+        Ok(Arc::new(config))
+    }
+
+    fn load_or_create_self_signed_tls() -> Result<Arc<ServerConfig>, String> {
+        let cert_path = "nscript-https-cert.pem";
+        let key_path = "nscript-https-key.pem";
+        if Nfile::checkexists(cert_path) && Nfile::checkexists(key_path) {
+            println!("HTTPS reusing {} + {}", cert_path, key_path);
+            return Self::load_tls_server_config(cert_path, key_path);
+        }
+
+        // Simple self-signed for local/dev (browsers will warn — that's expected)
+        let certified = rcgen::generate_simple_self_signed(vec![
+            "localhost".to_string(),
+            "127.0.0.1".to_string(),
+        ])
+        .map_err(|e| format!("self-sign: {}", e))?;
+
+        let cert_pem = certified.cert.pem();
+        let key_pem = certified.key_pair.serialize_pem();
+        fs::write(cert_path, &cert_pem).map_err(|e| format!("write cert: {}", e))?;
+        fs::write(key_path, &key_pem).map_err(|e| format!("write key: {}", e))?;
+        println!("HTTPS generated self-signed {} + {}", cert_path, key_path);
+
+        Self::load_tls_server_config(cert_path, key_path)
     }
 
     pub fn httplisten(&mut self,nameid:&str) ->NscriptVar{
-
         let mut var = NscriptVar::new("listener");
+        let tls_config = self.http_tls_configs.get(nameid).cloned();
+
         if let Some(listener) = self.tcplisteners.get_mut(nameid){
             match listener.accept() {
-                Ok((stream, _)) => {
+                Ok((mut stream, _)) => {
+                    // Blocking mode for this connection (TLS handshake + request)
+                    let _ = stream.set_nonblocking(false);
                     match stream.peer_addr() {
                         Ok(res) => {
                             let remote_ip = res.ip();
                             let mut socketvar = NscriptVar::new("$socketip");
                             socketvar.stringdata = remote_ip.to_string();
                             self.storage.setglobal("$socketip",socketvar);
-                            self.handle_connection( stream);
-                            var.stringdata = format!("connection ok and closed");
+
+                            if let Some(config) = tls_config {
+                                match rustls::ServerConnection::new(config) {
+                                    Ok(conn) => {
+                                        let tls_stream = rustls::StreamOwned::new(conn, stream);
+                                        self.handle_connection(tls_stream);
+                                        var.stringdata = "https connection ok and closed".to_string();
+                                    }
+                                    Err(e) => {
+                                        var.stringdata = format!("TLS setup error: {}", e);
+                                    }
+                                }
+                            } else {
+                                self.handle_connection(stream);
+                                var.stringdata = "http connection ok and closed".to_string();
+                            }
                             return var;
                         }
                         Err(err) => {
@@ -83,7 +260,7 @@ impl  Nscript{
             }
         }
         var.stringdata = "theres no binding loaded".to_string();
-        return var;
+        var
     }
     fn httpsetarguments(&mut self,pathparts:&Vec<&str>){
         let mut url_args = Vec::new();
@@ -116,11 +293,9 @@ impl  Nscript{
         }
         return true;
     }
-    fn checkstream(&mut self,stream: &mut TcpStream,mut buffer: &mut [u8]) -> bool{
-        match stream.read(&mut buffer) {
-            Ok(_) => {
-                true
-            }
+    fn checkstream<S: Read>(&mut self,stream: &mut S, buffer: &mut [u8]) -> bool{
+        match stream.read(buffer) {
+            Ok(_) => true,
             Err(_) => {
                 println!("stream read error ! ");
                 false
@@ -128,7 +303,7 @@ impl  Nscript{
         }
     }
 
-    fn handle_connection(&mut self,mut stream: TcpStream) {
+    fn handle_connection<S: Read + Write + Send + 'static>(&mut self, mut stream: S) {
         // this is the webserver part it will take a GET request and handle it.
         // text files are on the main thread for other downloads it goes to a other thread
         // .nc files are being regonised and they will return their return results to the user browser.
@@ -196,19 +371,23 @@ impl  Nscript{
 
         let mut webroot = self.executeword("&server.serverroot",&formattedblock,&mut connectionblock).stringdata.to_string();
         if webroot == "" {
+            webroot = self.executeword("&server.webroot",&formattedblock,&mut connectionblock).stringdata.to_string();
+        }
+        if webroot == "" {
             webroot = "./".to_string();
         }
+        // normalize trailing slash
+        while webroot.ends_with('/') || webroot.ends_with('\\') {
+            webroot.pop();
+        }
 
-        let mut file_path = Nstring::replace(
-            &format!("{}{}{}", &webroot, "/", &pathparts[0]),
-            "/..",
-            "",
-        );
+        let mut file_path = self.resolve_http_filepath(&webroot, pathparts[0]);
         if self.httprunhttpaccessnc(&pathparts,&webroot) == false{return;};
 
         let checkthis = NC_SCRIPT_DIR.to_string() + "domains/" + &domainname + "/http.nc";
         if Nfile::checkexists(&checkthis) {
-            file_path = NC_SCRIPT_DIR.to_string() + "domains/" + &domainname + "/public/" + &pathparts[0];
+            let domain_root = NC_SCRIPT_DIR.to_string() + "domains/" + &domainname + "/public";
+            file_path = self.resolve_http_filepath(&domain_root, pathparts[0]);
         }
         if request_parts[0] == "POST" {
             self.storage.setglobal("$PACKETTYPE", NscriptVar::newstring("$POSTTYPE","POST".to_string()));
@@ -321,58 +500,28 @@ impl  Nscript{
             {
                 if ["wnc"].contains(&extension.as_str()) {
                     let ret = self.executewebnc(&file_path);
-                    let response = format!(
-                        "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
-                        "text/html",
-                        &ret.stringdata.len()
-                    );
-
-                    thread::spawn(move || {
-                        stream.write(response.as_bytes()).unwrap();
-                        stream.write(ret.stringdata.as_bytes()).unwrap();
-                    });
+                    Self::write_http_response_html(stream, ret.stringdata);
                     return
                 }
                 if ["nc"].contains(&extension.as_str()) {
-                    let _ = match File::open(&file_path) {
-                        Ok(_) => {}
-                        Err(_) => {
-                            let mut response = format!("HTTP/1.1 404 NOT FOUND\r\n\r\n");
-                            let nc404file =
-                            webroot.clone() + "/404.nc";
-                            println!("404={},", nc404file);
-                            if Nfile::checkexists(&nc404file) {
-                                let ret = self.parsecode(&Nfile::read(&nc404file),"404").stringdata.to_string();
-                                response = format!(
-                                    "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
-                                    "text/html",
-                                    &ret.len()
-                                );
-                                thread::spawn(move || {
-                                    stream.write(response.as_bytes()).unwrap();
-                                    stream.write(ret.as_bytes()).unwrap();
-                                });
-                                return;
-                            } else {
-                                thread::spawn(move || {
-                                    stream.write(response.as_bytes()).unwrap();
-                                });
-                                return;
-                            }
+                    if !Nfile::checkexists(&file_path) {
+                        let nc404file = webroot.clone() + "/404.nc";
+                        println!("404={},", nc404file);
+                        if Nfile::checkexists(&nc404file) {
+                            let ret = self.parsecode(&Nfile::read(&nc404file),"404").stringdata.to_string();
+                            Self::write_http_response_html(stream, ret);
+                            return;
+                        } else {
+                            let response = "HTTP/1.1 404 NOT FOUND\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n404 Not Found";
+                            thread::spawn(move || {
+                                let _ = stream.write(response.as_bytes());
+                            });
+                            return;
                         }
-                    };
-                    //let scriptcode = Nfile::read(&file_path);
+                    }
+                    // Server-side render: execute .nc and return script result as HTML body
                     let ret = self.parsefile(&file_path).stringdata.to_string();
-                    let response = format!(
-                        "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
-                        "text/html",
-                        &ret.len()
-                    );
-
-                    thread::spawn(move || {
-                        stream.write(response.as_bytes()).unwrap();
-                        stream.write(ret.as_bytes()).unwrap();
-                    });
+                    Self::write_http_response_html(stream, ret);
                     return
                 }
                 if ["html"].contains(&extension.as_str()) {
@@ -460,7 +609,7 @@ impl  Nscript{
                         _ => "application/octet-stream",
                     };
                     let response = format!(
-                        "HTTP/2.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n\r\n",
+                        "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
                         content_type,
                         contents.len()
                     );
@@ -502,6 +651,82 @@ impl  Nscript{
             self.execute_classfunction(&wncfunction,&mut NscriptCodeBlock::new(""))
         }
 
+    }
+
+    /// Resolve a request path against webroot with SSR-friendly fallbacks:
+    /// - `/` or empty -> index.nc (then index.html)
+    /// - `/folder/` -> folder/index.nc
+    /// - `/page` (no extension) -> page.nc if it exists, else page/index.nc, else page.html
+    /// - strips `..` traversal
+    fn resolve_http_filepath(&self, webroot: &str, reqpath: &str) -> String {
+        let cleaned = Nstring::replace(&Nstring::replace(reqpath, "\\", "/"), "/..", "");
+        let cleaned = cleaned.trim_start_matches('/').to_string();
+        let root = Nstring::replace(webroot, "\\", "/");
+
+        let try_paths = |candidates: Vec<String>| -> Option<String> {
+            for c in candidates {
+                if Nfile::checkexists(&c) {
+                    return Some(c);
+                }
+            }
+            None
+        };
+
+        if cleaned.is_empty() || cleaned == "/" {
+            if let Some(p) = try_paths(vec![
+                format!("{}/index.nc", root),
+                format!("{}/index.html", root),
+                format!("{}/index.htm", root),
+            ]) {
+                return p;
+            }
+            return format!("{}/index.nc", root);
+        }
+
+        let direct = format!("{}/{}", root, cleaned);
+        if cleaned.ends_with('/') {
+            let base = direct.trim_end_matches('/');
+            if let Some(p) = try_paths(vec![
+                format!("{}/index.nc", base),
+                format!("{}/index.html", base),
+            ]) {
+                return p;
+            }
+            return format!("{}/index.nc", base);
+        }
+
+        // exact file exists
+        if Nfile::checkexists(&direct) {
+            return direct;
+        }
+
+        // extensionless -> prefer .nc SSR
+        if !cleaned.contains('.') {
+            if let Some(p) = try_paths(vec![
+                format!("{}.nc", direct),
+                format!("{}/index.nc", direct),
+                format!("{}.html", direct),
+                format!("{}/index.html", direct),
+            ]) {
+                return p;
+            }
+            // default to .nc so 404.nc handling still kicks in for SSR routes
+            return format!("{}.nc", direct);
+        }
+
+        direct
+    }
+
+    fn write_http_response_html<S: Write + Send + 'static>(mut stream: S, body: String) {
+        let response = format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+            body.len()
+        );
+        thread::spawn(move || {
+            let _ = stream.write(response.as_bytes());
+            let _ = stream.write(body.as_bytes());
+            let _ = stream.flush();
+        });
     }
 }
 
@@ -609,7 +834,7 @@ impl Nscript{
         };
     }
 
-    pub fn addnewposthandle(&mut self,mut stream:TcpStream,threadname:&str,bufferinit :Vec<u8>,mut postdata:String,bsize:usize,scripttocall: &str){
+    pub fn addnewposthandle<S: Read + Write + Send + 'static>(&mut self, mut stream: S, threadname:&str, bufferinit :Vec<u8>, mut postdata:String, bsize:usize, scripttocall: &str){
         let mut buffer = bufferinit.to_owned();
         let (main_to_worker_tx, main_to_worker_rx) = mpsc::channel();
         let (worker_to_main_tx, worker_to_main_rx) = mpsc::channel();

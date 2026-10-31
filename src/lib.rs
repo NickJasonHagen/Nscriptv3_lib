@@ -42,9 +42,12 @@ pub use chrono::{Datelike, Timelike};
 pub use base64::prelude::*;
 extern crate fs_extra;
 pub use fs_extra::dir::get_size;
+pub use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
+pub use rustls::ServerConfig;
+//pub use std::sync::Arc;
 pub const NC_PROGRAM_DIR: &str = env!("CARGO_MANIFEST_DIR");
 pub const EMPTYSTR: &'static str  = "";
-pub const NSCRIPT_VERSION: &'static str = "3.7.123";
+pub const NSCRIPT_VERSION: &'static str = "3.8.123";
 #[cfg(windows)]
 const MACRO_OS: &'static str = "Windows";
 #[cfg(not(windows))]

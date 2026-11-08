@@ -116,8 +116,8 @@ impl  Nscript{
             self.insertfn("subtract", nscriptfn_subtract,"(number,tosubtract)  // subtracts the number given by the numbertosubtract");
             self.insertfn("multiply", nscriptfn_multiply, "(number,tomultiply)  // multiplies the number given by the numbertomultiply");
             self.insertfn("devide", nscriptfn_devide, "(number,todevide)  // subtracts the number given by the numbertodevide");
-            self.insertfn("add", nscriptfn_isalpthabetic,"(number,toadd)  // adds the number given by the numberto add");
-            self.insertfn("is_alphabetic", nscriptfn_isalpthabetic,"(string)  // Checks if a string is alphabetic, returns a bool");
+            self.insertfn("add", nscriptfn_isalphabetic,"(number,toadd)  // adds the number given by the numberto add");
+            self.insertfn("is_alphabetic", nscriptfn_isalpanumeric,"(string)  // Checks if a string is alphabetic, returns a bool");
             self.insertfn("timerdiff", nscriptfn_timerdiff,"(timerinit)  // takes a timervar created by timerinit() returns the difference in ms ");
             self.insertfn("timerinit", nscriptfn_timerinit,"()  // returns a timervar, can be used with timerdiff(var) to check difference in time ms");
             self.insertfn("trim", nscriptfn_trim,"(string)  // returns a trimmed string, this strips spaces in front and at end");

@@ -340,7 +340,7 @@ pub fn nscriptfn_isalphabetic(var:&Vec<&str>,block:&mut NscriptCodeBlock , stora
 }
 pub fn nscriptfn_isalpanumeric(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let string = storage.getargstring(var[0],block);
-    return NscriptVar::newstring("isalpthabeth", string.chars().all(char::is_alphabetic).to_string());
+    return NscriptVar::newstring("isalpthabeth", string.chars().all(char::is_alphanumeric).to_string());
 }
 pub fn nscriptfn_hextostring(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar {
     let mut var = NscriptVar::new("var");

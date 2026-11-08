@@ -334,7 +334,11 @@ impl Ntimer {
         return duration.as_millis() as i64 - timerhandle;
     }
 }
-pub fn nscriptfn_isalpthabetic(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+pub fn nscriptfn_isalphabetic(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
+    let string = storage.getargstring(var[0],block);
+    return NscriptVar::newstring("isalpthabeth", string.chars().all(char::is_alphabetic).to_string());
+}
+pub fn nscriptfn_isalpanumeric(var:&Vec<&str>,block:&mut NscriptCodeBlock , storage :&mut NscriptStorage) -> NscriptVar{
     let string = storage.getargstring(var[0],block);
     return NscriptVar::newstring("isalpthabeth", string.chars().all(char::is_alphabetic).to_string());
 }

@@ -1188,7 +1188,7 @@ pub fn nscriptfn_terminalinput(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
     var
 }
 pub fn nscriptfn_select(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
-    let mut var = NscriptVar::new("splitselect");
+    let mut var = NscriptVar::new("select");
     if args.len() > 2 {
         let id = storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0);
         let splitvec = storage.getargstringvec(&args[0],block);

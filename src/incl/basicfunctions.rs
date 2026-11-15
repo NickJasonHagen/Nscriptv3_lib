@@ -1187,7 +1187,20 @@ pub fn nscriptfn_terminalinput(args:&Vec<&str>,block :&mut NscriptCodeBlock , st
     var.stringdata = input.to_string();
     var
 }
-
+pub fn nscriptfn_select(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let mut var = NscriptVar::new("splitselect");
+    if args.len() > 2 {
+        let id = storage.getargstring(&args[1], block).parse::<usize>().unwrap_or(0);
+        let splitvec = storage.getargstringvec(&args[0],block);
+        if splitvec.len() > id {
+            var.stringdata = splitvec[id].to_string();
+        }
+    else{
+            print(&format!("array[{}] len exceeds",&args[0]),"r");
+        }
+    }
+    var
+}
 pub fn nscriptfn_splitselect(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
     let mut var = NscriptVar::new("splitselect");
     if args.len() > 2 {

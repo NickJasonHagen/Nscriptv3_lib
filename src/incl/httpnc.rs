@@ -216,7 +216,7 @@ impl  Nscript{
 
         if let Some(listener) = self.tcplisteners.get_mut(nameid){
             match listener.accept() {
-                Ok((mut stream, _)) => {
+                Ok((stream, _)) => {
                     // Blocking mode for this connection (TLS handshake + request)
                     let _ = stream.set_nonblocking(false);
                     match stream.peer_addr() {

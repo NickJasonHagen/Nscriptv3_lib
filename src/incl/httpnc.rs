@@ -297,7 +297,7 @@ impl  Nscript{
         match stream.read(buffer) {
             Ok(_) => true,
             Err(_) => {
-                println!("stream read error ! ");
+                //println!("stream read error ! ");
                 false
             }
         }

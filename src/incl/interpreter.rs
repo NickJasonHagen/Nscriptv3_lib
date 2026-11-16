@@ -176,6 +176,8 @@ impl  Nscript{
             self.insertfn("arrayreverse", nscriptfn_arrayreverse,"(vector)  // reverses the vector returns that as a new");
             self.insertfn("arraysearch", nscriptfn_arraysearch,"(vector,string) //  will create a new vector with all entrees containing the given string");
             self.insertfn("arrayfilter", nscriptfn_arrayfilter,"(vector,string) //  will create a new vector without all entrees containing the given string");
+            self.insertfn("httpsget", nscriptfn_httpsget,"(url) //  will return the webcontent example : \n httpsget(\"https://mysite.com\")");
+            self.insertfn("httpsdownloadfile", nscriptfn_httpsdownloadfile,"(url,destfile) //  will return the status ok/error");
             self.insertfn("httpgetcontent", nscriptfn_get_http_content,"(ip,port,remotefile) //  will return the webcontent example : \n httpgetcontent(\"127.0.0.1\",80,\"/index.nc\")");
             self.insertfn("httppost", nscriptfn_post_http_content,"(ip,port,url,datatosend) //  will return the webcontent example : \n httppostt(\"127.0.0.1\",80,\"/index.nc\",123)");
             self.insertfn("terminalinput", nscriptfn_terminalinput,"(msgstring,defaultoption) //  the terminal will listen for given input,\n this function returns when the terminal gives a enter");

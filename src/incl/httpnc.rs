@@ -1,6 +1,49 @@
 use crate::*;
 use std::io::BufReader;
+use reqwest;
+use std::fs;
+use std::io::Write;
+fn httpsget(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let client = reqwest::blocking::Client::new();
+    let response = client.get(url).send()?;
+    let text = response.text()?;
+    Ok(text)
+}
 
+/// Downloads a file from a URL to a local destination path.
+fn https_download_file(
+    url: &str,
+    dest_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let client = reqwest::blocking::Client::new();
+    let response = client.get(url).send()?;
+
+    if !response.status().is_success() {
+        return Err(format!("HTTP error: {}", response.status()).into());
+    }
+
+    let bytes = response.bytes()?;
+    let mut file = fs::File::create(dest_path)?;
+    file.write_all(&bytes)?;
+
+    Ok(())
+}
+pub fn nscriptfn_httpsget(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let mut var = NscriptVar::new("httpsget");
+    if let Ok(res) = httpsget(&storage.getargstring(&args[0], block)){
+        var.stringdata = res;
+    };
+    return var;
+}
+pub fn nscriptfn_httpsdownloadfile(args:&Vec<&str>,block :&mut NscriptCodeBlock , storage :&mut NscriptStorage) ->NscriptVar{
+    let mut var = NscriptVar::new("httpsdownloadfile");
+    if let Ok(_) = https_download_file(&storage.getargstring(&args[0], block),&storage.getargstring(&args[1], block)){
+        var.stringdata = "ok".to_string()
+    }else{
+        var.stringdata = "error".to_string()
+    };
+    return var;
+}
 impl  Nscript{
     /// Nscript struct API:
     ///   http::bind(ip, port)                         plain HTTP
